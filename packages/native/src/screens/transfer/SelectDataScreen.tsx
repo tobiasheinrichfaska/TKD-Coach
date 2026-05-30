@@ -1,0 +1,185 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { useData } from '../../context/DataContext';
+import { COLORS } from '../../constants/colors';
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: { backgroundColor: COLORS.surface, padding: 16, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  headerText: { fontSize: 18, fontWeight: 'bold', color: COLORS.text },
+  content: { padding: 16 },
+  section: { fontSize: 14, fontWeight: 'bold', marginTop: 16, marginBottom: 8, color: COLORS.text },
+  checkbox: { flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: COLORS.surface, marginBottom: 8, borderRadius: 8 },
+  checkboxChecked: { backgroundColor: COLORS.primary, opacity: 0.1 },
+  box: { width: 24, height: 24, borderWidth: 2, borderColor: COLORS.primary, borderRadius: 4, marginRight: 12, justifyContent: 'center', alignItems: 'center' },
+  boxChecked: { backgroundColor: COLORS.primary },
+  checkmark: { color: COLORS.surface, fontSize: 16, fontWeight: 'bold' },
+  label: { fontSize: 14, color: COLORS.text, flex: 1 },
+  count: { fontSize: 12, color: COLORS.textMuted },
+  controls: { flexDirection: 'row', gap: 12, padding: 16 },
+  button: { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center' },
+  buttonPrimary: { backgroundColor: COLORS.primary },
+  buttonSecondary: { backgroundColor: COLORS.info },
+  buttonText: { color: COLORS.surface, fontWeight: 'bold' },
+  buttonDisabled: { opacity: 0.5 },
+});
+
+export interface TransferSelection {
+  groups: boolean;
+  athletes: boolean;
+  sessionPlans: boolean;
+  sessionLogs: boolean;
+  assessments: boolean;
+}
+
+interface SelectDataScreenProps {
+  onConfirm: (selection: TransferSelection) => void;
+  onCancel: () => void;
+}
+
+export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScreenProps) {
+  const { state } = useData();
+  const [selection, setSelection] = useState<TransferSelection>({
+    groups: true,
+    athletes: true,
+    sessionPlans: false,
+    sessionLogs: false,
+    assessments: false,
+  });
+
+  const toggle = (key: keyof TransferSelection) => {
+    setSelection(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const selectAll = () => {
+    setSelection({
+      groups: true,
+      athletes: true,
+      sessionPlans: true,
+      sessionLogs: true,
+      assessments: true,
+    });
+  };
+
+  const selectNone = () => {
+    setSelection({
+      groups: false,
+      athletes: false,
+      sessionPlans: false,
+      sessionLogs: false,
+      assessments: false,
+    });
+  };
+
+  const hasSelection = Object.values(selection).some(v => v);
+  const totalItems =
+    (selection.groups ? state.groups.length : 0) +
+    (selection.athletes ? state.athletes.length : 0) +
+    (selection.sessionPlans ? state.sessionPlans.length : 0) +
+    (selection.sessionLogs ? state.sessionLogs.length : 0) +
+    (selection.assessments ? state.assessments.length : 0);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Select Data to Sync</Text>
+      </View>
+
+      <ScrollView style={styles.content}>
+        <Text style={styles.section}>What to include in transfer:</Text>
+
+        <TouchableOpacity
+          style={[styles.checkbox, selection.groups && styles.checkboxChecked]}
+          onPress={() => toggle('groups')}
+        >
+          <View style={[styles.box, selection.groups && styles.boxChecked]}>
+            {selection.groups && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Groups</Text>
+            <Text style={styles.count}>{state.groups.length} items</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.checkbox, selection.athletes && styles.checkboxChecked]}
+          onPress={() => toggle('athletes')}
+        >
+          <View style={[styles.box, selection.athletes && styles.boxChecked]}>
+            {selection.athletes && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Athletes</Text>
+            <Text style={styles.count}>{state.athletes.length} items</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.checkbox, selection.sessionPlans && styles.checkboxChecked]}
+          onPress={() => toggle('sessionPlans')}
+        >
+          <View style={[styles.box, selection.sessionPlans && styles.boxChecked]}>
+            {selection.sessionPlans && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Session Plans</Text>
+            <Text style={styles.count}>{state.sessionPlans.length} items</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.checkbox, selection.sessionLogs && styles.checkboxChecked]}
+          onPress={() => toggle('sessionLogs')}
+        >
+          <View style={[styles.box, selection.sessionLogs && styles.boxChecked]}>
+            {selection.sessionLogs && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Session Logs</Text>
+            <Text style={styles.count}>{state.sessionLogs.length} items</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.checkbox, selection.assessments && styles.checkboxChecked]}
+          onPress={() => toggle('assessments')}
+        >
+          <View style={[styles.box, selection.assessments && styles.boxChecked]}>
+            {selection.assessments && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.label}>Assessments</Text>
+            <Text style={styles.count}>{state.assessments.length} items</Text>
+          </View>
+        </TouchableOpacity>
+
+        <Text style={[styles.section, { marginTop: 24 }]}>Quick select:</Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={selectAll}>
+            <Text style={styles.buttonText}>All</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={selectNone}>
+            <Text style={styles.buttonText}>None</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={[styles.section, { marginTop: 24 }]}>
+          Total: {totalItems} items will be transferred
+        </Text>
+      </ScrollView>
+
+      <View style={styles.controls}>
+        <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={onCancel}>
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.buttonPrimary, !hasSelection && styles.buttonDisabled]}
+          onPress={() => onConfirm(selection)}
+          disabled={!hasSelection}
+        >
+          <Text style={styles.buttonText}>Continue</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}

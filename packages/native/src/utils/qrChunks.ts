@@ -1,5 +1,6 @@
 import { inflate, deflate } from 'pako';
 import { AppData } from '../types';
+import { TransferSelection } from '../screens/transfer/SelectDataScreen';
 
 /**
  * Simple base64 encoder for React Native (no btoa available).
@@ -112,6 +113,143 @@ export function assembleFromChunks(packets: string[]): AppData {
   const data = JSON.parse(json) as AppData;
 
   return data;
+}
+
+/**
+ * Export selected data from AppData.
+ */
+export function exportSelected(data: AppData, selection: TransferSelection): AppData {
+  return {
+    version: data.version,
+    games: data.games,
+    groups: selection.groups ? data.groups : [],
+    athletes: selection.athletes ? data.athletes : [],
+    sessionPlans: selection.sessionPlans ? data.sessionPlans : [],
+    sessionLogs: selection.sessionLogs ? data.sessionLogs : [],
+    assessments: selection.assessments ? data.assessments : [],
+  };
+}
+
+export interface ChangeDetection {
+  new: AppData;
+  changed: AppData;
+  unchanged: AppData;
+}
+
+/**
+ * Detect which data is new, changed, or unchanged compared to local data.
+ */
+export function detectChanges(local: AppData, imported: AppData): ChangeDetection {
+  const localGroupMap = new Map(local.groups.map(g => [g.id, g]));
+  const localAthleteMap = new Map(local.athletes.map(a => [a.id, a]));
+  const localGameMap = new Map(local.games.map(g => [g.id, g]));
+  const localPlanMap = new Map(local.sessionPlans.map(p => [p.id, p]));
+  const localLogMap = new Map(local.sessionLogs.map(l => [l.id, l]));
+  const localAssessmentMap = new Map(local.assessments.map(a => [a.id, a]));
+
+  const newData: AppData = {
+    version: imported.version,
+    games: [],
+    groups: [],
+    athletes: [],
+    sessionPlans: [],
+    sessionLogs: [],
+    assessments: [],
+  };
+
+  const changedData: AppData = {
+    version: imported.version,
+    games: [],
+    groups: [],
+    athletes: [],
+    sessionPlans: [],
+    sessionLogs: [],
+    assessments: [],
+  };
+
+  const unchangedData: AppData = {
+    version: imported.version,
+    games: [],
+    groups: [],
+    athletes: [],
+    sessionPlans: [],
+    sessionLogs: [],
+    assessments: [],
+  };
+
+  // Process groups
+  imported.groups.forEach(g => {
+    const existing = localGroupMap.get(g.id);
+    if (!existing) {
+      newData.groups.push(g);
+    } else if (JSON.stringify(existing) !== JSON.stringify(g)) {
+      changedData.groups.push(g);
+    } else {
+      unchangedData.groups.push(g);
+    }
+  });
+
+  // Process athletes
+  imported.athletes.forEach(a => {
+    const existing = localAthleteMap.get(a.id);
+    if (!existing) {
+      newData.athletes.push(a);
+    } else if (JSON.stringify(existing) !== JSON.stringify(a)) {
+      changedData.athletes.push(a);
+    } else {
+      unchangedData.athletes.push(a);
+    }
+  });
+
+  // Process games
+  imported.games.forEach(g => {
+    const existing = localGameMap.get(g.id);
+    if (!existing) {
+      newData.games.push(g);
+    } else if (JSON.stringify(existing) !== JSON.stringify(g)) {
+      changedData.games.push(g);
+    } else {
+      unchangedData.games.push(g);
+    }
+  });
+
+  // Process session plans
+  imported.sessionPlans.forEach(p => {
+    const existing = localPlanMap.get(p.id);
+    if (!existing) {
+      newData.sessionPlans.push(p);
+    } else if (JSON.stringify(existing) !== JSON.stringify(p)) {
+      changedData.sessionPlans.push(p);
+    } else {
+      unchangedData.sessionPlans.push(p);
+    }
+  });
+
+  // Process session logs
+  imported.sessionLogs.forEach(l => {
+    const existing = localLogMap.get(l.id);
+    if (!existing) {
+      newData.sessionLogs.push(l);
+    } else if (JSON.stringify(existing) !== JSON.stringify(l)) {
+      changedData.sessionLogs.push(l);
+    } else {
+      unchangedData.sessionLogs.push(l);
+    }
+  });
+
+  // Process assessments
+  imported.assessments.forEach(a => {
+    const existing = localAssessmentMap.get(a.id);
+    if (!existing) {
+      newData.assessments.push(a);
+    } else if (JSON.stringify(existing) !== JSON.stringify(a)) {
+      changedData.assessments.push(a);
+    } else {
+      unchangedData.assessments.push(a);
+    }
+  });
+
+  return { new: newData, changed: changedData, unchanged: unchangedData };
 }
 
 /**
