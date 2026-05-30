@@ -1,28 +1,102 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { useData } from '../context/DataContext';
 import { COLORS } from '../constants/colors';
+import { formatDate, formatDateShort } from '../utils/format';
+import { getGameById } from '../constants/games';
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    padding: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+  container: { flex: 1, backgroundColor: COLORS.background },
+  content: { padding: 16 },
+  section: { fontSize: 16, fontWeight: 'bold', marginBottom: 12, marginTop: 20, color: COLORS.text },
+  sessionCard: {
+    backgroundColor: COLORS.surface,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.primary,
   },
-  text: {
-    fontSize: 18,
-    color: COLORS.text,
-  },
+  sessionTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  sessionMeta: { fontSize: 12, color: COLORS.textMuted, marginTop: 4 },
+  gameList: { fontSize: 12, color: COLORS.textLight, marginTop: 8 },
+  button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12 },
+  buttonText: { color: COLORS.surface, fontWeight: 'bold', fontSize: 14 },
+  empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }: any) {
+  const { state } = useData();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayISO = today.toISOString().split('T')[0];
+
+  const todaysPlans = state.sessionPlans.filter(p => p.plannedDate === todayISO);
+  const recentLogs = state.sessionLogs
+    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+    .slice(0, 5);
+
+  const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || 'Unknown';
+  const getGameNames = (gameIds: string[]) =>
+    gameIds
+      .map(id => state.games.find(g => g.id === id)?.shortName || id)
+      .join(' · ');
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Dashboard — Phase 1</Text>
-      <Text style={{ fontSize: 14, color: COLORS.textMuted, marginTop: 8 }}>
-        Heute's planned sessions will appear here.
-      </Text>
-    </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        {/* Today's Sessions */}
+        <Text style={styles.section}>🗓 Today's Sessions</Text>
+        {todaysPlans.length > 0 ? (
+          <>
+            {todaysPlans.map(plan => (
+              <TouchableOpacity
+                key={plan.id}
+                style={styles.sessionCard}
+                onPress={() => navigation.navigate('SessionsTab', { screen: 'SessionsList', params: { planId: plan.id } })}
+              >
+                <Text style={styles.sessionTitle}>{plan.name}</Text>
+                <Text style={styles.sessionMeta}>{getGroupName(plan.groupId)}</Text>
+                <Text style={styles.gameList}>{getGameNames(plan.plannedGames)}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SessionsTab')}>
+              <Text style={styles.buttonText}>Start Session</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <Text style={styles.empty}>No sessions planned for today</Text>
+        )}
+
+        {/* Recent Sessions */}
+        <Text style={styles.section}>📊 Recent Sessions</Text>
+        {recentLogs.length > 0 ? (
+          <FlatList
+            scrollEnabled={false}
+            data={recentLogs}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.sessionCard}>
+                <Text style={styles.sessionTitle}>{getGroupName(item.groupId)}</Text>
+                <Text style={styles.sessionMeta}>{formatDateShort(item.startedAt)}</Text>
+                <Text style={styles.gameList}>{item.gameLogs.length} games</Text>
+              </View>
+            )}
+          />
+        ) : (
+          <Text style={styles.empty}>No sessions recorded yet</Text>
+        )}
+
+        {/* Quick Stats */}
+        <Text style={styles.section}>📈 Quick Stats</Text>
+        <View style={styles.sessionCard}>
+          <Text style={styles.sessionMeta}>Total Groups: {state.groups.length}</Text>
+          <Text style={styles.sessionMeta}>Total Athletes: {state.athletes.length}</Text>
+          <Text style={styles.sessionMeta}>Sessions Completed: {state.sessionLogs.filter(l => l.status === 'completed').length}</Text>
+          <Text style={styles.sessionMeta}>Assessments Logged: {state.assessments.length}</Text>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
