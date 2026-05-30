@@ -6,8 +6,14 @@
   "workspaces": [
     "packages/native"
   ],
+  "overrides": {
+    "react": "19.1.0",
+    "react-is": "19.1.0",
+    "react-dom": "19.1.0"
+  },
   "scripts": {
-    "native:start": "cd packages/native && cross-env NODE_OPTIONS=--no-experimental-strip-types npx expo start --port 8081",
+    "native:start": "npm run start --workspace=@tkd-coach/native",
+    "native:start:tunnel": "npm run start:tunnel --workspace=@tkd-coach/native",
     "native:build": "cd packages/native && npx expo build:web",
     "native:publish": "cd packages/native && npx eas build --platform ios --profile production && npx eas build --platform android --profile production"
   },
