@@ -1,6 +1,5 @@
 import { inflate, deflate } from 'pako';
-import { AppData } from '../types';
-import { TransferSelection } from '../screens/transfer/SelectDataScreen';
+import type { AppData, TransferSelection } from '../types';
 
 /**
  * Simple base64 encoder for React Native (no btoa available).

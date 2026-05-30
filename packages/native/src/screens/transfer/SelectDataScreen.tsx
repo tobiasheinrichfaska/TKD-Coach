@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
+import type { TransferSelection } from '../../types';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -23,14 +24,6 @@ const styles = StyleSheet.create({
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
   buttonDisabled: { opacity: 0.5 },
 });
-
-export interface TransferSelection {
-  groups: boolean;
-  athletes: boolean;
-  sessionPlans: boolean;
-  sessionLogs: boolean;
-  assessments: boolean;
-}
 
 interface SelectDataScreenProps {
   onConfirm: (selection: TransferSelection) => void;

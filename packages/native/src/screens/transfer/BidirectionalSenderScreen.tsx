@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   ackPreview: { color: COLORS.textMuted, fontSize: 11, marginTop: 4 },
   controls: { flexDirection: 'row', gap: 8, marginTop: 16 },
   button: { flex: 1, backgroundColor: COLORS.primary, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
-  buttonDanger: { backgroundColor: COLORS.error },
+  buttonDanger: { backgroundColor: COLORS.danger },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
   loading: { justifyContent: 'center', alignItems: 'center', padding: 24 },
 });

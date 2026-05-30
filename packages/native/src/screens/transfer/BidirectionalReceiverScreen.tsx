@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Scr
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { assembleFromChunks, detectChanges, QRChunk, ChangeDetection } from '../../utils/qrChunks';
+import { assembleFromChunks, detectChanges } from '../../utils/qrChunks';
+import type { QRChunk, ChangeDetection } from '../../utils/qrChunks';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -14,7 +15,7 @@ const styles = StyleSheet.create({
   overlayText: { color: COLORS.surface, textAlign: 'center', fontSize: 14, marginBottom: 8 },
   progress: { color: COLORS.surface, fontSize: 12, marginBottom: 12, textAlign: 'center' },
   button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center' },
-  buttonDanger: { backgroundColor: COLORS.error },
+  buttonDanger: { backgroundColor: COLORS.danger },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
   noCamera: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
   noCameraText: { fontSize: 16, color: COLORS.text, marginBottom: 16, textAlign: 'center' },

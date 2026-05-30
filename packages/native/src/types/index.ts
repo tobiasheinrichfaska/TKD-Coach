@@ -124,3 +124,11 @@ export interface AppData {
 export interface AppState extends AppData {
   isLoaded: boolean;
 }
+
+export interface TransferSelection {
+  groups: boolean;
+  athletes: boolean;
+  sessionPlans: boolean;
+  sessionLogs: boolean;
+  assessments: boolean;
+}
