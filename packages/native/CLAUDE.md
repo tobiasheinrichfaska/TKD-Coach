@@ -51,20 +51,39 @@ State persisted to AsyncStorage; changes debounced 300ms.
 **Screens:** AssessmentScreen, ProgressScreen  
 **Key Feature:** Auto-calculates delta from previous entry; color-codes improvement vs regression
 
-## Phase 4 — QR Transfer (Complete)
+## Phase 4 — QR Transfer (Complete) — Bidirectional with Change Detection
 
 **Completed Implementation:**
-- ✅ QR chunk encoding (JSON → pako deflate → base64 → 800-char chunks)
-- ✅ SendQRScreen (paginated QR display with prev/next navigation, 300px QR codes)
-- ✅ ReceiveQRScreen (expo-camera v16 CameraView for barcode scanning, auto-import on complete)
-- ✅ Chunk assembly + merge (local-wins by ID strategy)
-- ✅ TransferScreen (two large buttons for Send/Receive with descriptions)
-- ✅ TransferNavigator (three screens: main, send, receive)
+- ✅ Phone-primed ID generation (prevents collisions between coaches)
+- ✅ Selective data export (checkboxes for groups/athletes/sessions/assessments)
+- ✅ Bidirectional handshake protocol (sender announces totalChunks, receiver confirms ready)
+- ✅ Chunk transfer with ACK verification (sender shows chunk, receiver scans & acknowledges, resend on mismatch)
+- ✅ Change detection (new vs changed vs unchanged data)
+- ✅ Merge review screen (summarizes changes before accepting)
+- ✅ Stop button (manual termination, no timeout needed)
+
+**Transfer Flow:**
+1. Both phones tap Transfer tab → choose role (Sender or Receiver)
+2. Sender: SelectData → choose what to sync → display handshake QR
+3. Receiver: scan handshake QR → awaits chunks
+4. For each chunk: Sender displays → Receiver scans & accumulates → Receiver confirms via ACK
+5. After all chunks: Receiver assembles data → detects changes → shows review screen
+6. Review shows: New (green) | Changed (amber) | Unchanged (gray)
+7. Accept → merge with updates → return to Transfer screen
+8. Can repeat immediately for frequent syncs
 
 **Screens:**
-- SendQRScreen: encodeToChunks → render current chunk as QR → prev/next pagination → progress (N/total)
-- ReceiveQRScreen: CameraView → barcode scan → accumulate chunks → auto-import when complete → Alert with summary
-- TransferScreen: Two large buttons (Send/Receive) + explanation text
+- TransferScreen: Role selection buttons (Sender/Receiver)
+- SelectDataScreen: Checkboxes for data categories + All/None quick select
+- BidirectionalSenderScreen: Handshake QR → chunk pagination with ACK indicators
+- BidirectionalReceiverScreen: Handshake scan → chunk accumulation with progress → review → complete
+
+**Key Features:**
+- Phone-primed IDs (DEVICEID_timestamp_random) prevent ID collisions when coaches work independently
+- Selective export reduces transfer size (can choose just groups, or full sync with assessments)
+- Change detection allows updating existing data (not just adding new)
+- ACK verification provides error detection (if receiver's preview doesn't match, chunk repeats)
+- Review screen gives coach visibility before merging
 
 ## Critical Implementation Details
 
@@ -117,7 +136,8 @@ src/
 ├── utils/
 │   ├── ids.ts
 │   ├── format.ts
-│   ├── qrChunks.ts     ← Phase 4
+│   ├── qrChunks.ts     ← Phase 4: encode/assemble/export/detectChanges
+│   └── deviceId.ts     ← Phase 4: phone-primed IDs
 ├── components/
 │   └── MetricRow.tsx   ← Imported by ProgressScreen
 └── screens/
@@ -138,9 +158,12 @@ src/
     │   ├── AssessmentNavigator.tsx
     │   ├── AssessmentScreen.tsx
     │   └── ProgressScreen.tsx
-    └── transfer/          ← Phase 4 stubs
-        ├── TransferNavigator.tsx
-        └── TransferScreen.tsx
+    └── transfer/          ← Phase 4
+        ├── TransferNavigator.tsx      ← Main navigator (routes to all screens)
+        ├── TransferScreen.tsx         ← Role selection (Sender/Receiver)
+        ├── SelectDataScreen.tsx       ← Sender: choose what to sync
+        ├── BidirectionalSenderScreen.tsx  ← Sender: handshake + chunk loop
+        └── BidirectionalReceiverScreen.tsx ← Receiver: scan + accumulate + review
 ```
 
 ## Testing Checklist (All Phases)
@@ -150,9 +173,14 @@ src/
 - [ ] Plan session with template → run session → timers accurate → complete → Share to Signal
 - [ ] Log assessment (balance hold) multiple times → ProgressScreen shows deltas
 - [ ] Share progress → Signal summary appears
-- [ ] Export data → SendQRScreen → paginate through all QR codes
-- [ ] Import data → ReceiveQRScreen → scan all QR codes → import succeeds → verify new athletes appear
-- [ ] Verify data merge: local athletes kept, imported athletes added
+- [ ] **Transfer Test (two phones):**
+  - [ ] Phone A: Transfer → "Start Transfer Sender" → Select Groups + Athletes → Display handshake QR
+  - [ ] Phone B: Transfer → "Start Transfer Receiver" → Scan handshake QR
+  - [ ] Phone A: Display chunk QRs (manually advance with Next)
+  - [ ] Phone B: Auto-scan and accumulate chunks
+  - [ ] Phone B: Review changes (should show new groups/athletes as green)
+  - [ ] Phone B: Accept → verify new data appears in groups/athletes lists
+  - [ ] Repeat transfer with different selection (e.g., only assessments)
 
 ---
 
