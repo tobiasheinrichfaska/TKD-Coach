@@ -184,16 +184,33 @@ src/
 
 ---
 
-## Deployment
+## Deployment & Testing
 
-The app is ready for testing in Expo Go (SDK 54). To start development:
+The app is ready for testing in Expo Go (SDK 54).
+
+**Start Development Server:**
 
 ```bash
 cd packages/native
-npm start  # or: npx expo start --port 8082 (if 8081 busy)
+npm start
 ```
 
-Scan with Expo Go app on any phone with SDK 54+ support.
+This starts the server on **port 8081** with correct NODE_OPTIONS for TypeScript.
+
+**Important:** Always provide the full IP address and port when connecting from physical devices:
+- Metro will display the QR code and connection URL
+- URL format: `http://YOUR_MACHINE_IP:8081`
+- Example: `http://192.168.1.100:8081`
+- Do NOT use `localhost:8081` — use the actual machine IP address
+
+**To Test on Phone:**
+1. Open Expo Go app (SDK 54+ supported)
+2. Scan the QR code displayed in terminal
+3. Or manually enter the full IP address + port in Expo Go
+
+**Two-Phone Transfer Testing:**
+- Both phones must be on same network
+- Use the full IP address for connectivity (not localhost)
 
 ---
 
