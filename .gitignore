@@ -1,8 +1,17 @@
-.env
-.env.local
-.vscode/
+# OS & Editor Junk
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
-.idea/
+
+# Temporary Files
+*.tmp
+*.log
+.session-*
+
+# Backup Files
+*.bak
+*.backup
