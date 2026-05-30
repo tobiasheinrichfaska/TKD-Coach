@@ -195,18 +195,18 @@ cd packages/native
 npm start
 ```
 
-This starts the server on **port 8081** with correct NODE_OPTIONS for TypeScript.
+This starts the server on **port 8082** with correct NODE_OPTIONS for TypeScript.
 
 **Important:** Always provide the full IP address and port when connecting from physical devices:
 - Metro will display the QR code and connection URL
-- Expo uses `exp://` protocol: `exp://YOUR_MACHINE_IP:8081`
-- Example: `exp://192.168.1.100:8081`
-- Do NOT use `localhost:8081` or `http://` — use the actual machine IP address with `exp://` protocol
+- Expo uses `exp://` protocol: `exp://YOUR_MACHINE_IP:8082`
+- Example: `exp://192.168.1.100:8082`
+- Do NOT use `localhost:8082` or `http://` — use the actual machine IP address with `exp://` protocol
 
 **To Test on Phone:**
 1. Open Expo Go app (SDK 54+ supported)
 2. Scan the QR code displayed in terminal, OR
-3. Manually enter in Expo Go: `exp://MACHINE_IP:8081` (e.g., `exp://10.11.100.239:8081`)
+3. Manually enter in Expo Go: `exp://MACHINE_IP:8082` (e.g., `exp://10.11.100.239:8082`)
 
 **Two-Phone Transfer Testing:**
 - Both phones must be on same network
@@ -214,4 +214,17 @@ This starts the server on **port 8081** with correct NODE_OPTIONS for TypeScript
 
 ---
 
-*Last updated: 2026-05-30 — All Phases Complete (Phase 4: QR Transfer)*
+## Known Issues & Fixes
+
+### Monorepo React deduplication (metro.config.js)
+`packages/native` is an npm workspace under `TKD-Coach/`. The workspace root may hoist `react` to a different version than the one pinned in `packages/native/package.json`. If you see `Invalid hook call` or `useReducer of null` at runtime:
+1. Check `TKD-Coach/node_modules/react/package.json` version — must be `19.1.0`
+2. If wrong: `cd TKD-Coach && npm install react@19.1.0 --save-exact`
+3. The `metro.config.js` uses `nodeModulesPaths` to prefer the local copy — do not add `resolveRequest` interceptors for scheduler/react-is/react-dom (they live nested inside react-native and removing them breaks things)
+
+### Orientation
+`app.json` uses `"orientation": "default"` — portrait and landscape both allowed. Tablets rotate freely.
+
+---
+
+*Last updated: 2026-05-30 — Monorepo metro fix, orientation support, all 5 tabs working*

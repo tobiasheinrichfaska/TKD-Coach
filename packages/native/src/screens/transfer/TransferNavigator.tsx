@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TransferScreen from './TransferScreen';
-import SelectDataScreen, { TransferSelection } from './SelectDataScreen';
+import SelectDataScreen from './SelectDataScreen';
+import { TransferSelection } from '../../types';
 import BidirectionalSenderScreen from './BidirectionalSenderScreen';
 import BidirectionalReceiverScreen from './BidirectionalReceiverScreen';
 import { COLORS } from '../../constants/colors';

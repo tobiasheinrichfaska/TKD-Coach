@@ -1,3 +1,9 @@
+# Dependencies
+node_modules/
+.expo/
+dist/
+build/
+
 # OS & Editor Junk
 .DS_Store
 Thumbs.db

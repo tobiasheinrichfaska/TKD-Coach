@@ -21,7 +21,7 @@
         }
       ]
     ],
-    "orientation": "portrait",
+    "orientation": "default",
     "backgroundColor": "#F8F8F8",
     "primaryColor": "#CC0000"
   }

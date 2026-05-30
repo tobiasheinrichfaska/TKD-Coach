@@ -4,7 +4,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { encodeToChunks, exportSelected } from '../../utils/qrChunks';
-import { TransferSelection } from './SelectDataScreen';
+import { TransferSelection } from '../../types';
 import { generateId } from '../../utils/ids';
 
 const styles = StyleSheet.create({

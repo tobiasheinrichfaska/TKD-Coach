@@ -2,10 +2,10 @@
   "name": "@tkd-coach/native",
   "version": "0.1.0",
   "description": "TKD-Coach React Native app (Expo)",
-  "main": "index.ts",
+  "main": "index.tsx",
   "scripts": {
-    "start": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --port 8081",
-    "start:tunnel": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --port 8081 --tunnel",
+    "start": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --port 8082 --clear",
+    "start:tunnel": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --port 8082 --tunnel --clear",
     "android": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --android",
     "ios": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --ios",
     "web": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --web",
