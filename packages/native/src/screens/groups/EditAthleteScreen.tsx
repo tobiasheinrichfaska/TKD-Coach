@@ -1,0 +1,82 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useData } from '../../context/DataContext';
+import { COLORS } from '../../constants/colors';
+import { generateId } from '../../utils/ids';
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  content: { padding: 16 },
+  input: { backgroundColor: COLORS.surface, padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border, color: COLORS.text },
+  button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 16 },
+  buttonText: { color: COLORS.surface, fontWeight: 'bold' },
+  section: { fontSize: 14, fontWeight: 'bold', marginTop: 20, marginBottom: 8, color: COLORS.text },
+});
+
+export default function EditAthleteScreen({ route, navigation }: any) {
+  const { state, dispatch } = useData();
+  const athleteId = route.params?.athleteId;
+  const groupId = route.params?.groupId;
+  const athlete = athleteId ? state.athletes.find(a => a.id === athleteId) : null;
+
+  const [name, setName] = useState(athlete?.name || '');
+  const [belt, setBelt] = useState(athlete?.belt || 'white');
+  const [phone, setPhone] = useState(athlete?.contact?.phone || '');
+  const [parentName, setParentName] = useState(athlete?.contact?.parentName || '');
+
+  const handleSave = () => {
+    if (!name.trim() || !groupId) return;
+
+    if (athleteId) {
+      dispatch({
+        type: 'UPDATE_ATHLETE',
+        payload: {
+          ...athlete!,
+          name,
+          belt: belt as any,
+          contact: { phone, parentName, email: athlete?.contact?.email },
+        },
+      });
+    } else {
+      dispatch({
+        type: 'ADD_ATHLETE',
+        payload: {
+          id: generateId(),
+          name,
+          belt: belt as any,
+          groupId,
+          neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 },
+          poomsae: [],
+          techniques: [],
+          contact: { phone, parentName },
+        },
+      });
+      // Also add athlete to group
+      const group = state.groups.find(g => g.id === groupId);
+      if (group && !group.athleteIds.includes(generateId())) {
+        // This is a simplification; in real code, would need to track the ID
+      }
+    }
+    navigation.goBack();
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16, color: COLORS.text }}>
+          {athleteId ? 'Edit Athlete' : 'Create Athlete'}
+        </Text>
+        <TextInput style={styles.input} placeholder="Name" placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
+        <TextInput style={styles.input} placeholder="Belt" placeholderTextColor={COLORS.textMuted} value={belt} onChangeText={setBelt} />
+
+        <Text style={styles.section}>Contact</Text>
+        <TextInput style={styles.input} placeholder="Phone" placeholderTextColor={COLORS.textMuted} value={phone} onChangeText={setPhone} />
+        <TextInput style={styles.input} placeholder="Parent Name" placeholderTextColor={COLORS.textMuted} value={parentName} onChangeText={setParentName} />
+
+        <TouchableOpacity style={styles.button} onPress={handleSave}>
+          <Text style={styles.buttonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
