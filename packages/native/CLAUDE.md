@@ -199,14 +199,14 @@ This starts the server on **port 8081** with correct NODE_OPTIONS for TypeScript
 
 **Important:** Always provide the full IP address and port when connecting from physical devices:
 - Metro will display the QR code and connection URL
-- URL format: `http://YOUR_MACHINE_IP:8081`
-- Example: `http://192.168.1.100:8081`
-- Do NOT use `localhost:8081` — use the actual machine IP address
+- Expo uses `exp://` protocol: `exp://YOUR_MACHINE_IP:8081`
+- Example: `exp://192.168.1.100:8081`
+- Do NOT use `localhost:8081` or `http://` — use the actual machine IP address with `exp://` protocol
 
 **To Test on Phone:**
 1. Open Expo Go app (SDK 54+ supported)
-2. Scan the QR code displayed in terminal
-3. Or manually enter the full IP address + port in Expo Go
+2. Scan the QR code displayed in terminal, OR
+3. Manually enter in Expo Go: `exp://MACHINE_IP:8081` (e.g., `exp://10.11.100.239:8081`)
 
 **Two-Phone Transfer Testing:**
 - Both phones must be on same network
