@@ -4,6 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { MetricRow } from '../../components/MetricRow';
 import { formatBelt, generateProgressSummaryText } from '../../utils/format';
+import type { ScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -17,10 +18,11 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function ProgressScreen({ route }: any) {
+export default function ProgressScreen({ route }: Pick<ScreenProps, 'route'>) {
   const { state } = useData();
-  const athleteId = route.params?.athleteId;
+  const athleteId = (route.params as { athleteId?: string } | undefined)?.athleteId;
   const athlete = state.athletes.find(a => a.id === athleteId);
+  // .filter() returns a new array, so the subsequent .sort() is safe (does not mutate state).
   const assessments = state.assessments
     .filter(a => a.athleteId === athleteId)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -96,7 +98,7 @@ export default function ProgressScreen({ route }: any) {
               <FlatList
                 scrollEnabled={false}
                 data={gameAssessments}
-                keyExtractor={(item, idx) => idx.toString()}
+                keyExtractor={(_item, idx) => idx.toString()}
                 renderItem={({ item, index }) => (
                   <MetricRow
                     date={item.date}

@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { SESSION_TEMPLATES, getGamesByPhase } from '../../constants/games';
+import { SESSION_TEMPLATES } from '../../constants/games';
 import { generateId } from '../../utils/ids';
-import { formatDate } from '../../utils/format';
+import type { ScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -53,16 +53,16 @@ const styles = StyleSheet.create({
   templateButtonTextActive: { color: COLORS.surface, fontWeight: 'bold' },
 });
 
-export default function PlanSessionScreen({ route, navigation }: any) {
+export default function PlanSessionScreen({ route, navigation }: ScreenProps) {
   const { state, dispatch } = useData();
-  const planId = route.params?.planId;
+  const planId = (route.params as { planId?: string } | undefined)?.planId;
   const plan = planId ? state.sessionPlans.find(p => p.id === planId) : null;
 
   const [name, setName] = useState(plan?.name || '');
   const [groupId, setGroupId] = useState(plan?.groupId || '');
   const [date, setDate] = useState(plan?.plannedDate || new Date().toISOString().split('T')[0]);
   const [template, setTemplate] = useState<'kids-2h' | 'youth-adult-1h30' | 'custom'>(plan?.template || 'kids-2h');
-  const [gameIds, setGameIds] = useState<string[]>(plan?.plannedGames || SESSION_TEMPLATES.KIDS_2H);
+  const [gameIds, setGameIds] = useState<string[]>(plan?.plannedGames || [...SESSION_TEMPLATES.KIDS_2H]);
 
   const handleTemplateChange = (newTemplate: typeof template) => {
     setTemplate(newTemplate);

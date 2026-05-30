@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
+import type { ScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
@@ -10,9 +11,10 @@ const styles = StyleSheet.create({
   fab: { position: 'absolute', bottom: 24, right: 24, width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
 });
 
-export default function GroupDetailScreen({ route, navigation }: any) {
+export default function GroupDetailScreen({ route, navigation }: ScreenProps) {
   const { state } = useData();
-  const group = state.groups.find(g => g.id === route.params?.groupId);
+  const groupId = (route.params as { groupId?: string } | undefined)?.groupId;
+  const group = state.groups.find(g => g.id === groupId);
   const athletes = state.athletes.filter(a => group?.athleteIds.includes(a.id));
 
   if (!group) return <View style={styles.container}><Text>Group not found</Text></View>;

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
+import type { ScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -17,9 +18,10 @@ const styles = StyleSheet.create({
   buttonGroup: { flexDirection: 'row', gap: 8, marginTop: 16 },
 });
 
-export default function AthleteDetailScreen({ route, navigation }: any) {
+export default function AthleteDetailScreen({ route, navigation }: ScreenProps) {
   const { state } = useData();
-  const athlete = state.athletes.find(a => a.id === route.params?.athleteId);
+  const athleteId = (route.params as { athleteId?: string } | undefined)?.athleteId;
+  const athlete = state.athletes.find(a => a.id === athleteId);
 
   if (!athlete) return <View style={styles.container}><Text>Athlete not found</Text></View>;
 

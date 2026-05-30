@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { formatDate, formatDateShort, formatDuration } from '../../utils/format';
+import { formatDateShort } from '../../utils/format';
+import type { ScreenNavigationProp } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -20,10 +21,11 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function SessionsScreen({ navigation }: any) {
+export default function SessionsScreen({ navigation }: { navigation: ScreenNavigationProp }) {
   const { state } = useData();
 
-  const upcomingPlans = state.sessionPlans.sort((a, b) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime());
+  // Copy before sort: sort() mutates; sorting state arrays directly corrupts reducer state.
+  const upcomingPlans = [...state.sessionPlans].sort((a, b) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime());
   const completedLogs = state.sessionLogs
     .filter(l => l.status === 'completed')
     .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())

@@ -227,4 +227,4 @@ This starts the server on **port 8082** with correct NODE_OPTIONS for TypeScript
 
 ---
 
-*Last updated: 2026-05-30 — Monorepo metro fix, orientation support, all 5 tabs working*
+*Last updated: 2026-05-30 — Monorepo metro fix, orientation support, all 5 tabs working; type-safety pass (eliminated `any`/`as any` on screen props & metric drafts, added pako shim, fixed sort-on-state mutation bugs)*

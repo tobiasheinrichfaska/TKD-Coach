@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView, FlatList } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { assembleFromChunks, detectChanges } from '../../utils/qrChunks';
@@ -52,16 +52,18 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
     }
   }, [permission, requestPermission]);
 
-  const handleBarCodeScanned = async (result: any) => {
+  const handleBarCodeScanned = async (result: BarcodeScanningResult) => {
     if (receiverState === 'processing') return;
 
     try {
-      const data = JSON.parse(result.data);
+      const data: unknown = JSON.parse(result.data);
+      if (!data || typeof data !== 'object') return;
+      const obj = data as Record<string, unknown>;
 
       // Check if it's a handshake
-      if (data.role === 'sender' && data.totalChunks !== undefined) {
+      if (obj.role === 'sender' && obj.totalChunks !== undefined) {
         if (receiverState === 'scanning-handshake') {
-          setHandshake(data as HandshakeData);
+          setHandshake(obj as unknown as HandshakeData);
           setReceiverState('scanning-chunks');
           scannedIdsRef.current.clear();
           setChunks(new Map());
@@ -71,7 +73,7 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
 
       // Otherwise treat as chunk
       if (receiverState === 'scanning-chunks') {
-        const chunk = data as QRChunk;
+        const chunk = obj as unknown as QRChunk;
         if (!chunk.id || chunk.total === undefined || chunk.index === undefined || !chunk.data) {
           return;
         }

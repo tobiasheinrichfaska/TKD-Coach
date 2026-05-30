@@ -71,7 +71,6 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
 
   const currentChunkQr = chunks[currentChunkIndex];
   const currentAck = acknowledged.get(currentChunkIndex);
-  const isComplete = currentChunkIndex === chunks.length && acknowledged.size === chunks.length;
 
   const handleAcknowledge = () => {
     if (transferState === 'handshake') {
@@ -105,7 +104,7 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
     return (
       <View style={styles.container}>
         <Text style={styles.header}>Transfer Error</Text>
-        <Text style={{ color: COLORS.error, marginVertical: 16 }}>{error}</Text>
+        <Text style={{ color: COLORS.danger, marginVertical: 16 }}>{error}</Text>
         <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={onCancel}>
           <Text style={styles.buttonText}>Go Back</Text>
         </TouchableOpacity>

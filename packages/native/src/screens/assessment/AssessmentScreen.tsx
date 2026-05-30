@@ -12,6 +12,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { AssessmentMetric } from '../../types';
 import { generateId } from '../../utils/ids';
+import type { ScreenNavigationProp } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -35,18 +36,37 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function AssessmentScreen({ navigation }: any) {
+/**
+ * Draft shape used during metric entry — a flat optional bag covering all metric variants.
+ * Cast to AssessmentMetric at save boundary (guarded by `Object.keys(metric).length === 0` check).
+ */
+type MetricDraft = {
+  type?: AssessmentMetric['type'];
+  dominant?: number;
+  nonDominant?: number;
+  errorsPerTen?: number;
+  correct?: number;
+  total?: number;
+  stable?: number;
+  stumble?: number;
+  fall?: number;
+  holdSeconds?: number;
+  armErrors?: number;
+  errors?: number;
+  baseline?: number;
+};
+
+export default function AssessmentScreen(_props: { navigation: ScreenNavigationProp }) {
   const { state, dispatch } = useData();
   const [step, setStep] = useState<'group' | 'athlete' | 'game' | 'metric'>('group');
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedAthleteId, setSelectedAthleteId] = useState('');
   const [selectedGameId, setSelectedGameId] = useState('');
-  const [metric, setMetric] = useState<Partial<AssessmentMetric>>({});
+  const [metric, setMetric] = useState<MetricDraft>({});
   const [notes, setNotes] = useState('');
 
   const selectedGroup = state.groups.find(g => g.id === selectedGroupId);
   const athletesInGroup = state.athletes.filter(a => selectedGroup?.athleteIds.includes(a.id));
-  const selectedAthlete = state.athletes.find(a => a.id === selectedAthleteId);
   const selectedGame = state.games.find(g => g.id === selectedGameId);
 
   const handleGameSelect = (gameId: string) => {
@@ -198,7 +218,7 @@ export default function AssessmentScreen({ navigation }: any) {
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
               onChangeText={text =>
-                setMetric({ ...metric, type: 'balance_hold', dominant: parseFloat(text) || 0, nonDominant: (metric as any).nonDominant || 0 })
+                setMetric({ ...metric, type: 'balance_hold', dominant: parseFloat(text) || 0, nonDominant: metric.nonDominant || 0 })
               }
             />
             <TextInput
@@ -207,7 +227,7 @@ export default function AssessmentScreen({ navigation }: any) {
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
               onChangeText={text =>
-                setMetric({ ...metric, type: 'balance_hold', nonDominant: parseFloat(text) || 0, dominant: (metric as any).dominant || 0 })
+                setMetric({ ...metric, type: 'balance_hold', nonDominant: parseFloat(text) || 0, dominant: metric.dominant || 0 })
               }
             />
           </>
@@ -237,7 +257,7 @@ export default function AssessmentScreen({ navigation }: any) {
               placeholder="Total attempts"
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
-              onChangeText={text => setMetric({ type: 'combo_accuracy', correct: (metric as any).correct || 0, total: parseInt(text) || 0 })}
+              onChangeText={text => setMetric({ type: 'combo_accuracy', correct: metric.correct || 0, total: parseInt(text) || 0 })}
             />
           </>
         );

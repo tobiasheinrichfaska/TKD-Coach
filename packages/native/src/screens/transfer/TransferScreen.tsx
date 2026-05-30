@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS } from '../../constants/colors';
+import type { ScreenNavigationProp } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
@@ -12,7 +13,7 @@ const styles = StyleSheet.create({
   buttonSubtitle: { fontSize: 12, color: COLORS.surface, opacity: 0.8, textAlign: 'center' },
 });
 
-export default function TransferScreen({ navigation }: any) {
+export default function TransferScreen({ navigation }: { navigation: ScreenNavigationProp }) {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Sync Data With Another Coach</Text>

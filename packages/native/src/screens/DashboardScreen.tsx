@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useData } from '../context/DataContext';
 import { COLORS } from '../constants/colors';
-import { formatDate, formatDateShort } from '../utils/format';
-import { getGameById } from '../constants/games';
+import { formatDateShort } from '../utils/format';
+import type { ScreenNavigationProp } from '../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function DashboardScreen({ navigation }: any) {
+export default function DashboardScreen({ navigation }: { navigation: ScreenNavigationProp }) {
   const { state } = useData();
 
   const today = new Date();
@@ -33,7 +33,9 @@ export default function DashboardScreen({ navigation }: any) {
   const todayISO = today.toISOString().split('T')[0];
 
   const todaysPlans = state.sessionPlans.filter(p => p.plannedDate === todayISO);
-  const recentLogs = state.sessionLogs
+  // Copy before sort: Array.prototype.sort mutates in place — sorting state.sessionLogs
+  // directly would corrupt the reducer's source of truth and silently break reference equality.
+  const recentLogs = [...state.sessionLogs]
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
     .slice(0, 5);
 

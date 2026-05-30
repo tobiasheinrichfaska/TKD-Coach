@@ -10,7 +10,7 @@ export default function AssessmentNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: COLORS.surface, borderBottomColor: COLORS.border, borderBottomWidth: 1 },
+        headerStyle: { backgroundColor: COLORS.surface },
         headerTitleStyle: { color: COLORS.text, fontWeight: '600' },
         headerTintColor: COLORS.primary,
       }}
