@@ -12,7 +12,9 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 12, color: COLORS.textMuted },
   rowValue: { fontSize: 16, color: COLORS.text, fontWeight: '500', marginTop: 4 },
   button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 16 },
+  buttonSecondary: { backgroundColor: COLORS.info },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
+  buttonGroup: { flexDirection: 'row', gap: 8, marginTop: 16 },
 });
 
 export default function AthleteDetailScreen({ route, navigation }: any) {
@@ -45,9 +47,15 @@ export default function AthleteDetailScreen({ route, navigation }: any) {
             <Text style={styles.rowValue}>{athlete.contact.parentName}</Text>
           </View>
         )}
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditAthlete', { athleteId: athlete.id })}>
-          <Text style={styles.buttonText}>Edit</Text>
-        </TouchableOpacity>
+
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditAthlete', { athleteId: athlete.id })}>
+            <Text style={styles.buttonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={() => navigation.navigate('AssessmentTab', { screen: 'Progress', params: { athleteId: athlete.id } })}>
+            <Text style={styles.buttonText}>Progress</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
