@@ -1,6 +1,6 @@
 # TKD-Coach React Native App — Implementation Notes
 
-**Status:** Phase 1-3 Complete (Groups, Sessions, Assessments). Phase 4 (QR Transfer) Pending.
+**Status:** Phase 1-4 Complete (Groups, Sessions, Assessments, QR Transfer).
 
 ## Architecture Overview
 
@@ -51,16 +51,20 @@ State persisted to AsyncStorage; changes debounced 300ms.
 **Screens:** AssessmentScreen, ProgressScreen  
 **Key Feature:** Auto-calculates delta from previous entry; color-codes improvement vs regression
 
-## Next: Phase 4 — QR Transfer
+## Phase 4 — QR Transfer (Complete)
 
-**Pending Implementation:**
-- QR chunk encoding (JSON → pako deflate → base64 → 800-char chunks)
-- SendQRScreen (paginated QR display with prev/next navigation)
-- ReceiveQRScreen (expo-camera v16 CameraView for barcode scanning)
-- Chunk assembly + merge (local-wins by ID strategy)
-- TransferScreen (send/receive choice)
+**Completed Implementation:**
+- ✅ QR chunk encoding (JSON → pako deflate → base64 → 800-char chunks)
+- ✅ SendQRScreen (paginated QR display with prev/next navigation, 300px QR codes)
+- ✅ ReceiveQRScreen (expo-camera v16 CameraView for barcode scanning, auto-import on complete)
+- ✅ Chunk assembly + merge (local-wins by ID strategy)
+- ✅ TransferScreen (two large buttons for Send/Receive with descriptions)
+- ✅ TransferNavigator (three screens: main, send, receive)
 
-**Dependencies:** `react-native-qrcode-svg`, `expo-camera ~16.0.0`, `pako` (with metro.config.js CJS workaround)
+**Screens:**
+- SendQRScreen: encodeToChunks → render current chunk as QR → prev/next pagination → progress (N/total)
+- ReceiveQRScreen: CameraView → barcode scan → accumulate chunks → auto-import when complete → Alert with summary
+- TransferScreen: Two large buttons (Send/Receive) + explanation text
 
 ## Critical Implementation Details
 
@@ -139,14 +143,30 @@ src/
         └── TransferScreen.tsx
 ```
 
-## Next Steps (Phase 4)
+## Testing Checklist (All Phases)
 
-1. Implement `utils/qrChunks.ts` functions (already partially done)
-2. Create `SendQRScreen` (pako deflate → chunks → render QR with pagination)
-3. Create `ReceiveQRScreen` (expo-camera v16 CameraView → accumulate chunks → import)
-4. Update `TransferScreen` (buttons for send vs receive)
-5. Test QR transfer between two phones
+- [ ] Create group → add athletes with contact info → save
+- [ ] Edit athlete, verify contact data persists
+- [ ] Plan session with template → run session → timers accurate → complete → Share to Signal
+- [ ] Log assessment (balance hold) multiple times → ProgressScreen shows deltas
+- [ ] Share progress → Signal summary appears
+- [ ] Export data → SendQRScreen → paginate through all QR codes
+- [ ] Import data → ReceiveQRScreen → scan all QR codes → import succeeds → verify new athletes appear
+- [ ] Verify data merge: local athletes kept, imported athletes added
 
 ---
 
-*Last updated: 2026-05-30 — Phase 3 complete*
+## Deployment
+
+The app is ready for testing in Expo Go (SDK 54). To start development:
+
+```bash
+cd packages/native
+npm start  # or: npx expo start --port 8082 (if 8081 busy)
+```
+
+Scan with Expo Go app on any phone with SDK 54+ support.
+
+---
+
+*Last updated: 2026-05-30 — All Phases Complete (Phase 4: QR Transfer)*
