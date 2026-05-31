@@ -202,11 +202,14 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
         </View>
         {openGroup && (
           <View style={styles.chipRow}>
-            {TEMPLATE_GROUPS.find(g => g.label === openGroup)!.items.map(it => (
-              <TouchableOpacity key={it.name} style={styles.chip} onPress={() => applyTemplate(it.t, it.ids)}>
-                <Text style={styles.chipText}>{it.name}</Text>
-              </TouchableOpacity>
-            ))}
+            {TEMPLATE_GROUPS.find(g => g.label === openGroup)!.items.map(it => {
+              const active = it.t === template && it.t !== 'custom';
+              return (
+                <TouchableOpacity key={it.name} style={[styles.chip, active && styles.chipActive]} onPress={() => applyTemplate(it.t, it.ids)}>
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{it.name}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
 

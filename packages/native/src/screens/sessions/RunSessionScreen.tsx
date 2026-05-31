@@ -120,6 +120,12 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const [remainingDisplay, setRemainingDisplay] = useState('');
   const [isOverrun, setIsOverrun] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
+  const [sessionElapsedSec, setSessionElapsedSec] = useState(0);
+
+  const totalPlannedMin = gameLogs.reduce(
+    (s, l) => s + (state.games.find(g => g.id === l.gameId)?.defaultMinutes || 0),
+    0
+  );
 
   // Game indices whose planned-time signal has already fired (so it fires once).
   const signaledRef = useRef<Set<number>>(new Set());
@@ -176,10 +182,12 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const startedAt = currentGameLog?.startedAt;
   const plannedMinutes = currentGame?.defaultMinutes ?? 0;
   useEffect(() => {
+    const completedSec = gameLogs.reduce((s, l) => s + (l.durationSeconds || 0), 0);
     if (status !== 'running' || !startedAt) {
       setTimerDisplay('0:00');
       setRemainingDisplay('');
       setIsOverrun(false);
+      setSessionElapsedSec(completedSec);
       return;
     }
     const plannedSec = plannedMinutes * 60;
@@ -187,6 +195,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     const tick = () => {
       const elapsed = Math.floor((Date.now() - startedAt) / 1000);
       setTimerDisplay(fmt(elapsed));
+      setSessionElapsedSec(completedSec + elapsed);
       if (plannedSec > 0) {
         const remaining = plannedSec - elapsed;
         const over = remaining <= 0;
@@ -208,7 +217,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     tick();
     const interval = setInterval(tick, 250);
     return () => clearInterval(interval);
-  }, [status, startedAt, currentGameIndex, plannedMinutes, fireSignal]);
+  }, [status, startedAt, currentGameIndex, plannedMinutes, fireSignal, gameLogs]);
 
   const handleStartGame = () => {
     signaledRef.current.delete(currentGameIndex); // allow the signal to fire for this run
@@ -316,7 +325,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Running: {plan.name}</Text>
         <Text style={styles.headerMeta}>
-          {group.name} · Game {currentGameIndex + 1}/{gameLogs.length}
+          {group.name} · Game {currentGameIndex + 1}/{gameLogs.length} · {Math.round(sessionElapsedSec / 60)}/{totalPlannedMin} min
         </Text>
       </View>
 

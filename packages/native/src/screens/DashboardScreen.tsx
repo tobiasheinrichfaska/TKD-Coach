@@ -31,11 +31,14 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
 
   const todayISO = toLocalDateISO();
 
+  const completedPlanIds = new Set(state.sessionLogs.filter(l => l.status === 'completed').map(l => l.planId));
+  const runningPlanIds = new Set(state.sessionLogs.filter(l => l.status === 'running').map(l => l.planId));
   const todaysPlans = state.sessionPlans.filter(p => p.plannedDate === todayISO);
   // Copy before sort: Array.prototype.sort mutates in place — sorting state.sessionLogs
   // directly would corrupt the reducer's source of truth and silently break reference equality.
   const recentLogs = [...state.sessionLogs]
-    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+    .filter(l => l.status === 'completed')
+    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
     .slice(0, 5);
 
   const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || 'Unknown';
@@ -51,17 +54,24 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
         <Text style={styles.section}>🗓 Today's Sessions</Text>
         {todaysPlans.length > 0 ? (
           <>
-            {todaysPlans.map(plan => (
-              <TouchableOpacity
-                key={plan.id}
-                style={styles.sessionCard}
-                onPress={() => navigation.navigate('Sessions', { screen: 'RunSession', params: { planId: plan.id } })}
-              >
-                <Text style={styles.sessionTitle}>{plan.name}</Text>
-                <Text style={styles.sessionMeta}>{getGroupName(plan.groupId)}</Text>
-                <Text style={styles.gameList}>{getGameNames(plan.plannedGames)}</Text>
-              </TouchableOpacity>
-            ))}
+            {todaysPlans.map(plan => {
+              const done = completedPlanIds.has(plan.id);
+              const running = runningPlanIds.has(plan.id);
+              const status = done ? '✓ Done' : running ? '▶ In progress' : '○ To start';
+              const totalMin = plan.plannedGames.reduce((s, gid) => s + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
+              return (
+                <TouchableOpacity
+                  key={plan.id}
+                  style={[styles.sessionCard, done && { opacity: 0.6 }]}
+                  disabled={done}
+                  onPress={() => navigation.navigate('Sessions', { screen: 'RunSession', params: { planId: plan.id } })}
+                >
+                  <Text style={styles.sessionTitle}>{status} · {plan.name}</Text>
+                  <Text style={styles.sessionMeta}>{getGroupName(plan.groupId)} · {totalMin} min</Text>
+                  <Text style={styles.gameList}>{getGameNames(plan.plannedGames)}</Text>
+                </TouchableOpacity>
+              );
+            })}
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Sessions', { screen: 'SessionsList' })}>
               <Text style={styles.buttonText}>Start Session</Text>
             </TouchableOpacity>
@@ -77,13 +87,18 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
             scrollEnabled={false}
             data={recentLogs}
             keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.sessionCard}>
-                <Text style={styles.sessionTitle}>{getGroupName(item.groupId)}</Text>
-                <Text style={styles.sessionMeta}>{formatDateShort(item.startedAt)}</Text>
-                <Text style={styles.gameList}>{item.gameLogs.length} games</Text>
-              </View>
-            )}
+            renderItem={({ item }) => {
+              const planName = state.sessionPlans.find(p => p.id === item.planId)?.name;
+              const played = item.gameLogs.filter(g => g.durationSeconds != null);
+              const totalSec = item.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
+              return (
+                <View style={styles.sessionCard}>
+                  <Text style={styles.sessionTitle}>{[planName, getGroupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
+                  <Text style={styles.sessionMeta}>{formatDateShort(item.startedAt)} · {played.length} Übungen · {Math.round(totalSec / 60)} min</Text>
+                  <Text style={styles.gameList}>{getGameNames(played.map(g => g.gameId))}</Text>
+                </View>
+              );
+            }}
           />
         ) : (
           <Text style={styles.empty}>No sessions recorded yet</Text>
