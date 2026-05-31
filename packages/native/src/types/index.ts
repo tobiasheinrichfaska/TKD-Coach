@@ -152,3 +152,34 @@ export interface TransferSelection {
   sessionLogs: boolean;
   assessments: boolean;
 }
+
+// ===== Catalogs (data-driven technique / anatomy vocabulary) =====
+
+export type BodyRegion =
+  | 'lower-leg' | 'upper-leg' | 'hips' | 'core' | 'spine' | 'shoulders' | 'arms' | 'neck' | 'full-body';
+
+export interface BodyPart {
+  id: string;
+  name: string;
+  region: BodyRegion;
+  kind: 'joint' | 'muscle' | 'region';
+}
+
+export type TechniqueCategory = 'kick' | 'block' | 'stance' | 'strike' | 'poomsae' | 'footwork';
+
+export interface TechniqueStep {
+  order: number;
+  name: string;
+  description?: string;
+}
+
+export interface Technique {
+  id: string;
+  name: string;
+  koreanName?: string;
+  category: TechniqueCategory;
+  /** Joints/muscles this technique loads (BodyPart ids). */
+  bodyPartIds: string[];
+  /** Ordered step-by-step breakdown ("Yop-Chagi in pieces"). */
+  steps?: TechniqueStep[];
+}
