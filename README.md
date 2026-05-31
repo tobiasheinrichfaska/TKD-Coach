@@ -174,6 +174,23 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to add new games and expand the
 
 ---
 
+## License
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
+This project is licensed under the **GNU Affero General Public License v3.0** (AGPLv3).
+You are free to use, modify, and distribute this software under the terms of the AGPLv3.
+If you use this software to provide a network service, you must make the full source code
+of your modifications available to users of that service.
+
+**Commercial License:** If you wish to use this software in a closed-source or proprietary
+product, a commercial license is available. Contact: tobias.a.w.heinrich@gmail.com
+
+See [LICENSE](LICENSE) for the full AGPLv3 text.
+See [LICENSE_COMMERCIAL.md](LICENSE_COMMERCIAL.md) for commercial licensing terms.
+
+---
+
 **TKD-Coach v1.1** · *Neuroathletik × Taekwondo Breitensport* · *Adapt freely*
 
 Provenance: Games_20260530.md (v1.1 Coach Reference) + 20260530_02.md (v1 log)
