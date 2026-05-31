@@ -91,8 +91,9 @@
 ## MT-01-9: Emergency contacts (guardian flag + tappable phone/email)
 **Preconditions:** At least one athlete.
 **Steps:**
-1. Open an athlete → under **Emergency contacts** tap **+ Kontakt hinzufügen**.
-2. Enter a Name, an Email, one or more **Phone numbers** (tap *+ Add phone*, up to 5), leave **Legal guardian** on, confirm the athlete is selected under **Linked athletes**, tap **Save**.
+1. Open an athlete → under **Emergency contacts** tap **+ Kontakt hinzufügen**. The **Add Contact** screen opens.
+2. **Either** flip **Mark as guardian** and tap an existing person from the list (a parent already entered, or a sibling) to link them instantly,
+   **or** tap **+ Create new contact** → enter a Name, Email, one or more **Phone numbers** (*+ Add phone*, up to 5), keep **Legal guardian** as wanted, confirm the athlete under **Linked athletes**, tap **Save**.
 3. Back on the athlete, tap the **📞 number** and the **✉ email**.
 4. Also open **Groups** tab → **Emergency Contacts** row to see the global list; tap **Anrufen** on a row.
 

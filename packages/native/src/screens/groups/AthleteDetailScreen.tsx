@@ -116,7 +116,7 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
             </View>
           </View>
         ))}
-        <TouchableOpacity onPress={() => navigation.navigate('EditEmergencyContact', { athleteId: athlete.id })}>
+        <TouchableOpacity onPress={() => navigation.navigate('AddContact', { athleteId: athlete.id })}>
           <Text style={[styles.link, { marginTop: 4 }]}>+ Kontakt hinzufügen</Text>
         </TouchableOpacity>
 

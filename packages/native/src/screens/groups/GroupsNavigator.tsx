@@ -4,6 +4,7 @@ import GroupsScreen from './GroupsScreen';
 import AllAthletesScreen from './AllAthletesScreen';
 import EmergencyContactsScreen from './EmergencyContactsScreen';
 import EditEmergencyContactScreen from './EditEmergencyContactScreen';
+import AddContactScreen from './AddContactScreen';
 import GroupDetailScreen from './GroupDetailScreen';
 import EditGroupScreen from './EditGroupScreen';
 import AthleteDetailScreen from './AthleteDetailScreen';
@@ -41,6 +42,11 @@ export default function GroupsNavigator() {
         name="EditEmergencyContact"
         component={EditEmergencyContactScreen}
         options={{ title: 'Kontakt bearbeiten' }}
+      />
+      <Stack.Screen
+        name="AddContact"
+        component={AddContactScreen}
+        options={{ title: 'Kontakt hinzufügen' }}
       />
       <Stack.Screen
         name="GroupDetail"

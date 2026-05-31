@@ -22,6 +22,7 @@ export type GroupsStackParamList = {
   EditAthlete: { athleteId?: string; groupId?: string } | undefined;
   EmergencyContacts: undefined;
   EditEmergencyContact: { contactId?: string; athleteId?: string } | undefined;
+  AddContact: { athleteId: string };
 };
 
 export type SessionsStackParamList = {
