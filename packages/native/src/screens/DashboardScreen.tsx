@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from '
 import { useData } from '../context/DataContext';
 import { COLORS } from '../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../utils/format';
+import { slotsOnDay, formatSlot } from '../domain';
 import { APP_INFO } from '../constants/appInfo';
 import type { RootTabScreenProps } from '../types/navigation';
 
@@ -40,6 +41,11 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
     .filter(l => l.status === 'completed' && !l.archived)
     .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
     .slice(0, 5);
+
+  const now = new Date();
+  const trainingToday = state.groups
+    .map(g => ({ group: g, slots: slotsOnDay(g, now) }))
+    .filter(x => x.slots.length > 0);
 
   const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || 'Unknown';
   const getGameNames = (gameIds: string[]) =>
@@ -102,6 +108,19 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
           />
         ) : (
           <Text style={styles.empty}>No sessions recorded yet</Text>
+        )}
+
+        {/* Trains today */}
+        {trainingToday.length > 0 && (
+          <>
+            <Text style={styles.section}>🕒 Training heute</Text>
+            {trainingToday.map(({ group, slots }) => (
+              <View key={group.id} style={[styles.sessionCard, { borderLeftColor: COLORS.info }]}>
+                <Text style={styles.sessionTitle}>{group.name}</Text>
+                <Text style={styles.sessionMeta}>{slots.map(formatSlot).join('  ·  ')}</Text>
+              </View>
+            ))}
+          </>
         )}
 
         {/* Quick Stats */}

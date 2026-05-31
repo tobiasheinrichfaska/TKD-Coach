@@ -1,7 +1,7 @@
 import { appReducer, EMPTY_STATE } from '../../context/reducer';
 import { Group, Person, SessionLog, Assessment, SessionTemplate, ContactLink, AppData } from '../../types';
 
-const grp = (id: string, athleteIds: string[] = []): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });
+const grp = (id: string, athleteIds: string[] = []): Group => ({ id, name: id, trainingTimes: [], athleteIds });
 const athlete = (id: string): Person => ({
   id, name: id, phones: [], isCoach: false,
   athlete: { belt: 'kup-10', neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] },

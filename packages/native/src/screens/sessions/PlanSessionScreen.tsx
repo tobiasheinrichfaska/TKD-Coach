@@ -14,7 +14,9 @@ import { COLORS } from '../../constants/colors';
 import { SESSION_TEMPLATES } from '../../constants/games';
 import { generateId } from '../../utils/ids';
 import { toLocalDateISO } from '../../utils/format';
+import { nextSession, slotsOnDay, formatSlot } from '../../domain';
 import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
+import type { Group } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 type TemplateId = 'kids-2h' | 'youth-adult-1h30' | 'custom';
@@ -87,6 +89,15 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
 
   const phaseOf = (gid: string): SessionPhase => state.games.find(g => g.id === gid)?.sessionPhase ?? 3;
 
+  // Selecting a group prefills the date from its next training slot (new plans only).
+  const chooseGroup = (g: Group) => {
+    setGroupId(g.id);
+    if (!planId) {
+      const ns = nextSession(g, new Date());
+      if (ns) setDate(toLocalDateISO(ns.date));
+    }
+  };
+
   const applyTemplate = (t: TemplateId, ids: readonly string[]) => {
     setGameIds([...ids]);
     setTemplate(t);
@@ -146,6 +157,8 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   };
 
   const totalMinutes = gameIds.reduce((sum, gid) => sum + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
+  const selectedGroup = state.groups.find(g => g.id === groupId);
+  const targetSlot = selectedGroup ? slotsOnDay(selectedGroup, new Date(`${date}T12:00:00`))[0] : undefined;
   const tagLine = (gid: string): string => {
     const g = state.games.find(x => x.id === gid);
     const parts: string[] = [];
@@ -181,7 +194,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
             data={state.groups}
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity style={[styles.pickerItem, groupId === item.id && { backgroundColor: COLORS.primary }]} onPress={() => setGroupId(item.id)}>
+              <TouchableOpacity style={[styles.pickerItem, groupId === item.id && { backgroundColor: COLORS.primary }]} onPress={() => chooseGroup(item)}>
                 <Text style={[styles.pickerItemText, groupId === item.id && { color: COLORS.surface }]}>{item.name}</Text>
               </TouchableOpacity>
             )}
@@ -191,6 +204,13 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
 
         <Text style={styles.section}>Date</Text>
         <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor={COLORS.textMuted} value={date} onChangeText={setDate} />
+        {selectedGroup && (
+          <Text style={{ fontSize: 12, color: COLORS.textMuted, marginTop: -6, marginBottom: 8 }}>
+            {targetSlot
+              ? `Training: ${formatSlot(targetSlot)}  ·  geplant ${totalMinutes}/${targetSlot.durationMin} min`
+              : `${selectedGroup.name} trainiert an diesem Tag nicht.`}
+          </Text>
+        )}
 
         <Text style={styles.section}>Template</Text>
         <View style={styles.chipRow}>

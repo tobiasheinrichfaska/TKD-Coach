@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { athletesInGroup } from '../../domain';
+import { athletesInGroup, sortedSlots, formatSlot } from '../../domain';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -22,7 +22,10 @@ export default function GroupDetailScreen({ route, navigation }: GroupsStackScre
 
   return (
     <View style={styles.container}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: COLORS.text }}>{group.name}</Text>
+      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 4, color: COLORS.text }}>{group.name}</Text>
+      <Text style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>
+        {group.trainingTimes.length > 0 ? sortedSlots(group).map(formatSlot).join('   ·   ') : 'No training times set'}
+      </Text>
       <FlatList
         data={athletes}
         keyExtractor={item => item.id}

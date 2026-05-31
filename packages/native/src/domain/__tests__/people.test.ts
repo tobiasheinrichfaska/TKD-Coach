@@ -10,7 +10,7 @@ const athlete = (id: string, name = id): Person => ({
   athlete: { belt: 'kup-10', neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] },
 });
 const plain = (id: string, name = id, isCoach = false): Person => ({ id, name, phones: ['123'], isCoach });
-const grp = (id: string, athleteIds: string[]): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });
+const grp = (id: string, athleteIds: string[]): Group => ({ id, name: id, trainingTimes: [], athleteIds });
 
 describe('athlete role view', () => {
   it('toAthleteView flattens person + profile, null for non-athletes', () => {

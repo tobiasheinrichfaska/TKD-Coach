@@ -352,8 +352,16 @@ athlete's guardian simultaneously. The UI keeps "athlete" as a concept via the f
 <tbody>
 <tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
 <tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
-<tr><td><code class="req">ageCategory</code></td><td>'kids' | 'youth' | 'adult' | 'mixed'</td><td></td></tr>
+<tr><td><code class="req">trainingTimes</code></td><td>TrainingSlot[]</td><td>Weekly windows — drives planning prefill + "trains today".</td></tr>
 <tr><td><code class="req">athleteIds</code></td><td>string[]</td><td>→ Person ids (of athletes). Sole membership link.</td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>TrainingSlot (embedded)</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">weekday</code></td><td>1–7</td><td>ISO: 1 = Mon … 7 = Sun.</td></tr>
+<tr><td><code class="req">start</code></td><td>string</td><td>"HH:MM" 24h local.</td></tr>
+<tr><td><code class="req">durationMin</code></td><td>number</td><td>Session length, per slot.</td></tr>
 </tbody>
 </table>
 <div class="note good">Membership is <strong>many-to-many</strong> on <code>Group.athleteIds</code> (→ Person ids). A person can be in several
@@ -570,6 +578,10 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 <tr><td><code>contactsForAthlete</code></td><td>(persons, links, athleteId) → ContactView[]</td><td>Linked contacts resolved to Person + per-edge guardian flag.</td></tr>
 <tr><td><code>guardiansForAthlete</code></td><td>(persons, links, athleteId) → ContactView[]</td><td>The subset that are guardians.</td></tr>
 <tr><td><code>athletesForContact</code></td><td>(persons, links, contactId) → Person[]</td><td>Athletes a contact covers.</td></tr>
+<tr><td colspan="3" class="mono-sm" style="background:var(--panel2)">— training schedule (<code>domain/schedule.ts</code>) —</td></tr>
+<tr><td><code>nextSession</code></td><td>(group, from) → {date, slot} | null</td><td>Next training occurrence ≥ from; prefills PlanSession date.</td></tr>
+<tr><td><code>slotsOnDay</code> / <code>trainsOn</code></td><td>(group, date)</td><td>Slots on a date's weekday / does it train that day ("trains today").</td></tr>
+<tr><td><code>sortedSlots</code> / <code>formatSlot</code> / <code>weekdayLabel</code></td><td>—</td><td>Display helpers ("Mo 17:00 · 90 min").</td></tr>
 <tr><td colspan="3" class="mono-sm" style="background:var(--panel2)">— sessions &amp; assessments (<code>domain/selectors.ts</code>) —</td></tr>
 <tr><td><code>planStatus</code></td><td>(planId, logs) → 'done' | 'running' | 'to-start'</td><td>Status of a plan from its logs.</td></tr>
 <tr><td><code>sessionTotals</code></td><td>(log, games) → {plannedSec, actualSec, playedCount, totalCount}</td><td>Planned vs actual time and played/total counts.</td></tr>
@@ -653,7 +665,7 @@ The flat, id-referenced model is what makes change-detection and merge work: <co
 <h2 id="testing">Testing</h2>
 <p>The domain layer is exhaustively unit-tested with <strong>ts-jest</strong> (no UI/Expo runtime needed) — per the workspace
 "intensive unit testing is mandatory" rule. Run from <code>packages/native</code>:</p>
-<pre>npx jest        # 75 tests across 9 suites</pre>
+<pre>npx jest        # 83 tests across 10 suites</pre>
 <table>
 <thead><tr><th>Suite</th><th>Guards</th></tr></thead>
 <tbody>
@@ -662,6 +674,7 @@ The flat, id-referenced model is what makes change-detection and merge work: <co
 <tr><td><code>belts.test.ts</code></td><td>belt ladder integrity (23 ordered ids), label fallback, legacy map.</td></tr>
 <tr><td><code>graduation.test.ts</code></td><td>age bounds + promote/demote/convert at every boundary.</td></tr>
 <tr><td><code>people.test.ts</code></td><td>AthleteView adapter, role/membership selectors, contact edges + guardian.</td></tr>
+<tr><td><code>schedule.test.ts</code></td><td>weekday mapping, next-session computation across day boundaries, trains-on.</td></tr>
 <tr><td><code>selectors.test.ts</code></td><td>status, totals, today filter, coverage, history ordering.</td></tr>
 <tr><td><code>templates.test.ts</code></td><td>template item integrity + helpers.</td></tr>
 <tr><td><code>migration.test.ts</code></td><td>seed/refresh built-ins, preserve user data, backfill.</td></tr>

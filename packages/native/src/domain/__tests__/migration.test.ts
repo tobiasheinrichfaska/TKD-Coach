@@ -39,7 +39,7 @@ describe('migrate', () => {
 
   it('leaves non-game data untouched', () => {
     const d = base([]);
-    d.groups = [{ id: 'g', name: 'G', ageCategory: 'kids', athleteIds: [] }];
+    d.groups = [{ id: 'g', name: 'G', trainingTimes: [], athleteIds: [] }];
     expect(migrate(d).groups).toEqual(d.groups);
   });
 

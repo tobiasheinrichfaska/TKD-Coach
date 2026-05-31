@@ -1,13 +1,23 @@
 # 01 — Groups & Athletes
 
-## MT-01-1: Create a group
+## MT-01-1: Create a group (with training times)
 **Preconditions:** Fresh app or existing data.
 **Steps:**
 1. Tap the **Groups** tab.
 2. Tap the **+** button (bottom-right).
-3. Enter a name (e.g. "Kids Mo"). Tap **Save**.
+3. Enter a name (e.g. "Kids Mo").
+4. Under **Training times** tap **+ Trainingszeit hinzufügen**, choose a weekday chip (e.g. **Mo**), set **Start** `17:00` and **Minutes** `90`. Add a second slot if you like (e.g. **Mi** 18:00 / 90). Tap **Save**.
 
-**Expected:** Returns to the group list; the new group appears with "0 athletes".
+**Expected:** Returns to the group list; the new group shows "0 athletes" plus its schedule (e.g. `Mo 17:00 · 90 min, Mi 18:00 · 90 min`). The group detail shows the same line.
+> Not obvious: there is no longer an age-category field — put any age hint in the name. Weekday order is Mon→Sun.
+
+## MT-01-1b: Schedule drives dashboard + planning
+**Preconditions:** A group with a training time **today** (set a slot on today's weekday).
+**Steps:**
+1. Open the **Dashboard** tab.
+2. Go to **Sessions → Plan**, tap that group.
+
+**Expected:** The dashboard shows a **🕒 Training heute** card with the group + slot. On Plan, selecting the group **prefills the Date** to the next training occurrence and shows a hint like `Training: Mo 17:00 · 90 min · geplant 75/90 min` (planned-vs-target minutes). Picking a date the group doesn't train shows "trainiert an diesem Tag nicht".
 
 ## MT-01-2: Add an athlete to a group
 **Preconditions:** At least one group (MT-01-1).

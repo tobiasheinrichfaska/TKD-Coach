@@ -69,12 +69,20 @@ export function migrate(data: AppData): AppData {
     persons = [...persons, ...contactPersons];
   }
 
+  // Groups: backfill trainingTimes; drop the retired ageCategory field.
+  const groups = (d.groups || []).map((g: any) => ({
+    id: g.id,
+    name: g.name,
+    trainingTimes: g.trainingTimes || [],
+    athleteIds: g.athleteIds || [],
+  }));
+
   // Rebuild the object explicitly so legacy keys (athletes/emergencyContacts) are dropped.
   return {
     version: d.version ?? 1,
     games: [...BUILTIN_GAMES, ...userGames],
     persons,
-    groups: d.groups || [],
+    groups,
     sessionPlans: d.sessionPlans || [],
     sessionLogs: d.sessionLogs || [],
     assessments: d.assessments || [],

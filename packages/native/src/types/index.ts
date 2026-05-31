@@ -67,10 +67,23 @@ export interface ContactLink {
   guardian: boolean;
 }
 
+/** ISO weekday: 1 = Monday … 7 = Sunday. */
+export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+/** A recurring weekly training window for a group. */
+export interface TrainingSlot {
+  weekday: Weekday;
+  /** Local start time, 24h "HH:MM". */
+  start: string;
+  /** Session length in minutes. */
+  durationMin: number;
+}
+
 export interface Group {
   id: string;
   name: string;
-  ageCategory: 'kids' | 'youth' | 'adult' | 'mixed';
+  /** Recurring weekly training windows (drives planning prefill + "trains today"). */
+  trainingTimes: TrainingSlot[];
   athleteIds: string[];
 }
 

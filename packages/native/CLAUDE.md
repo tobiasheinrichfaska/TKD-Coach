@@ -15,7 +15,7 @@
 
 See [`src/types/index.ts`](src/types/index.ts) for full schema. Core entities:
 - **Person:** the single human identity (name, email?, phones≤5, `isCoach`). Roles attach by **composition, not inheritance**: an embedded `athlete` profile (belt/birthYear/neuroProfile/poomsae/techniques) and `isCoach`. One person can be athlete + coach + another athlete's guardian at once. The UI keeps "athlete" via the flat `AthleteView` (`domain/people.ts`: `athleteViews`, `toAthleteView`).
-- **Group:** name, age category, `athleteIds` → Person ids (M:N, sole membership link; 0..n groups).
+- **Group:** name, `athleteIds` → Person ids (M:N, sole membership link; 0..n groups), and `trainingTimes` (weekly `TrainingSlot{weekday 1–7, start "HH:MM", durationMin}`). Schedule logic in `domain/schedule.ts` (`nextSession`, `slotsOnDay`/`trainsOn`, `formatSlot`) drives PlanSession date prefill + Dashboard "Training heute". No `ageCategory` (retired; convey via the name).
 - **ContactLink:** edge {`contactId`→Person, `athleteId`→Person, `guardian`} — emergency-contact/guardian relationship; **guardian is per-edge**. Phones/emails are tappable (`utils/linking.ts`).
 - **GameDefinition:** 11 built-in + user-configurable, seeded on first run. Each has phase, neuro target, duration, metric type
 - **SessionPlan:** group, date, template (kids-2h / youth-adult-1h30 / custom), planned game IDs

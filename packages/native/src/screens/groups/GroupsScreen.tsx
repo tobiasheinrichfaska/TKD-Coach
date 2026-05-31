@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { ungroupedAthletes, athleteViews } from '../../domain';
+import { ungroupedAthletes, athleteViews, sortedSlots, formatSlot } from '../../domain';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -46,7 +46,10 @@ export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'Gro
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.groupItem} onPress={() => navigation.navigate('GroupDetail', { groupId: item.id })}>
             <Text style={styles.text}>{item.name}</Text>
-            <Text style={{ fontSize: 12, color: COLORS.textMuted }}>{item.athleteIds.length} athletes</Text>
+            <Text style={{ fontSize: 12, color: COLORS.textMuted }}>
+              {item.athleteIds.length} athletes
+              {item.trainingTimes.length > 0 ? ` · ${sortedSlots(item).map(formatSlot).join(', ')}` : ''}
+            </Text>
           </TouchableOpacity>
         )}
         ListEmptyComponent={<Text style={styles.text}>No groups yet. Tap + to create one.</Text>}
