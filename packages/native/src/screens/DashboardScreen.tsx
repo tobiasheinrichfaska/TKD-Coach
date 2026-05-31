@@ -34,7 +34,9 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
 
   const completedPlanIds = new Set(state.sessionLogs.filter(l => l.status === 'completed').map(l => l.planId));
   const runningPlanIds = new Set(state.sessionLogs.filter(l => l.status === 'running').map(l => l.planId));
-  const todaysPlans = state.sessionPlans.filter(p => p.plannedDate === todayISO);
+  // Today's still-open sessions (to-start or in-progress). Done-today sessions are "recent"
+  // and appear in Recent Sessions below — not here.
+  const todaysOpen = state.sessionPlans.filter(p => p.plannedDate === todayISO && !completedPlanIds.has(p.id));
   // Copy before sort: Array.prototype.sort mutates in place — sorting state.sessionLogs
   // directly would corrupt the reducer's source of truth and silently break reference equality.
   const recentLogs = [...state.sessionLogs]
@@ -56,34 +58,27 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        {/* Today's Sessions */}
+        {/* Today's Sessions — tap a card to start / resume it */}
         <Text style={styles.section}>🗓 Today's Sessions</Text>
-        {todaysPlans.length > 0 ? (
-          <>
-            {todaysPlans.map(plan => {
-              const done = completedPlanIds.has(plan.id);
-              const running = runningPlanIds.has(plan.id);
-              const status = done ? '✓ Done' : running ? '▶ In progress' : '○ To start';
-              const totalMin = plan.plannedGames.reduce((s, gid) => s + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
-              return (
-                <TouchableOpacity
-                  key={plan.id}
-                  style={[styles.sessionCard, done && { opacity: 0.6 }]}
-                  disabled={done}
-                  onPress={() => navigation.navigate('Sessions', { screen: 'RunSession', params: { planId: plan.id } })}
-                >
-                  <Text style={styles.sessionTitle}>{status} · {plan.name}</Text>
-                  <Text style={styles.sessionMeta}>{getGroupName(plan.groupId)} · {totalMin} min</Text>
-                  <Text style={styles.gameList}>{getGameNames(plan.plannedGames)}</Text>
-                </TouchableOpacity>
-              );
-            })}
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Sessions', { screen: 'SessionsList' })}>
-              <Text style={styles.buttonText}>Start Session</Text>
-            </TouchableOpacity>
-          </>
+        {todaysOpen.length > 0 ? (
+          todaysOpen.map(plan => {
+            const running = runningPlanIds.has(plan.id);
+            const status = running ? '▶ Resume' : '○ Start';
+            const totalMin = plan.plannedGames.reduce((s, gid) => s + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
+            return (
+              <TouchableOpacity
+                key={plan.id}
+                style={styles.sessionCard}
+                onPress={() => navigation.navigate('Sessions', { screen: 'RunSession', params: { planId: plan.id } })}
+              >
+                <Text style={styles.sessionTitle}>{status} · {plan.name}</Text>
+                <Text style={styles.sessionMeta}>{getGroupName(plan.groupId)} · {totalMin} min</Text>
+                <Text style={styles.gameList}>{getGameNames(plan.plannedGames)}</Text>
+              </TouchableOpacity>
+            );
+          })
         ) : (
-          <Text style={styles.empty}>No sessions planned for today</Text>
+          <Text style={styles.empty}>No open sessions for today</Text>
         )}
 
         {/* Recent Sessions */}
