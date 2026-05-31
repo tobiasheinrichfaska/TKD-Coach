@@ -53,6 +53,16 @@ const styles = StyleSheet.create({
   templateButtonActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   templateButtonText: { fontSize: 12, color: COLORS.text },
   templateButtonTextActive: { color: COLORS.surface, fontWeight: 'bold' },
+  gameRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8, marginBottom: 6, borderLeftWidth: 3 },
+  gameRowInfo: { flex: 1 },
+  ctrl: { paddingHorizontal: 8, paddingVertical: 4 },
+  ctrlText: { fontSize: 18, color: COLORS.textMuted },
+  removeText: { fontSize: 18, color: COLORS.danger },
+  addToggle: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.primary, padding: 10, borderRadius: 8, alignItems: 'center', marginTop: 4 },
+  addToggleText: { color: COLORS.primary, fontWeight: 'bold' },
+  addItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  addItemText: { fontSize: 13, color: COLORS.text },
+  addItemMeta: { fontSize: 11, color: COLORS.textMuted },
 });
 
 export default function PlanSessionScreen({ route, navigation }: SessionsStackScreenProps<'PlanSession'>) {
@@ -72,6 +82,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   const [gameIds, setGameIds] = useState<string[]>(
     plan?.plannedGames || fromGameIds || [...SESSION_TEMPLATES.KIDS_2H]
   );
+  const [showAdd, setShowAdd] = useState(false);
 
   const handleTemplateChange = (newTemplate: typeof template) => {
     setTemplate(newTemplate);
@@ -80,6 +91,21 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     } else if (newTemplate === 'youth-adult-1h30') {
       setGameIds([...SESSION_TEMPLATES.YOUTH_ADULT_1H30]);
     }
+  };
+
+  // Editing the game list makes it a custom plan (no longer a named template).
+  const setGames = (next: string[]) => {
+    setGameIds(next);
+    setTemplate('custom');
+  };
+  const removeGame = (idx: number) => setGames(gameIds.filter((_, i) => i !== idx));
+  const addGame = (gid: string) => setGames([...gameIds, gid]);
+  const moveGame = (idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= gameIds.length) return;
+    const next = [...gameIds];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    setGames(next);
   };
 
   const handleSave = () => {
@@ -137,8 +163,6 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
       const game = state.games.find(g => g.id === gid);
       return sum + (game?.defaultMinutes || 0);
     }, 0);
-
-  const gameDetails = gameIds.map(gid => state.games.find(g => g.id === gid)).filter(Boolean);
 
   return (
     <ScrollView style={styles.container}>
@@ -213,26 +237,48 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.section}>Games ({getTotalMinutes()} min)</Text>
-        <FlatList
-          scrollEnabled={false}
-          data={gameDetails}
-          keyExtractor={item => item?.id || ''}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.gameCard,
-                {
-                  borderLeftColor:
-                    item?.phase === 'warmup' ? COLORS.warmup : item?.phase === 'cooldown' ? COLORS.cooldown : COLORS.main,
-                },
-              ]}
-            >
-              <Text style={styles.gameTitle}>{item?.name}</Text>
-              <Text style={styles.gameMeta}>{item?.defaultMinutes} min</Text>
+        <Text style={styles.section}>Übungen ({gameIds.length} · {getTotalMinutes()} min)</Text>
+        {gameIds.map((gid, idx) => {
+          const g = state.games.find(x => x.id === gid);
+          const border = g?.phase === 'warmup' ? COLORS.warmup : g?.phase === 'cooldown' ? COLORS.cooldown : COLORS.main;
+          const last = idx === gameIds.length - 1;
+          return (
+            <View key={`${gid}-${idx}`} style={[styles.gameRow, { borderLeftColor: border }]}>
+              <View style={styles.gameRowInfo}>
+                <Text style={styles.gameTitle}>{g?.name || gid}</Text>
+                <Text style={styles.gameMeta}>{g?.phase} · {g?.defaultMinutes} min</Text>
+              </View>
+              <TouchableOpacity style={styles.ctrl} onPress={() => moveGame(idx, -1)} disabled={idx === 0}>
+                <Text style={[styles.ctrlText, idx === 0 && { opacity: 0.25 }]}>▲</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.ctrl} onPress={() => moveGame(idx, 1)} disabled={last}>
+                <Text style={[styles.ctrlText, last && { opacity: 0.25 }]}>▼</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.ctrl} onPress={() => removeGame(idx)}>
+                <Text style={styles.removeText}>✕</Text>
+              </TouchableOpacity>
             </View>
-          )}
-        />
+          );
+        })}
+        {gameIds.length === 0 && <Text style={styles.gameMeta}>No Übungen yet — add some below.</Text>}
+
+        <TouchableOpacity style={styles.addToggle} onPress={() => setShowAdd(s => !s)}>
+          <Text style={styles.addToggleText}>{showAdd ? 'Close' : '+ Add Übung'}</Text>
+        </TouchableOpacity>
+        {showAdd && (
+          <View style={[styles.picker, { marginTop: 6 }]}>
+            {(['warmup', 'main', 'cooldown'] as const).map(phase =>
+              state.games
+                .filter(g => g.phase === phase)
+                .map(g => (
+                  <TouchableOpacity key={g.id} style={styles.addItem} onPress={() => addGame(g.id)}>
+                    <Text style={styles.addItemText}>{g.name}</Text>
+                    <Text style={styles.addItemMeta}>{phase} · {g.defaultMinutes}min</Text>
+                  </TouchableOpacity>
+                ))
+            )}
+          </View>
+        )}
 
         <TouchableOpacity style={styles.button} onPress={handleSave}>
           <Text style={styles.buttonText}>{planId ? 'Update' : 'Create'} Session Plan</Text>

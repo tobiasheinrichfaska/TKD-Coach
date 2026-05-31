@@ -104,7 +104,13 @@ interface Block {                  // reusable named sub-sequence (e.g. an Aufw�
   id: string; name: string; phase: 'warmup' | 'main' | 'cooldown';
   gameIds: string[]; stretchIds?: string[]; notes?: string;
 }
+interface SessionTemplate {        // user-saved reusable named template (folded in from a request)
+  id: string; name: string; ageGroup?: 'kids' | 'youth-adults' | 'all';
+  itemIds: string[];               // ordered Übung/Block ids
+}
 ```
+
+> **Folded-in request (2026-05-31):** *save a session as a named template.* The app already supports "use a completed session as the basis for a new plan" (prefill). The fuller "save directly as a named, reusable template" needs the `SessionTemplate` store above (entity + reducer actions + transfer + a picker in PlanSession's template selector) — built here in Phase 2 alongside `Block`s. Also (separate small UX, shipped 2026-05-31): a completed plan drops out of the active "Session Plans" list and lives as history under Completed Sessions.
 **Tags & links:**
 - `GameDefinition` gains `techniqueIds: string[]` (techniques trained) and optional `bodyPartIds: string[]` (direct load not implied by a technique, e.g. a vestibular drill loading ankle/neck stabilizers). Seed `techniqueIds` from the `Tech:` lines in `_source/20260530_02.md`.
 - A game/block's effective body load = its own `bodyPartIds` ∪ the `bodyPartIds` of all its techniques.

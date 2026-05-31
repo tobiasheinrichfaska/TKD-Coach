@@ -24,8 +24,15 @@ const styles = StyleSheet.create({
 export default function SessionsScreen({ navigation }: SessionsStackScreenProps<'SessionsList'>) {
   const { state } = useData();
 
+  // A plan with a completed session is history (shown under Completed below), not an
+  // active plan. Plans with only a running log stay active so they can be resumed.
+  const completedPlanIds = new Set(
+    state.sessionLogs.filter(l => l.status === 'completed').map(l => l.planId)
+  );
   // Copy before sort: sort() mutates; sorting state arrays directly corrupts reducer state.
-  const upcomingPlans = [...state.sessionPlans].sort((a, b) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime());
+  const upcomingPlans = [...state.sessionPlans]
+    .filter(p => !completedPlanIds.has(p.id))
+    .sort((a, b) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime());
   const completedLogs = state.sessionLogs
     .filter(l => l.status === 'completed')
     .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
