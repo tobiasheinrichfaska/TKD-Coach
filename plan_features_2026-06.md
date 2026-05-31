@@ -120,6 +120,11 @@ interface Block {                  // reusable named sub-sequence (e.g. an Aufw�
 
 **Seed data:** ~20–30 `BodyPart`s; map the 11 games' techniques to body parts; a starter `Stretch` library covering the main joints (ankle, hip, hamstring, shoulder, spine).
 
+**`games/*.md` are the canonical input** — parsed/used for **two** outputs (document + honour when adding any new game file):
+- **(a) single-step data** — each game's structured fields + its *Setup & How to Play* steps seed a `GameDefinition` and its step-by-step technique breakdown; one game = one timed activity/step in the runner.
+- **(b) session templates** — games + their phase/timing compose into `SESSION_TEMPLATES` / reusable `Block`s.
+A new game file therefore feeds both the per-step activity data and the templates. (Mirrored in [`games/README.md`](games/README.md).)
+
 **Migration:** bump `AppData.version` → 2; add `migrate(data)` in `DataContext` `LOAD_ALL` (also resolves audit #15 — no migration path today).
 
 ---

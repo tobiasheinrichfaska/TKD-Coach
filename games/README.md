@@ -33,6 +33,15 @@ Each game is a complete, stand-alone file containing:
 - **Log Metric:** what to measure and track
 - **Why It Works Neurologically:** the science behind the stimulus
 
+### As input for the app (dual purpose)
+
+Each game file is the **canonical source** the app consumes in **two** ways:
+
+1. **Single-step data** — one game = one timed **activity/step** in a running session. Its fields (name, phase, default minutes, neuro-target, technique) and the **Setup & How to Play steps** seed the game/activity definition, and (Phase 2) the step-by-step technique breakdown used for "in pieces" training (e.g. Yop-Chagi step by step).
+2. **A session template** — games, with their phase and timing, compose into the reusable session templates in [`sessions/`](../sessions/) (and future planning blocks).
+
+When adding a **new** game file, follow the existing structure so it automatically feeds both uses.
+
 ### For Session Planning
 - See [`sessions/`](../sessions/) for two template session plans
 - Pick 6–8 games total for any session (warm-up → main → cool-down order)
