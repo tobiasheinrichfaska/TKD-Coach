@@ -1,11 +1,13 @@
-import { AppData, Person, ContactLink } from '../types';
+import { AppData, Person, ContactLink, GameDefinition } from '../types';
 import { BUILTIN_GAMES } from '../constants/games';
 import { LEGACY_BELT_MAP } from '../constants/belts';
 import { BUILTIN_TEMPLATES } from './templates';
 
 /**
  * Bring stored data up to the current shape:
- * - refresh built-in Übungen + session templates from the seeds (preserving user-made ones);
+ * - seed built-in Übungen + session templates as factory defaults ONLY when empty (fresh install);
+ *   existing data is kept (shape-normalised), never auto-overwritten;
+ * - normalise game shape (drop phase/neuroTarget, single sessionPhase → sessionPhases[]);
  * - normalise legacy colour-belt ids to the Kup/Dan ladder;
  * - convert the legacy split model (athletes[] + emergencyContacts[]) to the unified
  *   Person model (persons[] + contactLinks[]), keeping every athlete's id as its Person id
@@ -17,12 +19,16 @@ import { BUILTIN_TEMPLATES } from './templates';
 export function migrate(data: AppData): AppData {
   const d = data as unknown as Record<string, any>;
 
-  const userGames = (d.games || []).filter(
-    (g: any) => !g.isBuiltIn && !BUILTIN_GAMES.some(b => b.id === g.id)
-  );
-  const userTemplates = (d.sessionTemplates || []).filter(
-    (t: any) => !t.isBuiltIn && !BUILTIN_TEMPLATES.some(b => b.id === t.id)
-  );
+  // Built-ins are factory defaults: seeded only when the collection is empty (fresh install).
+  // Existing data is kept as-is (shape-normalised) — never auto-overwritten.
+  const normalizeGame = (g: any): GameDefinition => {
+    const { phase, neuroTarget, sessionPhase, sessionPhases, ...rest } = g;
+    return { ...rest, sessionPhases: sessionPhases ?? (sessionPhase ? [sessionPhase] : [3]) } as GameDefinition;
+  };
+  const games = Array.isArray(d.games) && d.games.length ? d.games.map(normalizeGame) : BUILTIN_GAMES;
+  const sessionTemplates = Array.isArray(d.sessionTemplates) && d.sessionTemplates.length
+    ? d.sessionTemplates
+    : BUILTIN_TEMPLATES;
 
   // --- Persons ---
   let persons: Person[];
@@ -80,13 +86,13 @@ export function migrate(data: AppData): AppData {
   // Rebuild the object explicitly so legacy keys (athletes/emergencyContacts) are dropped.
   return {
     version: d.version ?? 1,
-    games: [...BUILTIN_GAMES, ...userGames],
+    games,
     persons,
     groups,
     sessionPlans: d.sessionPlans || [],
     sessionLogs: d.sessionLogs || [],
     assessments: d.assessments || [],
-    sessionTemplates: [...BUILTIN_TEMPLATES, ...userTemplates],
+    sessionTemplates,
     contactLinks,
     exportedAt: d.exportedAt,
   };

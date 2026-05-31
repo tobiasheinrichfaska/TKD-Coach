@@ -101,17 +101,15 @@ export interface GameDefinition {
   id: string;
   name: string;
   shortName: string;
-  /** Coarse training phase (kept for back-compat / colour coding). */
-  phase: 'warmup' | 'main' | 'cooldown';
-  /** Protocol session phase 1–5 (drives the session headings + add-by-phase). */
-  sessionPhase?: SessionPhase;
-  neuroTarget: string;
+  /** Protocol phases (1–5) this Übung may be used in — one or more.
+   *  Drives the add-by-phase lists; a plan groups an entry under its lowest phase. */
+  sessionPhases: SessionPhase[];
   defaultMinutes: number;
   ageGroup: 'all' | 'youth-adults';
   logMetricType?: AssessmentMetricType;
   /** Techniques this Übung trains (kebab ids, e.g. "ap-chagi"). */
   techniques?: string[];
-  /** Joints/muscles this Übung loads (kebab ids, e.g. "knee"). */
+  /** Joints/muscles this Übung loads (kebab ids, e.g. "knee") — shown in place of a neuro target. */
   bodyParts?: string[];
   isBuiltIn: boolean;
   description?: string;

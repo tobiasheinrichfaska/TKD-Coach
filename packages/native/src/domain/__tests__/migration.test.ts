@@ -15,26 +15,24 @@ describe('migrate', () => {
     for (const b of BUILTIN_GAMES) expect(out.games.some(g => g.id === b.id)).toBe(true);
   });
 
-  it('refreshes a stale built-in copy from the canonical seed', () => {
-    const stale: GameDefinition = { ...BUILTIN_GAMES[0], name: 'OLD NAME' };
-    const out = migrate(base([stale]));
-    expect(out.games.find(g => g.id === stale.id)?.name).toBe(BUILTIN_GAMES[0].name);
-    expect(out.games.length).toBe(BUILTIN_GAMES.length);
+  it('keeps existing games as-is — built-ins are factory defaults, not auto-refreshed', () => {
+    const edited: GameDefinition = { ...BUILTIN_GAMES[0], name: 'MY EDIT' };
+    const out = migrate(base([edited]));
+    expect(out.games).toHaveLength(1); // not re-seeded with the full BUILTIN set
+    expect(out.games[0].name).toBe('MY EDIT'); // user edit preserved
   });
 
-  it('preserves user-created games', () => {
-    const custom: GameDefinition = {
-      id: 'custom-1', name: 'Custom', shortName: 'C', phase: 'main',
-      defaultMinutes: 5, ageGroup: 'all', isBuiltIn: false, neuroTarget: 'x',
-    };
-    const out = migrate(base([custom]));
-    expect(out.games.some(g => g.id === 'custom-1')).toBe(true);
-    expect(out.games.length).toBe(BUILTIN_GAMES.length + 1);
+  it('normalises legacy game shape (drops phase/neuroTarget, single sessionPhase → sessionPhases[])', () => {
+    const legacy = { id: 'g1', name: 'G', shortName: 'G', phase: 'main', sessionPhase: 2, neuroTarget: 'x', defaultMinutes: 5, ageGroup: 'all', isBuiltIn: false };
+    const out = migrate({ ...base([]), games: [legacy] } as unknown as AppData);
+    expect(out.games[0].sessionPhases).toEqual([2]);
+    expect((out.games[0] as unknown as Record<string, unknown>).phase).toBeUndefined();
+    expect((out.games[0] as unknown as Record<string, unknown>).neuroTarget).toBeUndefined();
   });
 
-  it('handles a missing games array', () => {
-    const out = migrate({ ...base([]), games: undefined as unknown as GameDefinition[] });
-    expect(out.games.length).toBe(BUILTIN_GAMES.length);
+  it('seeds built-in games when the array is empty/missing', () => {
+    expect(migrate(base([])).games.length).toBe(BUILTIN_GAMES.length);
+    expect(migrate({ ...base([]), games: undefined as unknown as GameDefinition[] }).games.length).toBe(BUILTIN_GAMES.length);
   });
 
   it('leaves non-game data untouched', () => {
@@ -49,15 +47,11 @@ describe('migrate', () => {
     for (const b of BUILTIN_TEMPLATES) expect(out.sessionTemplates.some(t => t.id === b.id)).toBe(true);
   });
 
-  it('refreshes a stale built-in template and preserves user templates', () => {
-    const stale: SessionTemplate = { ...BUILTIN_TEMPLATES[0], name: 'OLD' };
-    const custom: SessionTemplate = {
-      id: 'tmpl-custom', name: 'My Template', ageGroup: 'all', itemIds: ['W1'], isBuiltIn: false,
-    };
-    const out = migrate({ ...base([]), sessionTemplates: [stale, custom] });
-    expect(out.sessionTemplates.find(t => t.id === stale.id)?.name).toBe(BUILTIN_TEMPLATES[0].name);
-    expect(out.sessionTemplates.some(t => t.id === 'tmpl-custom')).toBe(true);
-    expect(out.sessionTemplates.length).toBe(BUILTIN_TEMPLATES.length + 1);
+  it('keeps existing templates as-is (factory defaults, not auto-refreshed)', () => {
+    const edited: SessionTemplate = { ...BUILTIN_TEMPLATES[0], name: 'MY TEMPLATE' };
+    const out = migrate({ ...base([]), sessionTemplates: [edited] });
+    expect(out.sessionTemplates).toHaveLength(1);
+    expect(out.sessionTemplates[0].name).toBe('MY TEMPLATE');
   });
 
   it('handles a missing sessionTemplates array', () => {

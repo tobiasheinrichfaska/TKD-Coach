@@ -389,15 +389,13 @@ person can be a guardian for one athlete and only a contact for another. Phones/
 <tbody>
 <tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
 <tr><td><code class="req">name</code> / <code class="req">shortName</code></td><td>string</td><td></td></tr>
-<tr><td><code class="req">phase</code></td><td>'warmup' | 'main' | 'cooldown'</td><td>Coarse; used for colour coding.</td></tr>
-<tr><td><code>sessionPhase</code> <span class="opt">?</span></td><td>1–5</td><td>Protocol heading (Warm-Up → Meditation); drives add-by-phase.</td></tr>
-<tr><td><code class="req">neuroTarget</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">sessionPhases</code></td><td>SessionPhase[]</td><td>One or more of the 5 protocol phases the Übung may be used in. A plan groups an entry under its <em>lowest</em> phase; the colour band derives from the phase number.</td></tr>
 <tr><td><code class="req">defaultMinutes</code></td><td>number</td><td>Used as planned duration in totals.</td></tr>
 <tr><td><code class="req">ageGroup</code></td><td>'all' | 'youth-adults'</td><td></td></tr>
 <tr><td><code>logMetricType</code> <span class="opt">?</span></td><td>AssessmentMetricType</td><td>Which metric this drill is assessed with.</td></tr>
 <tr><td><code>techniques</code> <span class="opt">?</span></td><td>string[]</td><td>→ Technique ids (catalog).</td></tr>
-<tr><td><code>bodyParts</code> <span class="opt">?</span></td><td>string[]</td><td>→ BodyPart ids (catalog).</td></tr>
-<tr><td><code class="req">isBuiltIn</code></td><td>boolean</td><td>Built-ins are refreshed by migration; user ones are preserved.</td></tr>
+<tr><td><code>bodyParts</code> <span class="opt">?</span></td><td>string[]</td><td>→ BodyPart ids; shown in place of a neuro target.</td></tr>
+<tr><td><code class="req">isBuiltIn</code></td><td>boolean</td><td>Factory flag. Built-ins are seeded once (fresh install), never auto-overwritten.</td></tr>
 <tr><td><code>description</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
@@ -578,6 +576,9 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 <tr><td><code>contactsForAthlete</code></td><td>(persons, links, athleteId) → ContactView[]</td><td>Linked contacts resolved to Person + per-edge guardian flag.</td></tr>
 <tr><td><code>guardiansForAthlete</code></td><td>(persons, links, athleteId) → ContactView[]</td><td>The subset that are guardians.</td></tr>
 <tr><td><code>athletesForContact</code></td><td>(persons, links, contactId) → Person[]</td><td>Athletes a contact covers.</td></tr>
+<tr><td colspan="3" class="mono-sm" style="background:var(--panel2)">— phases (<code>domain/phases.ts</code>) —</td></tr>
+<tr><td><code>primaryPhase</code></td><td>(game) → SessionPhase</td><td>Lowest eligible phase — the section a plan groups it under (default 3).</td></tr>
+<tr><td><code>gameInPhase</code> / <code>phaseBand</code></td><td>(game, phase) / (phase)</td><td>Eligibility test / colour band (1–2 warm-up, 3 main, 4–5 cool-down).</td></tr>
 <tr><td colspan="3" class="mono-sm" style="background:var(--panel2)">— training schedule (<code>domain/schedule.ts</code>) —</td></tr>
 <tr><td><code>nextSession</code></td><td>(group, from) → {date, slot} | null</td><td>Next training occurrence ≥ from; prefills PlanSession date.</td></tr>
 <tr><td><code>slotsOnDay</code> / <code>trainsOn</code></td><td>(group, date)</td><td>Slots on a date's weekday / does it train that day ("trains today").</td></tr>
@@ -640,9 +641,9 @@ when eligible); each button is enabled purely by these functions — the UI embe
 <h2 id="migration">Data manipulation 7 — Migration &amp; seeding <span class="src">domain/migration.ts</span></h2>
 <p><code>migrate(data: AppData) → AppData</code> is pure and runs on every load (and as the fresh-install seed). It:</p>
 <ul class="tight">
-  <li>refreshes <strong>built-in</strong> Übungen from <code>BUILTIN_GAMES</code> (new drills + new fields) while <strong>preserving user games</strong>;</li>
-  <li>refreshes <strong>built-in</strong> templates from <code>BUILTIN_TEMPLATES</code> while preserving user templates;</li>
-  <li>backfills collections missing on older saves (e.g. <code>sessionTemplates</code> on pre-template data).</li>
+  <li><strong>seeds</strong> built-in Übungen + templates only when empty (factory defaults, fresh install) — existing data is kept, never auto-overwritten;</li>
+  <li><strong>normalises game shape</strong> (drops legacy <code>phase</code>/<code>neuroTarget</code>; single <code>sessionPhase</code> → <code>sessionPhases[]</code>);</li>
+  <li>converts legacy athletes/contacts → persons + contactLinks; normalises legacy belts; backfills missing collections.</li>
 </ul>
 <pre>const data = stored ? JSON.parse(stored) : EMPTY_APP_DATA;
 dispatch({ type: 'LOAD_ALL', payload: migrate(data) });   // one path for both install + upgrade</pre>
@@ -665,7 +666,7 @@ The flat, id-referenced model is what makes change-detection and merge work: <co
 <h2 id="testing">Testing</h2>
 <p>The domain layer is exhaustively unit-tested with <strong>ts-jest</strong> (no UI/Expo runtime needed) — per the workspace
 "intensive unit testing is mandatory" rule. Run from <code>packages/native</code>:</p>
-<pre>npx jest        # 83 tests across 10 suites</pre>
+<pre>npx jest        # 86 tests across 11 suites</pre>
 <table>
 <thead><tr><th>Suite</th><th>Guards</th></tr></thead>
 <tbody>
@@ -675,6 +676,7 @@ The flat, id-referenced model is what makes change-detection and merge work: <co
 <tr><td><code>graduation.test.ts</code></td><td>age bounds + promote/demote/convert at every boundary.</td></tr>
 <tr><td><code>people.test.ts</code></td><td>AthleteView adapter, role/membership selectors, contact edges + guardian.</td></tr>
 <tr><td><code>schedule.test.ts</code></td><td>weekday mapping, next-session computation across day boundaries, trains-on.</td></tr>
+<tr><td><code>phases.test.ts</code></td><td>primary (lowest) phase, eligibility, colour band.</td></tr>
 <tr><td><code>selectors.test.ts</code></td><td>status, totals, today filter, coverage, history ordering.</td></tr>
 <tr><td><code>templates.test.ts</code></td><td>template item integrity + helpers.</td></tr>
 <tr><td><code>migration.test.ts</code></td><td>seed/refresh built-ins, preserve user data, backfill.</td></tr>

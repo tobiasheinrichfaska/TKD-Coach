@@ -14,7 +14,7 @@ import { COLORS } from '../../constants/colors';
 import { SESSION_TEMPLATES } from '../../constants/games';
 import { generateId } from '../../utils/ids';
 import { toLocalDateISO } from '../../utils/format';
-import { nextSession, slotsOnDay, formatSlot } from '../../domain';
+import { nextSession, slotsOnDay, formatSlot, primaryPhase, gameInPhase, phaseBand } from '../../domain';
 import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
 import type { Group } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
@@ -87,7 +87,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   const [showAdd, setShowAdd] = useState(false);
   const [query, setQuery] = useState('');
 
-  const phaseOf = (gid: string): SessionPhase => state.games.find(g => g.id === gid)?.sessionPhase ?? 3;
+  const phaseOf = (gid: string): SessionPhase => primaryPhase(state.games.find(g => g.id === gid));
 
   // Selecting a group prefills the date from its next training slot (new plans only).
   const chooseGroup = (g: Group) => {
@@ -172,7 +172,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     if (!q) return true;
     const g = state.games.find(x => x.id === gid);
     if (!g) return false;
-    return [g.name, g.shortName, ...(g.techniques || []), ...(g.bodyParts || []), g.neuroTarget]
+    return [g.name, g.shortName, ...(g.techniques || []), ...(g.bodyParts || [])]
       .join(' ')
       .toLowerCase()
       .includes(q);
@@ -239,7 +239,8 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
           const p = phaseOf(gid);
           const heading = p !== lastPhase ? SESSION_PHASE_LABELS[p] : null;
           lastPhase = p;
-          const border = g?.phase === 'warmup' ? COLORS.warmup : g?.phase === 'cooldown' ? COLORS.cooldown : COLORS.main;
+          const band = phaseBand(p);
+          const border = band === 'warmup' ? COLORS.warmup : band === 'cooldown' ? COLORS.cooldown : COLORS.main;
           const last = idx === gameIds.length - 1;
           const tags = tagLine(gid);
           return (
@@ -281,7 +282,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
             />
             <View style={styles.picker}>
               {PHASES.map(phase => {
-                const available = state.games.filter(g => (g.sessionPhase ?? 3) === phase && !gameIds.includes(g.id) && matches(g.id));
+                const available = state.games.filter(g => gameInPhase(g, phase) && !gameIds.includes(g.id) && matches(g.id));
                 if (available.length === 0) return null;
                 return (
                   <View key={phase}>

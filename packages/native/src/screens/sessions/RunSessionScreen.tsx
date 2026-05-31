@@ -14,6 +14,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { generateSessionSummaryText } from '../../utils/format';
+import { primaryPhase, gameInPhase, bodyPartName } from '../../domain';
 import { SESSION_PHASE_LABELS } from '../../types';
 import type { GameLog, SessionPhase } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
@@ -133,7 +134,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
 
   const currentGameLog = gameLogs[currentGameIndex];
   const currentGame = state.games.find(g => g.id === currentGameLog?.gameId);
-  const phaseOf = (gid: string): SessionPhase => state.games.find(g => g.id === gid)?.sessionPhase ?? 3;
+  const phaseOf = (gid: string): SessionPhase => primaryPhase(state.games.find(g => g.id === gid));
 
   /**
    * Strong, repeated signal that the planned duration was reached — meant to cut
@@ -384,7 +385,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                   {log.status === 'pending' && swapOpen && (
                     <View style={styles.swapList}>
                       {([1, 2, 3, 4, 5] as SessionPhase[]).map(ph => {
-                        const opts = state.games.filter(g => (g.sessionPhase ?? 3) === ph && g.id !== log.gameId);
+                        const opts = state.games.filter(g => gameInPhase(g, ph) && g.id !== log.gameId);
                         if (opts.length === 0) return null;
                         return (
                           <View key={ph}>
@@ -393,8 +394,8 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                               <TouchableOpacity key={g.id} style={styles.swapItem} onPress={() => swapCurrent(g.id)}>
                                 <Text style={styles.swapItemText}>{g.name}</Text>
                                 <Text style={styles.swapItemMeta}>
-                                  {g.defaultMinutes}min · {g.neuroTarget}
-                                  {g.bodyParts && g.bodyParts.length ? ` · ${g.bodyParts.join(', ')}` : ''}
+                                  {g.defaultMinutes}min
+                                  {g.bodyParts && g.bodyParts.length ? ` · ${g.bodyParts.map(bodyPartName).join(', ')}` : ''}
                                 </Text>
                               </TouchableOpacity>
                             ))}
