@@ -11,6 +11,8 @@
 - **React Native** (0.81.5) — no UI library, custom StyleSheet-based components
 
 ### Data Model
+**Visual reference:** open [`docs/data-model.html`](docs/data-model.html) in a browser — a self-contained doc of every entity, the reducer actions, and the pure domain functions (metrics/selectors/templates/catalogs/migration). Regenerate it when the model changes.
+
 See [`src/types/index.ts`](src/types/index.ts) for full schema. Core entities:
 - **Athlete:** name, belt, birth year, contact info (phone/parent), neuro profile (vestibular/visual/proprioceptive 1-5), poomsae list, techniques list
 - **Group:** name, age category (kids/youth/adult/mixed), athlete IDs

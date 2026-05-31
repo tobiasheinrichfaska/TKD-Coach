@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TKD-Coach — Data Model &amp; Data Manipulation</title>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --panel2:#1e222e; --line:#2a3040;
+    --ink:#e7eaf0; --muted:#9aa3b2; --accent:#4f8cff; --accent2:#6ee7b7;
+    --warn:#f6c453; --bad:#ff7a7a; --good:#6ee7b7; --code:#11141c;
+    --kbd:#262b38;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,pre{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  code{background:var(--code);padding:.12em .4em;border-radius:5px;font-size:.86em;color:#cdd6f4}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;font-size:13px}
+  .layout{display:flex;min-height:100vh}
+  nav.toc{position:sticky;top:0;align-self:flex-start;width:248px;height:100vh;overflow:auto;
+    padding:22px 16px;border-right:1px solid var(--line);background:#0c0e14;flex:0 0 auto}
+  nav.toc h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+  nav.toc a{display:block;color:var(--ink);padding:5px 8px;border-radius:7px;font-size:13.5px}
+  nav.toc a:hover{background:var(--panel2);text-decoration:none}
+  main{flex:1;max-width:980px;margin:0 auto;padding:40px 36px 120px}
+  header.hero{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+  .badge{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    background:var(--panel2);border:1px solid var(--line);color:var(--muted);
+    padding:3px 9px;border-radius:999px;margin-right:6px}
+  h1{font-size:30px;margin:14px 0 6px}
+  h2{font-size:22px;margin:42px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+  h3{font-size:17px;margin:26px 0 8px;color:#cdd6f4}
+  .lede{color:var(--muted);font-size:16px;max-width:70ch}
+  p{max-width:78ch}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel2);color:#cdd6f4;font-weight:600;font-size:12.5px;letter-spacing:.02em}
+  tr:last-child td{border-bottom:none}
+  td code{white-space:nowrap}
+  .req{color:var(--accent2)} .opt{color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:14px 0}
+  .pill{display:inline-block;background:var(--kbd);border:1px solid var(--line);border-radius:6px;
+    padding:1px 7px;font-size:12px;font-family:"JetBrains Mono",monospace;color:#cdd6f4;margin:2px 2px}
+  .note{border-left:3px solid var(--accent);background:#12203a;padding:10px 14px;border-radius:0 8px 8px 0;margin:14px 0}
+  .note.good{border-color:var(--good);background:#0f261d}
+  .note.warn{border-color:var(--warn);background:#2a2412}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}
+  .flow .step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px}
+  .flow .arrow{color:var(--muted);font-size:20px}
+  .legend{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+  .tag-good{color:var(--good)} .tag-warn{color:var(--warn)} .tag-bad{color:var(--bad)}
+  .mono-sm{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted)}
+  .er{display:grid;grid-template-columns:1fr;gap:0;margin:14px 0}
+  footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+  .src{color:var(--muted);font-size:12px}
+  .kv{color:var(--muted)}
+  ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc">
+  <strong style="font-size:15px">TKD-Coach</strong>
+  <div class="mono-sm">data model reference</div>
+  <h2>Overview</h2>
+  <a href="#arch">Architecture</a>
+  <a href="#flow">Data lifecycle</a>
+  <h2>Data Model</h2>
+  <a href="#root">AppData (root)</a>
+  <a href="#athlete">Athlete &amp; Group</a>
+  <a href="#game">GameDefinition</a>
+  <a href="#template">SessionTemplate</a>
+  <a href="#plan">SessionPlan</a>
+  <a href="#log">SessionLog / GameLog</a>
+  <a href="#assessment">Assessment &amp; Metrics</a>
+  <a href="#catalog">Catalogs</a>
+  <h2>Data Manipulation</h2>
+  <a href="#reducer">Reducer actions</a>
+  <a href="#metrics-fn">Metric functions</a>
+  <a href="#selectors">Selectors</a>
+  <a href="#templates-fn">Template functions</a>
+  <a href="#catalog-fn">Catalog lookups</a>
+  <a href="#migration">Migration &amp; seeding</a>
+  <a href="#sync">Sync (QR)</a>
+  <a href="#testing">Testing</a>
+</nav>
+
+<main>
+<header class="hero">
+  <span class="badge">Expo SDK 54</span><span class="badge">TypeScript</span><span class="badge">useReducer + Context</span>
+  <h1>Data Model &amp; Data Manipulation</h1>
+  <p class="lede">How TKD-Coach stores its data and the framework-free functions that read and change it.
+  The whole model lives in one persisted object (<code>AppData</code>); all behaviour is driven by data
+  and exercised by a pure, unit-tested domain layer that knows nothing about React.</p>
+  <p class="src">Generated from source · <code>src/types/index.ts</code>, <code>src/domain/*</code>, <code>src/context/reducer.ts</code>. Keep in sync when the model changes.</p>
+</header>
+
+<!-- ============ ARCHITECTURE ============ -->
+<h2 id="arch">Architecture — data-driven, logic/UI separation</h2>
+<p>Three layers, with a strict one-way dependency. The UI never embeds rules; rules never import the UI.</p>
+<div class="card">
+<div class="flow">
+  <div class="step"><strong>UI layer</strong><br><span class="mono-sm">src/screens/*, components</span><br>renders + dispatches</div>
+  <span class="arrow">→</span>
+  <div class="step"><strong>State layer</strong><br><span class="mono-sm">DataContext + reducer</span><br>holds AppState, persists</div>
+  <span class="arrow">→</span>
+  <div class="step"><strong>Domain layer</strong><br><span class="mono-sm">src/domain/*</span><br>pure rules &amp; data</div>
+</div>
+<p class="legend">The UI dispatches actions and reads state; the reducer is the only writer of state; the domain layer is pure
+(no React, no storage, no UI) and is the single source of truth for catalogs, metric schemas, derived values and migration.
+This satisfies the workspace rule: <em>the logic layer must run and be fully testable without any UI.</em></p>
+</div>
+
+<div class="grid">
+  <div class="card"><h3 style="margin-top:0">Where things live</h3>
+    <ul class="tight">
+      <li><code>types/index.ts</code> — every interface</li>
+      <li><code>constants/games.ts</code> — built-in Übungen + template seeds</li>
+      <li><code>context/reducer.ts</code> — state transitions (the only writer)</li>
+      <li><code>context/DataContext.tsx</code> — load, migrate, debounced persist</li>
+      <li><code>domain/*</code> — metrics, catalogs, selectors, templates, migration</li>
+    </ul>
+  </div>
+  <div class="card"><h3 style="margin-top:0">Core principle</h3>
+    <p style="margin:0">Adding a metric, technique, body part or template means <strong>adding data</strong> — not writing new control flow.
+    The assessment form, its validation, and the progress colour are all generated from <code>METRIC_SCHEMAS</code>.</p>
+  </div>
+</div>
+
+<!-- ============ LIFECYCLE ============ -->
+<h2 id="flow">Data lifecycle</h2>
+<div class="flow">
+  <div class="step">App start</div><span class="arrow">→</span>
+  <div class="step">read <code>AsyncStorage</code><br><span class="mono-sm">key: tkd_coach_app_data</span></div><span class="arrow">→</span>
+  <div class="step"><code>migrate(data)</code><br><span class="mono-sm">refresh built-ins, backfill</span></div><span class="arrow">→</span>
+  <div class="step"><code>dispatch(LOAD_ALL)</code></div><span class="arrow">→</span>
+  <div class="step">UI renders from <code>AppState</code></div>
+</div>
+<div class="flow">
+  <div class="step">user action</div><span class="arrow">→</span>
+  <div class="step"><code>dispatch(ACTION)</code></div><span class="arrow">→</span>
+  <div class="step">reducer returns new state<br><span class="mono-sm">immutable</span></div><span class="arrow">→</span>
+  <div class="step">debounced 300ms</div><span class="arrow">→</span>
+  <div class="step">write <code>AsyncStorage</code></div>
+</div>
+<div class="note">A fresh install and an existing install take the <strong>same path</strong>: <code>migrate(EMPTY_APP_DATA)</code>
+seeds the built-in games + templates, so there is one seeding code path, not several.</div>
+
+<!-- ============ ROOT ============ -->
+<h2 id="root">AppData — the persisted root</h2>
+<p>Everything the app owns is one serialisable object. <code>AppState</code> = <code>AppData</code> + <code>isLoaded</code> (runtime only).</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>version</code></td><td>number</td><td>Schema version for migrations.</td></tr>
+<tr><td><code>games</code></td><td>GameDefinition[]</td><td>The Übung library (built-in + user).</td></tr>
+<tr><td><code>athletes</code></td><td>Athlete[]</td><td>All athletes across all groups.</td></tr>
+<tr><td><code>groups</code></td><td>Group[]</td><td>Training groups; each lists its athlete ids.</td></tr>
+<tr><td><code>sessionPlans</code></td><td>SessionPlan[]</td><td>Planned (future/today) sessions.</td></tr>
+<tr><td><code>sessionLogs</code></td><td>SessionLog[]</td><td>Running / completed / cancelled sessions.</td></tr>
+<tr><td><code>assessments</code></td><td>Assessment[]</td><td>Per-athlete metric measurements.</td></tr>
+<tr><td><code>sessionTemplates</code></td><td>SessionTemplate[]</td><td>Reusable ordered Übung sets (built-in + user).</td></tr>
+<tr><td><code>exportedAt</code> <span class="opt">?</span></td><td>string</td><td>Set on a transfer export payload only.</td></tr>
+</tbody>
+</table>
+<p class="legend"><span class="req">green</span> fields below are required; <span class="opt">?</span> marks optional fields.
+Relationships are by <strong>id reference</strong> (no nested objects), which keeps the model flat, mergeable, and easy to sync.</p>
+
+<!-- ============ ATHLETE / GROUP ============ -->
+<h2 id="athlete">Athlete &amp; Group</h2>
+<div class="er">
+<table>
+<thead><tr><th>Athlete</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string</td><td>Phone-primed unique id.</td></tr>
+<tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
+<tr><td><code>birthYear</code> <span class="opt">?</span></td><td>number</td><td></td></tr>
+<tr><td><code class="req">belt</code></td><td>Belt</td><td>white → black (10 levels).</td></tr>
+<tr><td><code class="req">groupId</code></td><td>string</td><td>→ Group.id.</td></tr>
+<tr><td><code>contact</code> <span class="opt">?</span></td><td>AthleteContact</td><td>phone / email / parent…</td></tr>
+<tr><td><code class="req">neuroProfile</code></td><td>{vestibular, visual, proprioceptive: 1–5}</td><td>Coach rating.</td></tr>
+<tr><td><code class="req">poomsae</code></td><td>string[]</td><td>Forms known.</td></tr>
+<tr><td><code class="req">techniques</code></td><td>{name; level 1–3}[]</td><td>Free-text skill list.</td></tr>
+<tr><td><code>notes</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>Group</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">ageCategory</code></td><td>'kids' | 'youth' | 'adult' | 'mixed'</td><td></td></tr>
+<tr><td><code class="req">athleteIds</code></td><td>string[]</td><td>Membership (denormalised).</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note warn">Membership is stored in <strong>two places</strong>: <code>Athlete.groupId</code> and <code>Group.athleteIds</code>.
+The reducer keeps them consistent on delete (see <a href="#reducer">cascades</a>).</div>
+
+<!-- ============ GAME ============ -->
+<h2 id="game">GameDefinition — an "Übung"</h2>
+<p>A single drill/exercise. The library is seeded from <code>BUILTIN_GAMES</code> and users may add their own.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">name</code> / <code class="req">shortName</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">phase</code></td><td>'warmup' | 'main' | 'cooldown'</td><td>Coarse; used for colour coding.</td></tr>
+<tr><td><code>sessionPhase</code> <span class="opt">?</span></td><td>1–5</td><td>Protocol heading (Warm-Up → Meditation); drives add-by-phase.</td></tr>
+<tr><td><code class="req">neuroTarget</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">defaultMinutes</code></td><td>number</td><td>Used as planned duration in totals.</td></tr>
+<tr><td><code class="req">ageGroup</code></td><td>'all' | 'youth-adults'</td><td></td></tr>
+<tr><td><code>logMetricType</code> <span class="opt">?</span></td><td>AssessmentMetricType</td><td>Which metric this drill is assessed with.</td></tr>
+<tr><td><code>techniques</code> <span class="opt">?</span></td><td>string[]</td><td>→ Technique ids (catalog).</td></tr>
+<tr><td><code>bodyParts</code> <span class="opt">?</span></td><td>string[]</td><td>→ BodyPart ids (catalog).</td></tr>
+<tr><td><code class="req">isBuiltIn</code></td><td>boolean</td><td>Built-ins are refreshed by migration; user ones are preserved.</td></tr>
+<tr><td><code>description</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+
+<!-- ============ TEMPLATE ============ -->
+<h2 id="template">SessionTemplate</h2>
+<p>A reusable, ordered set of Übung ids used to seed a <code>SessionPlan</code>. Built-ins come from the
+<code>SESSION_TEMPLATES</code> seed; users can save their own.</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string</td><td>e.g. <code>kids-2h</code>.</td></tr>
+<tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">ageGroup</code></td><td>'kids' | 'youth-adults' | 'all'</td><td><code>'all'</code> fits any group.</td></tr>
+<tr><td><code class="req">itemIds</code></td><td>string[]</td><td>Ordered → GameDefinition ids.</td></tr>
+<tr><td><code class="req">isBuiltIn</code></td><td>boolean</td><td></td></tr>
+<tr><td><code>description</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+<p>Built-ins: <span class="pill">kids-2h</span><span class="pill">youth-adult-1h30</span><span class="pill">mobility-warmup</span><span class="pill">static-block</span></p>
+
+<!-- ============ PLAN ============ -->
+<h2 id="plan">SessionPlan</h2>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">groupId</code></td><td>string</td><td>→ Group.id.</td></tr>
+<tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">plannedDate</code></td><td>string</td><td>ISO date; matched by <code>todaysPlans</code>.</td></tr>
+<tr><td><code>template</code></td><td>'kids-2h' | 'youth-adult-1h30' | 'custom'</td><td><span class="tag-warn">deprecated</span> coarse tag, kept for back-compat.</td></tr>
+<tr><td><code>templateId</code> <span class="opt">?</span></td><td>string</td><td>→ SessionTemplate.id it was seeded from.</td></tr>
+<tr><td><code class="req">plannedGames</code></td><td>string[]</td><td>Ordered → GameDefinition ids.</td></tr>
+<tr><td><code class="req">createdAt</code></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+
+<!-- ============ LOG ============ -->
+<h2 id="log">SessionLog &amp; GameLog</h2>
+<p>A <code>SessionPlan</code> becomes a <code>SessionLog</code> when started. Each played drill records a <code>GameLog</code>.</p>
+<div class="er">
+<table>
+<thead><tr><th>SessionLog</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">planId</code></td><td>string</td><td>→ SessionPlan.id; links <code>planStatus</code>.</td></tr>
+<tr><td><code class="req">groupId</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">startedAt</code></td><td>string</td><td>ISO timestamp.</td></tr>
+<tr><td><code>endedAt</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
+<tr><td><code class="req">gameLogs</code></td><td>GameLog[]</td><td>Per-drill records.</td></tr>
+<tr><td><code class="req">status</code></td><td>'running' | 'completed' | 'cancelled'</td><td>Drives dashboards + coverage.</td></tr>
+<tr><td><code>archived</code> <span class="opt">?</span></td><td>boolean</td><td>Moves out of Recent into Archive.</td></tr>
+<tr><td><code>notes</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>GameLog</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">gameId</code></td><td>string</td><td>→ GameDefinition.id.</td></tr>
+<tr><td><code>startedAt</code> <span class="opt">?</span></td><td>string</td><td><em>undefined</em> = drill never started (no fake stamps).</td></tr>
+<tr><td><code>endedAt</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
+<tr><td><code>durationSeconds</code> <span class="opt">?</span></td><td>number</td><td>Counts toward "played" in totals.</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ============ ASSESSMENT ============ -->
+<h2 id="assessment">Assessment &amp; the metric union</h2>
+<p>An <code>Assessment</code> ties an athlete + game + date to one <strong>metric</strong>. The metric is a discriminated
+union on <code>type</code> — and the form/validation/colour for each type is generated from <code>METRIC_SCHEMAS</code>, not hand-written.</p>
+<table>
+<thead><tr><th>Assessment</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
+<tr><td><code class="req">athleteId</code></td><td>string</td><td>→ Athlete.id.</td></tr>
+<tr><td><code class="req">gameId</code></td><td>string</td><td>→ GameDefinition.id.</td></tr>
+<tr><td><code class="req">date</code></td><td>string</td><td>Sort key for history.</td></tr>
+<tr><td><code class="req">metric</code></td><td>AssessmentMetric</td><td>One of the 6 variants below.</td></tr>
+<tr><td><code>notes</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>Metric type</th><th>Fields</th><th>Primary</th><th>Lower&nbsp;is&nbsp;better</th></tr></thead>
+<tbody>
+<tr><td><code>balance_hold</code></td><td>dominant (s), nonDominant (s)</td><td>dominant</td><td>—</td></tr>
+<tr><td><code>reaction_errors</code></td><td>errorsPerTen</td><td>errorsPerTen</td><td class="tag-good">yes</td></tr>
+<tr><td><code>combo_accuracy</code></td><td>correct, total</td><td>correct</td><td>—</td></tr>
+<tr><td><code>vestibular_landing</code></td><td>stable, stumble↓, fall↓</td><td>stable</td><td>stumble, fall</td></tr>
+<tr><td><code>balance_poomsae</code></td><td>holdSeconds (s), armErrors↓</td><td>holdSeconds</td><td>armErrors</td></tr>
+<tr><td><code>poomsae_distraction</code></td><td>errors↓, baseline↓</td><td>errors</td><td>errors, baseline</td></tr>
+</tbody>
+</table>
+<p class="legend">Each field also carries <code>integer</code> (counts) and <code>unit</code> flags. <code>lowerIsBetter</code> flips the
+improvement direction so the progress UI colours a drop in errors as <span class="tag-good">good</span>.</p>
+
+<!-- ============ CATALOGS ============ -->
+<h2 id="catalog">Catalogs — technique &amp; anatomy vocabulary</h2>
+<p>Static reference data the Übungen tag against. Lookups resolve a kebab id to a human name.</p>
+<div class="er">
+<table>
+<thead><tr><th>BodyPart</th><th>Type</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string (e.g. <code>knee</code>)</td></tr>
+<tr><td><code class="req">name</code></td><td>string</td></tr>
+<tr><td><code class="req">region</code></td><td>BodyRegion</td></tr>
+<tr><td><code class="req">kind</code></td><td>'joint' | 'muscle' | 'region'</td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>Technique</th><th>Type</th></tr></thead>
+<tbody>
+<tr><td><code class="req">id</code></td><td>string (e.g. <code>ap-chagi</code>)</td></tr>
+<tr><td><code class="req">name</code></td><td>string</td></tr>
+<tr><td><code>koreanName</code> <span class="opt">?</span></td><td>string</td></tr>
+<tr><td><code class="req">category</code></td><td>kick | block | stance | strike | poomsae | footwork</td></tr>
+<tr><td><code class="req">bodyPartIds</code></td><td>string[] → BodyPart.id</td></tr>
+<tr><td><code>steps</code> <span class="opt">?</span></td><td>{order, name, description?}[]</td></tr>
+</tbody>
+</table>
+</div>
+<div class="note good">Integrity is unit-tested: every <code>techniques</code>/<code>bodyParts</code> id used by a built-in Übung,
+and every <code>itemIds</code> id in a built-in template, must resolve to a catalog/library entry.</div>
+
+<!-- ================= DATA MANIPULATION ================= -->
+<h2 id="reducer">Data manipulation 1 — Reducer actions</h2>
+<p>The reducer in <code>context/reducer.ts</code> is the <strong>only</strong> code that writes state. Every action returns a
+<strong>new</strong> state object (immutable; never mutates the previous one). Dispatch via <code>useData().dispatch</code>.</p>
+<table>
+<thead><tr><th>Action</th><th>Payload</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td><code>SET_LOADED</code></td><td>boolean</td><td>Toggle the loaded flag.</td></tr>
+<tr><td><code>LOAD_ALL</code></td><td>AppData</td><td>Replace whole state; set <code>isLoaded=true</code>.</td></tr>
+<tr><td><code>ADD_GROUP</code> / <code>UPDATE_GROUP</code></td><td>Group</td><td>Append / replace by id.</td></tr>
+<tr><td><code>DELETE_GROUP</code></td><td>{id}</td><td><span class="tag-warn">cascade</span> removes the group <em>and all its athletes</em>.</td></tr>
+<tr><td><code>ADD_ATHLETE</code> / <code>UPDATE_ATHLETE</code></td><td>Athlete</td><td>Append / replace by id.</td></tr>
+<tr><td><code>DELETE_ATHLETE</code></td><td>{id}</td><td><span class="tag-warn">cascade</span> removes athlete, strips it from <code>Group.athleteIds</code>, deletes its assessments.</td></tr>
+<tr><td><code>ADD_GAME</code> / <code>UPDATE_GAME</code> / <code>DELETE_GAME</code></td><td>GameDefinition / {id}</td><td>Library CRUD.</td></tr>
+<tr><td><code>ADD_SESSION_PLAN</code> / <code>UPDATE_SESSION_PLAN</code> / <code>DELETE_SESSION_PLAN</code></td><td>SessionPlan / {id}</td><td>Plan CRUD.</td></tr>
+<tr><td><code>ADD_SESSION_LOG</code> / <code>UPDATE_SESSION_LOG</code> / <code>DELETE_SESSION_LOG</code></td><td>SessionLog / {id}</td><td>Log CRUD (status changes go through UPDATE).</td></tr>
+<tr><td><code>ADD_ASSESSMENT</code> / <code>DELETE_ASSESSMENT</code></td><td>Assessment / {id}</td><td>Assessment add/remove.</td></tr>
+<tr><td><code>ADD_SESSION_TEMPLATE</code> / <code>UPDATE_SESSION_TEMPLATE</code> / <code>DELETE_SESSION_TEMPLATE</code></td><td>SessionTemplate / {id}</td><td>Template CRUD.</td></tr>
+</tbody>
+</table>
+<pre>const { dispatch } = useData();
+dispatch({ type: 'ADD_ATHLETE', payload: athlete });
+dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its athletes</pre>
+
+<h2 id="metrics-fn">Data manipulation 2 — Metric functions <span class="src">domain/metrics.ts</span></h2>
+<table>
+<thead><tr><th>Export</th><th>Signature</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>METRIC_SCHEMAS</code></td><td>Record&lt;type, MetricTypeDef&gt;</td><td>Data-driven definition of all 6 metrics (fields, units, primary, lowerIsBetter). The form is built from this.</td></tr>
+<tr><td><code>METRIC_TYPES</code></td><td>AssessmentMetricType[]</td><td>All schema keys (for pickers).</td></tr>
+<tr><td><code>getMetricSchema(type)</code></td><td>→ MetricTypeDef</td><td>Schema for one type.</td></tr>
+<tr><td><code>buildMetric(type, values)</code></td><td>→ AssessmentMetric | null</td><td>Validate a flat <code>{field: number}</code> bag → typed metric; rounds integer fields; returns <code>null</code> if any field is missing/NaN (so the UI can block save).</td></tr>
+<tr><td><code>fieldDelta(field, current, previous)</code></td><td>→ {raw, improved} | null</td><td>Signed change + whether it's an improvement (honouring <code>lowerIsBetter</code>); <code>null</code> when no previous value.</td></tr>
+</tbody>
+</table>
+
+<h2 id="selectors">Data manipulation 3 — Selectors (derived reads) <span class="src">domain/selectors.ts</span></h2>
+<p>Pure functions that compute views over the state. No caching, no side effects — call them in render.</p>
+<table>
+<thead><tr><th>Function</th><th>Signature</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>planStatus</code></td><td>(planId, logs) → 'done' | 'running' | 'to-start'</td><td>Status of a plan from its logs.</td></tr>
+<tr><td><code>sessionTotals</code></td><td>(log, games) → {plannedSec, actualSec, playedCount, totalCount}</td><td>Planned vs actual time and played/total counts.</td></tr>
+<tr><td><code>todaysPlans</code></td><td>(plans, todayISO) → SessionPlan[]</td><td>Plans dated today.</td></tr>
+<tr><td><code>coverageByTechnique</code></td><td>(logs, games) → Coverage[]</td><td>Per-technique {sessions, seconds} across <em>completed</em> sessions — heatmap source.</td></tr>
+<tr><td><code>coverageByBodyPart</code></td><td>(logs, games) → Coverage[]</td><td>Per-body-part load across completed sessions.</td></tr>
+<tr><td><code>assessmentHistory</code></td><td>(assessments, athleteId, gameId) → Assessment[]</td><td>One athlete+game series, oldest → newest (for deltas).</td></tr>
+</tbody>
+</table>
+<p class="legend"><code>Coverage = {id, sessions, seconds}</code>, sorted by seconds desc. Only <code>status === 'completed'</code> logs count toward coverage.</p>
+
+<h2 id="templates-fn">Data manipulation 4 — Template functions <span class="src">domain/templates.ts</span></h2>
+<table>
+<thead><tr><th>Export</th><th>Signature</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>BUILTIN_TEMPLATES</code></td><td>SessionTemplate[]</td><td>The 4 seeded templates (derived from <code>SESSION_TEMPLATES</code>).</td></tr>
+<tr><td><code>getTemplate(templates, id)</code></td><td>→ SessionTemplate | undefined</td><td>Lookup by id.</td></tr>
+<tr><td><code>templatesForAgeGroup(templates, ageGroup)</code></td><td>→ SessionTemplate[]</td><td>Templates matching the group, plus all <code>'all'</code> templates.</td></tr>
+</tbody>
+</table>
+
+<h2 id="catalog-fn">Data manipulation 5 — Catalog lookups <span class="src">domain/bodyparts.ts · techniques.ts</span></h2>
+<table>
+<thead><tr><th>Export</th><th>Signature</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>BODY_PARTS</code> / <code>TECHNIQUES</code></td><td>BodyPart[] / Technique[]</td><td>The canonical catalogs (17 body parts, 16 techniques).</td></tr>
+<tr><td><code>getBodyPart(id)</code> / <code>getTechnique(id)</code></td><td>→ entry | undefined</td><td>Resolve a kebab id.</td></tr>
+<tr><td><code>bodyPartName(id)</code> / <code>techniqueName(id)</code></td><td>→ string</td><td>Human label (falls back to the id).</td></tr>
+</tbody>
+</table>
+
+<h2 id="migration">Data manipulation 6 — Migration &amp; seeding <span class="src">domain/migration.ts</span></h2>
+<p><code>migrate(data: AppData) → AppData</code> is pure and runs on every load (and as the fresh-install seed). It:</p>
+<ul class="tight">
+  <li>refreshes <strong>built-in</strong> Übungen from <code>BUILTIN_GAMES</code> (new drills + new fields) while <strong>preserving user games</strong>;</li>
+  <li>refreshes <strong>built-in</strong> templates from <code>BUILTIN_TEMPLATES</code> while preserving user templates;</li>
+  <li>backfills collections missing on older saves (e.g. <code>sessionTemplates</code> on pre-template data).</li>
+</ul>
+<pre>const data = stored ? JSON.parse(stored) : EMPTY_APP_DATA;
+dispatch({ type: 'LOAD_ALL', payload: migrate(data) });   // one path for both install + upgrade</pre>
+<p>Persistence: <code>DataContext</code> writes the whole <code>AppData</code> to <code>AsyncStorage</code> under
+<code>tkd_coach_app_data</code>, debounced 300&nbsp;ms after any state change.</p>
+
+<h2 id="sync">Data manipulation 7 — Sync (QR transfer) <span class="src">utils/qrChunks.ts</span></h2>
+<p>The QR engine (<code>@tobiasheinrichfaska/qr-sync</code>) operates over named id-keyed collections. TKD-Coach configures:</p>
+<p>
+<span class="pill">games*</span><span class="pill">groups</span><span class="pill">athletes</span>
+<span class="pill">sessionPlans</span><span class="pill">sessionLogs</span><span class="pill">assessments</span>
+<span class="pill">sessionTemplates*</span>
+</p>
+<p class="legend">* always shared (the library); the rest follow the coach's <code>TransferSelection</code>.
+The flat, id-referenced model is what makes change-detection and merge work: <code>detectChanges</code> diffs by id,
+<code>applyChanges</code> merges new/updated entities without touching unrelated ones.</p>
+
+<!-- ============ TESTING ============ -->
+<h2 id="testing">Testing</h2>
+<p>The domain layer is exhaustively unit-tested with <strong>ts-jest</strong> (no UI/Expo runtime needed) — per the workspace
+"intensive unit testing is mandatory" rule. Run from <code>packages/native</code>:</p>
+<pre>npx jest        # 42 tests across 6 suites</pre>
+<table>
+<thead><tr><th>Suite</th><th>Guards</th></tr></thead>
+<tbody>
+<tr><td><code>metrics.test.ts</code></td><td>schema completeness, <code>buildMetric</code> validation/rounding, <code>fieldDelta</code> direction.</td></tr>
+<tr><td><code>catalogs.test.ts</code></td><td>catalog integrity — every Übung tag resolves.</td></tr>
+<tr><td><code>selectors.test.ts</code></td><td>status, totals, today filter, coverage, history ordering.</td></tr>
+<tr><td><code>templates.test.ts</code></td><td>template item integrity + helpers.</td></tr>
+<tr><td><code>migration.test.ts</code></td><td>seed/refresh built-ins, preserve user data, backfill.</td></tr>
+<tr><td><code>reducer.test.ts</code></td><td>CRUD, delete cascades, immutability.</td></tr>
+</tbody>
+</table>
+
+<footer>
+  TKD-Coach · data model reference · generated from source on 2026-05-31.
+  Update this file when <code>types/index.ts</code>, <code>domain/*</code> or <code>reducer.ts</code> change.
+</footer>
+</main>
+</div>
+</body>
+</html>
