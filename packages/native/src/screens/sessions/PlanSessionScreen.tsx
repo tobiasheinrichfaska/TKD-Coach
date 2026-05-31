@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   FlatList,
+  Alert,
 } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
@@ -74,7 +75,24 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   };
 
   const handleSave = () => {
-    if (!name.trim() || !groupId || gameIds.length === 0) return;
+    // Visible validation instead of a silent no-op.
+    if (!name.trim()) {
+      Alert.alert('Name required', 'Enter a session name.');
+      return;
+    }
+    if (!groupId) {
+      Alert.alert(
+        'Group required',
+        state.groups.length === 0
+          ? 'You have no groups yet. Create one in the Groups tab first, then plan a session for it.'
+          : 'Tap a group above to select it.'
+      );
+      return;
+    }
+    if (gameIds.length === 0) {
+      Alert.alert('No games', 'This plan has no games. Pick a template (or add games in Custom).');
+      return;
+    }
 
     if (planId && plan) {
       dispatch({
@@ -142,6 +160,11 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
                 </Text>
               </TouchableOpacity>
             )}
+            ListEmptyComponent={
+              <Text style={[styles.pickerItem, styles.pickerItemText, { color: COLORS.textMuted }]}>
+                No groups yet — create one in the Groups tab first.
+              </Text>
+            }
           />
         </View>
 
