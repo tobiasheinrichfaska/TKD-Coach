@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
   rowValue: { fontSize: 16, color: COLORS.text, fontWeight: '500', marginTop: 4 },
   button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 16 },
   buttonSecondary: { backgroundColor: COLORS.info },
+  buttonDanger: { backgroundColor: COLORS.danger, marginTop: 12 },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
   buttonGroup: { flexDirection: 'row', gap: 8, marginTop: 16 },
   section: { fontSize: 14, fontWeight: 'bold', marginTop: 24, marginBottom: 8, color: COLORS.text },
@@ -46,6 +47,23 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
     const group = state.groups.find(g => g.id === groupId);
     if (!group || group.athleteIds.includes(athlete.id)) return;
     dispatch({ type: 'UPDATE_GROUP', payload: { ...group, athleteIds: [...group.athleteIds, athlete.id] } });
+  };
+  const confirmDelete = () => {
+    Alert.alert(
+      `Delete ${athlete.name}?`,
+      `This permanently deletes ${athlete.name} and everything linked to them — group memberships, all assessments, and attendance records (Teilnahme). This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            dispatch({ type: 'DELETE_ATHLETE', payload: { id: athlete.id } });
+            navigation.goBack();
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -103,6 +121,9 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
             <Text style={styles.buttonText}>Progress</Text>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={confirmDelete}>
+          <Text style={styles.buttonText}>Delete Athlete</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
