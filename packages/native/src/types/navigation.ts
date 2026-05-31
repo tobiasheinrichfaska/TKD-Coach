@@ -15,6 +15,7 @@ import type { TransferSelection } from './index';
 
 export type GroupsStackParamList = {
   GroupsList: undefined;
+  AllAthletes: undefined;
   GroupDetail: { groupId: string };
   EditGroup: { groupId?: string } | undefined;
   AthleteDetail: { athleteId: string };

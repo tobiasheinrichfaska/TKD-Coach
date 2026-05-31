@@ -38,6 +38,30 @@
 **Expected:** The app switches to the **Assessment** tab and opens that athlete's **Progress** screen (not a no-op, no crash).
 > Not obvious: this navigates *across* tabs. Previously it pointed at a non-existent tab and did nothing.
 
-## MT-01-5: Delete cascade (optional)
+## MT-01-5: An athlete in several groups (many-to-many membership)
+**Preconditions:** At least two groups and one athlete.
+**Steps:**
+1. **Groups** → open the athlete → **Athlet** detail.
+2. Under **Groups**, the current group shows as a red chip. Tap a group under **Add to:**.
+3. Repeat to add a second/third group.
+4. Tap a red member chip (it ends with **✕**) to remove that membership.
+
+**Expected:** The athlete's group chips update immediately; each affected group's athlete count on the Groups list reflects the add/remove. The same athlete now appears inside every group it belongs to.
+> Not obvious: membership is many-to-many now — there is no single "the group" for an athlete. Adding/removing here edits the group's roster, not a field on the athlete.
+
+## MT-01-6: All Athletes + find ungrouped athletes
+**Preconditions:** Some athletes exist.
+**Steps:**
+1. **Groups** tab → tap the **All Athletes** row at the top (shows total, and "N ungrouped" if any).
+2. On the list, use the **All** / **Ungrouped** filter tabs.
+3. Tap **+** (bottom-right) → create an athlete (Name + Belt) → **Save** (do *not* open it from a group).
+4. Back on All Athletes, switch to **Ungrouped**.
+
+**Expected:** Every athlete is listed regardless of group, each with a badge — either "N group(s)" (with the group names) or an amber **Ungrouped** badge. The athlete you just created appears under **Ungrouped**. Tapping a row opens its detail (where you can then add it to groups via MT-01-5).
+> Not obvious: this is the only place an athlete that belongs to **no** group can be seen. The full roster is independent of group membership.
+
+## MT-01-7: Deleting a group does NOT delete its athletes (changed behaviour)
+**Preconditions:** A group with at least one athlete; ideally that athlete is also in a second group.
 **Steps:** Delete a group that has athletes (if a delete affordance is present).
-**Expected:** The group's athletes and their assessments are also removed (no orphaned athletes remain in other lists).
+**Expected:** Only the group disappears. Its athletes **remain** — visible under **All Athletes**, and still inside any other groups they belong to. An athlete left in no group shows up under **All Athletes → Ungrouped**.
+> Not obvious: this reverses the old cascade. Because an athlete can belong to many groups, removing one group must not delete shared athletes. (Deleting an *athlete*, however, still removes it from every group and deletes its assessments.)

@@ -14,8 +14,8 @@
 **Visual reference:** open [`docs/data-model.html`](docs/data-model.html) in a browser — a self-contained doc of every entity, the reducer actions, and the pure domain functions (metrics/selectors/templates/catalogs/migration). Regenerate it when the model changes.
 
 See [`src/types/index.ts`](src/types/index.ts) for full schema. Core entities:
-- **Athlete:** name, belt, birth year, contact info (phone/parent), neuro profile (vestibular/visual/proprioceptive 1-5), poomsae list, techniques list
-- **Group:** name, age category (kids/youth/adult/mixed), athlete IDs
+- **Athlete:** name, belt, birth year, contact info (phone/parent), neuro profile (vestibular/visual/proprioceptive 1-5), poomsae list, techniques list. **No `groupId`** — group membership is many-to-many and lives only on `Group.athleteIds` (an athlete may be in 0..n groups). Resolve via the domain selectors `athletesInGroup` / `groupsForAthlete` / `ungroupedAthletes`.
+- **Group:** name, age category (kids/youth/adult/mixed), athlete IDs (the sole membership link)
 - **GameDefinition:** 11 built-in + user-configurable, seeded on first run. Each has phase, neuro target, duration, metric type
 - **SessionPlan:** group, date, template (kids-2h / youth-adult-1h30 / custom), planned game IDs
 - **SessionLog:** completed session with per-game durations
@@ -151,11 +151,12 @@ src/
     ├── DashboardScreen.tsx
     ├── groups/
     │   ├── GroupsNavigator.tsx
-    │   ├── GroupsScreen.tsx
+    │   ├── GroupsScreen.tsx        ← groups list + "All Athletes" entry (shows ungrouped count)
+    │   ├── AllAthletesScreen.tsx   ← full roster; All/Ungrouped filter; create ungrouped athlete
     │   ├── EditGroupScreen.tsx
     │   ├── GroupDetailScreen.tsx
     │   ├── EditAthleteScreen.tsx
-    │   └── AthleteDetailScreen.tsx
+    │   └── AthleteDetailScreen.tsx ← shows + edits group memberships (M:N chips)
     ├── sessions/
     │   ├── SessionsNavigator.tsx
     │   ├── SessionsScreen.tsx

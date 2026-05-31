@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
+import { athletesInGroup } from '../../domain';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -15,7 +16,7 @@ export default function GroupDetailScreen({ route, navigation }: GroupsStackScre
   const { state } = useData();
   const groupId = route.params.groupId;
   const group = state.groups.find(g => g.id === groupId);
-  const athletes = state.athletes.filter(a => group?.athleteIds.includes(a.id));
+  const athletes = athletesInGroup(state.athletes, group);
 
   if (!group) return <View style={styles.container}><Text>Group not found</Text></View>;
 

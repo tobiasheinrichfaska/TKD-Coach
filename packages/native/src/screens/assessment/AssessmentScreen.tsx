@@ -11,6 +11,7 @@ import {
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { AssessmentMetric } from '../../types';
+import { athletesInGroup } from '../../domain';
 import { generateId } from '../../utils/ids';
 import type { AssessmentStackScreenProps } from '../../types/navigation';
 
@@ -66,7 +67,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
   const [notes, setNotes] = useState('');
 
   const selectedGroup = state.groups.find(g => g.id === selectedGroupId);
-  const athletesInGroup = state.athletes.filter(a => selectedGroup?.athleteIds.includes(a.id));
+  const groupAthletes = athletesInGroup(state.athletes, selectedGroup);
   const selectedGame = state.games.find(g => g.id === selectedGameId);
 
   const handleGameSelect = (gameId: string) => {
@@ -142,11 +143,11 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
           <TouchableOpacity onPress={() => setStep('group')} style={{ marginBottom: 12 }}>
             <Text style={{ color: COLORS.primary, fontWeight: '500' }}>← Back to Groups</Text>
           </TouchableOpacity>
-          {athletesInGroup.length > 0 ? (
+          {groupAthletes.length > 0 ? (
             <View style={styles.picker}>
               <FlatList
                 scrollEnabled={false}
-                data={athletesInGroup}
+                data={groupAthletes}
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => (
                   <TouchableOpacity

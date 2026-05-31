@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import GroupsScreen from './GroupsScreen';
+import AllAthletesScreen from './AllAthletesScreen';
 import GroupDetailScreen from './GroupDetailScreen';
 import EditGroupScreen from './EditGroupScreen';
 import AthleteDetailScreen from './AthleteDetailScreen';
@@ -23,6 +24,11 @@ export default function GroupsNavigator() {
         name="GroupsList"
         component={GroupsScreen}
         options={{ title: 'Gruppen' }}
+      />
+      <Stack.Screen
+        name="AllAthletes"
+        component={AllAthletesScreen}
+        options={{ title: 'Alle Athleten' }}
       />
       <Stack.Screen
         name="GroupDetail"
