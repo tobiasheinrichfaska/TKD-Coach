@@ -269,7 +269,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
           <View style={[styles.picker, { marginTop: 6 }]}>
             {(['warmup', 'main', 'cooldown'] as const).map(phase =>
               state.games
-                .filter(g => g.phase === phase)
+                .filter(g => g.phase === phase && !gameIds.includes(g.id))
                 .map(g => (
                   <TouchableOpacity key={g.id} style={styles.addItem} onPress={() => addGame(g.id)}>
                     <Text style={styles.addItemText}>{g.name}</Text>

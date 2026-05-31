@@ -95,7 +95,11 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>{getGroupName(item.groupId)}</Text>
+                <Text style={styles.cardTitle}>
+                  {[state.sessionPlans.find(p => p.id === item.planId)?.name, getGroupName(item.groupId)]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </Text>
                 <Text style={styles.cardMeta}>{formatDateShort(item.startedAt)}</Text>
                 <Text style={styles.cardMeta}>
                   {item.gameLogs.length} games ·{' '}
