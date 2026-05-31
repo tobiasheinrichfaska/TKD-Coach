@@ -41,7 +41,8 @@ export interface Athlete {
   name: string;
   birthYear?: number;
   belt: Belt;
-  groupId: string;
+  // Group membership is many-to-many and lives only on Group.athleteIds — an athlete
+  // can belong to several groups, or none (find via domain selectors). No groupId here.
   contact?: AthleteContact;
   neuroProfile: {
     vestibular: 1 | 2 | 3 | 4 | 5;

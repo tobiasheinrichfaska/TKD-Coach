@@ -2,8 +2,8 @@ import { appReducer, EMPTY_STATE } from '../../context/reducer';
 import { Group, Athlete, SessionLog, Assessment, SessionTemplate, AppData } from '../../types';
 
 const grp = (id: string, athleteIds: string[] = []): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });
-const ath = (id: string, groupId: string): Athlete => ({
-  id, name: id, belt: 'white', groupId,
+const ath = (id: string): Athlete => ({
+  id, name: id, belt: 'white',
   neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
 });
 const assess = (id: string, athleteId: string): Assessment => ({
@@ -13,33 +13,34 @@ const assess = (id: string, athleteId: string): Assessment => ({
 describe('appReducer', () => {
   it('adds groups and athletes', () => {
     let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1') });
-    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1', 'g1') });
+    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1') });
     expect(s.groups).toHaveLength(1);
     expect(s.athletes).toHaveLength(1);
   });
 
   it('updates an athlete in place', () => {
-    let s = appReducer(EMPTY_STATE, { type: 'ADD_ATHLETE', payload: ath('a1', 'g1') });
-    s = appReducer(s, { type: 'UPDATE_ATHLETE', payload: { ...ath('a1', 'g1'), name: 'Renamed' } });
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_ATHLETE', payload: ath('a1') });
+    s = appReducer(s, { type: 'UPDATE_ATHLETE', payload: { ...ath('a1'), name: 'Renamed' } });
     expect(s.athletes[0].name).toBe('Renamed');
     expect(s.athletes).toHaveLength(1);
   });
 
-  it('DELETE_GROUP cascades to its athletes', () => {
-    let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1') });
-    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1', 'g1') });
+  it('DELETE_GROUP removes only the group; athletes persist (M:N membership)', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1', ['a1']) });
+    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1') });
     s = appReducer(s, { type: 'DELETE_GROUP', payload: { id: 'g1' } });
     expect(s.groups).toHaveLength(0);
-    expect(s.athletes).toHaveLength(0);
+    expect(s.athletes).toHaveLength(1); // athlete is now simply ungrouped
   });
 
-  it('DELETE_ATHLETE removes group membership + assessments', () => {
+  it('DELETE_ATHLETE removes it from every group + deletes its assessments', () => {
     let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1', ['a1']) });
-    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1', 'g1') });
+    s = appReducer(s, { type: 'ADD_GROUP', payload: grp('g2', ['a1']) }); // athlete in two groups
+    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1') });
     s = appReducer(s, { type: 'ADD_ASSESSMENT', payload: assess('as1', 'a1') });
     s = appReducer(s, { type: 'DELETE_ATHLETE', payload: { id: 'a1' } });
     expect(s.athletes).toHaveLength(0);
-    expect(s.groups[0].athleteIds).toEqual([]);
+    expect(s.groups.every(g => g.athleteIds.length === 0)).toBe(true);
     expect(s.assessments).toHaveLength(0);
   });
 

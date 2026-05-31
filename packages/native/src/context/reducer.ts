@@ -75,11 +75,12 @@ export function appReducer(state: AppState, action: Action): AppState {
       };
 
     case 'DELETE_GROUP':
-      const groupId = action.payload.id;
+      // Membership is many-to-many (Group.athleteIds), so deleting a group only removes
+      // the group — its athletes persist (they may belong to other groups, or become
+      // ungrouped). Removing the group removes its athleteIds entry along with it.
       return {
         ...state,
-        groups: state.groups.filter(g => g.id !== groupId),
-        athletes: state.athletes.filter(a => a.groupId !== groupId),
+        groups: state.groups.filter(g => g.id !== action.payload.id),
       };
 
     // Athletes

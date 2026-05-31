@@ -1,4 +1,24 @@
-import { SessionLog, SessionPlan, GameDefinition, Assessment } from '../types';
+import { SessionLog, SessionPlan, GameDefinition, Assessment, Athlete, Group } from '../types';
+
+// ===== Group membership (many-to-many; the link lives only on Group.athleteIds) =====
+
+/** Athletes in a group, in the group's stored order. Missing ids are skipped. */
+export function athletesInGroup(athletes: Athlete[], group: Group | undefined): Athlete[] {
+  if (!group) return [];
+  const byId = new Map(athletes.map(a => [a.id, a]));
+  return group.athleteIds.map(id => byId.get(id)).filter((a): a is Athlete => a !== undefined);
+}
+
+/** Every group an athlete belongs to (may be several, or none). */
+export function groupsForAthlete(groups: Group[], athleteId: string): Group[] {
+  return groups.filter(g => g.athleteIds.includes(athleteId));
+}
+
+/** Athletes that belong to no group at all. */
+export function ungroupedAthletes(athletes: Athlete[], groups: Group[]): Athlete[] {
+  const claimed = new Set(groups.flatMap(g => g.athleteIds));
+  return athletes.filter(a => !claimed.has(a.id));
+}
 
 export type PlanStatus = 'done' | 'running' | 'to-start';
 

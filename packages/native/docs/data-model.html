@@ -215,7 +215,7 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
   <path class="edge e-amber"  d="M338,324 Q235,430 192,536"    marker-end="url(#a-amber)"/>
   <path class="edge e-amber"  d="M465,560 L192,560"            marker-end="url(#a-amber)"/>
   <!-- group / membership (blue) -->
-  <path class="edge e-blue"   d="M615,90 L468,90"              marker-end="url(#a-blue)"/>
+  <path class="edge e-blue"   d="M468,90 L612,90"              marker-end="url(#a-blue)"/>
   <path class="edge e-blue"   d="M688,274 Q560,150 434,118"    marker-end="url(#a-blue)"/>
   <path class="edge e-blue"   d="M945,274 Q660,150 442,120"    marker-end="url(#a-blue)"/>
   <!-- generic id refs (gray) -->
@@ -236,7 +236,7 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
   <text class="elabel" x="250" y="206">bodyParts[]</text>
   <text class="elabel" x="252" y="448">logMetricType</text>
   <text class="elabel" x="322" y="553">metric.type</text>
-  <text class="elabel" x="541" y="84">groupId</text>
+  <text class="elabel" x="540" y="84">athleteIds[]</text>
   <text class="elabel" x="556" y="150">groupId</text>
   <text class="elabel" x="712" y="168">groupId</text>
   <text class="elabel" x="400" y="390" text-anchor="start">itemIds[]</text>
@@ -280,8 +280,7 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
 <table>
 <thead><tr><th>From</th><th>Field</th><th>To</th><th>Kind</th></tr></thead>
 <tbody>
-<tr><td>Athlete</td><td><code>groupId</code></td><td>Group</td><td>many → one</td></tr>
-<tr><td>Group</td><td><code>athleteIds[]</code></td><td>Athlete</td><td>one → many <span class="mono-sm">(denormalised inverse of groupId)</span></td></tr>
+<tr><td>Group</td><td><code>athleteIds[]</code></td><td>Athlete</td><td>many ↔ many <span class="mono-sm">(sole membership link; an athlete may be in 0..n groups)</span></td></tr>
 <tr><td>GameDefinition</td><td><code>techniques[]</code></td><td>Technique</td><td>many ↔ many</td></tr>
 <tr><td>GameDefinition</td><td><code>bodyParts[]</code></td><td>BodyPart</td><td>many ↔ many</td></tr>
 <tr><td>GameDefinition</td><td><code>logMetricType</code></td><td>Metric schema</td><td>many → one <span class="opt">(optional)</span></td></tr>
@@ -299,8 +298,9 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
 <tr><td>Assessment</td><td><code>metric.type</code></td><td>Metric schema</td><td>many → one</td></tr>
 </tbody>
 </table>
-<p class="legend">Deletes that cascade along these links are enforced by the reducer (see <a href="#reducer">Reducer actions</a>):
-deleting a Group removes its Athletes; deleting an Athlete strips it from <code>Group.athleteIds</code> and deletes its Assessments.</p>
+<p class="legend">Deletes are enforced by the reducer (see <a href="#reducer">Reducer actions</a>):
+deleting a <strong>Group</strong> removes only the group (athletes persist — M:N); deleting an <strong>Athlete</strong> strips its id
+from every <code>Group.athleteIds</code> and deletes its Assessments.</p>
 
 <!-- ============ ATHLETE / GROUP ============ -->
 <h2 id="athlete">Athlete &amp; Group</h2>
@@ -312,7 +312,6 @@ deleting a Group removes its Athletes; deleting an Athlete strips it from <code>
 <tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
 <tr><td><code>birthYear</code> <span class="opt">?</span></td><td>number</td><td></td></tr>
 <tr><td><code class="req">belt</code></td><td>Belt</td><td>white → black (10 levels).</td></tr>
-<tr><td><code class="req">groupId</code></td><td>string</td><td>→ Group.id.</td></tr>
 <tr><td><code>contact</code> <span class="opt">?</span></td><td>AthleteContact</td><td>phone / email / parent…</td></tr>
 <tr><td><code class="req">neuroProfile</code></td><td>{vestibular, visual, proprioceptive: 1–5}</td><td>Coach rating.</td></tr>
 <tr><td><code class="req">poomsae</code></td><td>string[]</td><td>Forms known.</td></tr>
@@ -330,8 +329,10 @@ deleting a Group removes its Athletes; deleting an Athlete strips it from <code>
 </tbody>
 </table>
 </div>
-<div class="note warn">Membership is stored in <strong>two places</strong>: <code>Athlete.groupId</code> and <code>Group.athleteIds</code>.
-The reducer keeps them consistent on delete (see <a href="#reducer">cascades</a>).</div>
+<div class="note good">Membership is <strong>many-to-many</strong> and stored in <strong>one place only</strong>: <code>Group.athleteIds</code>.
+An athlete can belong to several groups or none — <code>Athlete</code> has no <code>groupId</code>. Resolve membership with the
+domain selectors <code>athletesInGroup</code> / <code>groupsForAthlete</code> / <code>ungroupedAthletes</code>. The full athlete
+roster is always <code>AppData.athletes</code>, independent of any group.</div>
 
 <!-- ============ GAME ============ -->
 <h2 id="game">GameDefinition — an "Übung"</h2>
@@ -483,9 +484,9 @@ and every <code>itemIds</code> id in a built-in template, must resolve to a cata
 <tr><td><code>SET_LOADED</code></td><td>boolean</td><td>Toggle the loaded flag.</td></tr>
 <tr><td><code>LOAD_ALL</code></td><td>AppData</td><td>Replace whole state; set <code>isLoaded=true</code>.</td></tr>
 <tr><td><code>ADD_GROUP</code> / <code>UPDATE_GROUP</code></td><td>Group</td><td>Append / replace by id.</td></tr>
-<tr><td><code>DELETE_GROUP</code></td><td>{id}</td><td><span class="tag-warn">cascade</span> removes the group <em>and all its athletes</em>.</td></tr>
-<tr><td><code>ADD_ATHLETE</code> / <code>UPDATE_ATHLETE</code></td><td>Athlete</td><td>Append / replace by id.</td></tr>
-<tr><td><code>DELETE_ATHLETE</code></td><td>{id}</td><td><span class="tag-warn">cascade</span> removes athlete, strips it from <code>Group.athleteIds</code>, deletes its assessments.</td></tr>
+<tr><td><code>DELETE_GROUP</code></td><td>{id}</td><td>Removes <em>only</em> the group — athletes persist (M:N; they may be in other groups or become ungrouped).</td></tr>
+<tr><td><code>ADD_ATHLETE</code> / <code>UPDATE_ATHLETE</code></td><td>Athlete</td><td>Append / replace by id. Group membership is managed via <code>UPDATE_GROUP</code> (athleteIds).</td></tr>
+<tr><td><code>DELETE_ATHLETE</code></td><td>{id}</td><td><span class="tag-warn">cascade</span> removes the athlete, strips its id from <em>every</em> <code>Group.athleteIds</code>, and deletes its assessments.</td></tr>
 <tr><td><code>ADD_GAME</code> / <code>UPDATE_GAME</code> / <code>DELETE_GAME</code></td><td>GameDefinition / {id}</td><td>Library CRUD.</td></tr>
 <tr><td><code>ADD_SESSION_PLAN</code> / <code>UPDATE_SESSION_PLAN</code> / <code>DELETE_SESSION_PLAN</code></td><td>SessionPlan / {id}</td><td>Plan CRUD.</td></tr>
 <tr><td><code>ADD_SESSION_LOG</code> / <code>UPDATE_SESSION_LOG</code> / <code>DELETE_SESSION_LOG</code></td><td>SessionLog / {id}</td><td>Log CRUD (status changes go through UPDATE).</td></tr>
@@ -514,6 +515,9 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 <table>
 <thead><tr><th>Function</th><th>Signature</th><th>Purpose</th></tr></thead>
 <tbody>
+<tr><td><code>athletesInGroup</code></td><td>(athletes, group) → Athlete[]</td><td>Members of a group, in stored order (M:N membership lives on <code>Group.athleteIds</code>).</td></tr>
+<tr><td><code>groupsForAthlete</code></td><td>(groups, athleteId) → Group[]</td><td>Every group an athlete belongs to (0..n).</td></tr>
+<tr><td><code>ungroupedAthletes</code></td><td>(athletes, groups) → Athlete[]</td><td>Athletes in no group — the "findable orphans" view.</td></tr>
 <tr><td><code>planStatus</code></td><td>(planId, logs) → 'done' | 'running' | 'to-start'</td><td>Status of a plan from its logs.</td></tr>
 <tr><td><code>sessionTotals</code></td><td>(log, games) → {plannedSec, actualSec, playedCount, totalCount}</td><td>Planned vs actual time and played/total counts.</td></tr>
 <tr><td><code>todaysPlans</code></td><td>(plans, todayISO) → SessionPlan[]</td><td>Plans dated today.</td></tr>

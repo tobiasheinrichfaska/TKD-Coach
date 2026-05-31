@@ -41,8 +41,8 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
         },
       });
     } else {
-      // Create mode requires a target group to file the new athlete under.
-      if (!groupId) return;
+      // Athletes exist independently of groups (M:N). If we arrived from a group context,
+      // file the new athlete into that group; otherwise create them ungrouped.
       const newId = generateId();
       dispatch({
         type: 'ADD_ATHLETE',
@@ -50,14 +50,13 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
           id: newId,
           name,
           belt,
-          groupId,
           neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 },
           poomsae: [],
           techniques: [],
           contact: { phone, parentName },
         },
       });
-      const group = state.groups.find(g => g.id === groupId);
+      const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
       if (group) {
         dispatch({
           type: 'UPDATE_GROUP',
