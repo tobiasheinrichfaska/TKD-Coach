@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,21 @@ import {
   Alert,
   Share,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { useAudioPlayer } from 'expo-audio';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { generateSessionSummaryText } from '../../utils/format';
 import type { SessionsStackScreenProps } from '../../types/navigation';
+
+const beepAsset = require('../../../assets/beep.wav');
+
+/** seconds -> M:SS (clamped at 0) */
+const fmt = (sec: number): string => {
+  const s = Math.max(0, Math.floor(sec));
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -28,10 +38,14 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
   },
   gameCardActive: { borderLeftColor: COLORS.primary, backgroundColor: '#FFF9E6' },
+  gameCardOverrun: { borderLeftColor: COLORS.warning, backgroundColor: '#FFF3E0' },
   gameCardInactive: { borderLeftColor: COLORS.border, opacity: 0.5 },
   gameName: { fontSize: 16, fontWeight: '600', color: COLORS.text },
   gameTime: { fontSize: 12, color: COLORS.textMuted, marginTop: 4 },
-  timerText: { fontSize: 24, fontWeight: 'bold', color: COLORS.primary, marginTop: 8, textAlign: 'center' },
+  timerText: { fontSize: 32, fontWeight: 'bold', color: COLORS.primary, marginTop: 8, textAlign: 'center' },
+  timerTextOverrun: { color: COLORS.warning },
+  remaining: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', marginTop: 2 },
+  remainingOverrun: { color: COLORS.warning, fontWeight: '600' },
   buttons: { flexDirection: 'row', gap: 8, marginTop: 12 },
   button: { flex: 1, padding: 10, borderRadius: 8, alignItems: 'center' },
   buttonStart: { backgroundColor: COLORS.success },
@@ -47,6 +61,7 @@ const styles = StyleSheet.create({
 interface GameLogState {
   gameId: string;
   startedAt?: number;
+  endedAt?: number;
   durationSeconds?: number;
   status: 'pending' | 'running' | 'completed';
 }
@@ -62,49 +77,93 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   );
   const [currentGameIndex, setCurrentGameIndex] = useState(0);
   const [timerDisplay, setTimerDisplay] = useState('0:00');
+  const [remainingDisplay, setRemainingDisplay] = useState('');
+  const [isOverrun, setIsOverrun] = useState(false);
+
+  // Game indices whose planned-time signal has already fired (so it fires once).
+  const signaledRef = useRef<Set<number>>(new Set());
+  const beep = useAudioPlayer(beepAsset);
 
   const currentGameLog = gameLogs[currentGameIndex];
   const currentGame = state.games.find(g => g.id === currentGameLog?.gameId);
 
-  // Timer effect
+  /** Signal that the planned duration was reached: haptic + sound (both best-effort). */
+  const fireSignal = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    try {
+      beep.seekTo(0);
+      beep.play();
+    } catch {
+      // audio unavailable (e.g. web) — haptic still fired
+    }
+  }, [beep]);
+
+  // Timer: counts up; at planned duration fires the signal once and flips to overrun.
+  // Depends on primitives (status/startedAt/index/plannedMinutes), not the whole log object,
+  // so setGameLogs elsewhere doesn't churn the interval.
+  const status = currentGameLog?.status;
+  const startedAt = currentGameLog?.startedAt;
+  const plannedMinutes = currentGame?.defaultMinutes ?? 0;
   useEffect(() => {
-    if (currentGameLog?.status !== 'running' || !currentGameLog.startedAt) {
+    if (status !== 'running' || !startedAt) {
       setTimerDisplay('0:00');
+      setRemainingDisplay('');
+      setIsOverrun(false);
       return;
     }
-
-    const interval = setInterval(() => {
-      const elapsed = Math.round((Date.now() - currentGameLog.startedAt!) / 1000);
-      const mins = Math.floor(elapsed / 60);
-      const secs = elapsed % 60;
-      setTimerDisplay(`${mins}:${secs.toString().padStart(2, '0')}`);
-    }, 100);
-
+    const plannedSec = plannedMinutes * 60;
+    const idx = currentGameIndex;
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      setTimerDisplay(fmt(elapsed));
+      if (plannedSec > 0) {
+        const remaining = plannedSec - elapsed;
+        const over = remaining <= 0;
+        setIsOverrun(over);
+        setRemainingDisplay(
+          over
+            ? `▲ planned time reached · +${fmt(-remaining)} over`
+            : `${plannedMinutes} min planned · ${fmt(remaining)} left`
+        );
+        if (over && !signaledRef.current.has(idx)) {
+          signaledRef.current.add(idx);
+          fireSignal();
+        }
+      } else {
+        setRemainingDisplay('');
+        setIsOverrun(false);
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 250);
     return () => clearInterval(interval);
-  }, [currentGameLog]);
+  }, [status, startedAt, currentGameIndex, plannedMinutes, fireSignal]);
 
   const handleStartGame = () => {
+    signaledRef.current.delete(currentGameIndex); // allow the signal to fire for this run
     const newLogs = [...gameLogs];
     newLogs[currentGameIndex] = {
       ...newLogs[currentGameIndex],
       status: 'running',
       startedAt: Date.now(),
+      endedAt: undefined,
     };
     setGameLogs(newLogs);
   };
 
   const handleStopGame = () => {
+    const now = Date.now(); // capture the real stop time, not the session-complete time
     const newLogs = [...gameLogs];
     const log = newLogs[currentGameIndex];
     if (log.startedAt) {
       newLogs[currentGameIndex] = {
         ...log,
         status: 'completed',
-        durationSeconds: Math.round((Date.now() - log.startedAt) / 1000),
+        endedAt: now,
+        durationSeconds: Math.round((now - log.startedAt) / 1000),
       };
       setGameLogs(newLogs);
-
-      // Auto-advance to next game
+      setIsOverrun(false);
       if (currentGameIndex < gameLogs.length - 1) {
         setCurrentGameIndex(currentGameIndex + 1);
       }
@@ -114,14 +173,14 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const handleComplete = async () => {
     if (!plan || !group) return;
 
+    // Use the real per-game timestamps captured at STOP; unplayed games carry no timestamps.
     const convertedGameLogs = gameLogs.map(gl => ({
       gameId: gl.gameId,
-      startedAt: gl.startedAt ? new Date(gl.startedAt).toISOString() : new Date().toISOString(),
-      endedAt: gl.durationSeconds ? new Date(Date.now()).toISOString() : undefined,
-      durationSeconds: gl.durationSeconds || 0,
+      startedAt: gl.startedAt ? new Date(gl.startedAt).toISOString() : undefined,
+      endedAt: gl.endedAt ? new Date(gl.endedAt).toISOString() : undefined,
+      durationSeconds: gl.durationSeconds,
     }));
 
-    // Create session log
     dispatch({
       type: 'ADD_SESSION_LOG',
       payload: {
@@ -135,7 +194,6 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       },
     });
 
-    // Share summary via Signal
     const summaryText = generateSessionSummaryText(
       group.name,
       plan.plannedDate,
@@ -147,10 +205,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     );
 
     try {
-      await Share.share({
-        message: summaryText,
-        title: `TKD Coach - Session Summary`,
-      });
+      await Share.share({ message: summaryText, title: 'TKD Coach - Session Summary' });
     } catch (e) {
       console.log('Share cancelled or error:', e);
     }
@@ -161,11 +216,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const handleCancel = () => {
     Alert.alert('Cancel Session', 'Are you sure? Progress will not be saved.', [
       { text: 'Cancel', onPress: () => {} },
-      {
-        text: 'Discard',
-        onPress: () => navigation.goBack(),
-        style: 'destructive',
-      },
+      { text: 'Discard', onPress: () => navigation.goBack(), style: 'destructive' },
     ]);
   };
 
@@ -187,42 +238,53 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       </View>
 
       <ScrollView style={styles.content}>
-        {gameLogs.map((log, idx) => (
-          <View
-            key={idx}
-            style={[
-              styles.gameCard,
-              idx === currentGameIndex ? styles.gameCardActive : styles.gameCardInactive,
-            ]}
-          >
-            <Text style={styles.gameName}>
-              {idx === currentGameIndex ? '▶ ' : ''} {state.games.find(g => g.id === log.gameId)?.name}
-            </Text>
-            <Text style={styles.gameTime}>
-              {log.status === 'completed'
-                ? `✓ ${log.durationSeconds}s`
-                : `${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min (planned)`}
-            </Text>
+        {gameLogs.map((log, idx) => {
+          const active = idx === currentGameIndex;
+          const overrunHere = active && isOverrun;
+          return (
+            <View
+              key={idx}
+              style={[
+                styles.gameCard,
+                overrunHere
+                  ? styles.gameCardOverrun
+                  : active
+                  ? styles.gameCardActive
+                  : styles.gameCardInactive,
+              ]}
+            >
+              <Text style={styles.gameName}>
+                {active ? '▶ ' : ''}{state.games.find(g => g.id === log.gameId)?.name}
+              </Text>
+              <Text style={styles.gameTime}>
+                {log.status === 'completed'
+                  ? `✓ ${fmt(log.durationSeconds || 0)} (${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min planned)`
+                  : `${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min (planned)`}
+              </Text>
 
-            {idx === currentGameIndex && (
-              <>
-                <Text style={styles.timerText}>{timerDisplay}</Text>
-                <View style={styles.buttons}>
-                  {log.status === 'pending' && (
-                    <TouchableOpacity style={[styles.button, styles.buttonStart]} onPress={handleStartGame}>
-                      <Text style={styles.buttonText}>START</Text>
-                    </TouchableOpacity>
+              {active && (
+                <>
+                  <Text style={[styles.timerText, isOverrun && styles.timerTextOverrun]}>{timerDisplay}</Text>
+                  {!!remainingDisplay && (
+                    <Text style={[styles.remaining, isOverrun && styles.remainingOverrun]}>{remainingDisplay}</Text>
                   )}
-                  {log.status === 'running' && (
-                    <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={handleStopGame}>
-                      <Text style={styles.buttonText}>STOP</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </>
-            )}
-          </View>
-        ))}
+                  <View style={styles.buttons}>
+                    {log.status === 'pending' && (
+                      <TouchableOpacity style={[styles.button, styles.buttonStart]} onPress={handleStartGame}>
+                        <Text style={styles.buttonText}>START</Text>
+                      </TouchableOpacity>
+                    )}
+                    {log.status === 'running' && (
+                      <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={handleStopGame}>
+                        <Text style={styles.buttonText}>STOP</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </>
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
 
       <View style={styles.footer}>

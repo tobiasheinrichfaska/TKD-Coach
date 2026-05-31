@@ -89,10 +89,13 @@ State persisted to AsyncStorage; changes debounced 300ms.
 
 ## Critical Implementation Details
 
-### Timer Accuracy (RunSessionScreen)
-- Uses `Date.now()` at game start/stop, NOT interval accumulation
-- Displayed timer updates every 100ms via `setInterval` but actual duration = (Date.now() - startedAt) / 1000
-- Prevents drift under JS thread load
+### Activity Timers + Signal (RunSessionScreen) — Phase 1
+- **START** a game → counts up from `Date.now()` (drift-free; duration = (now − startedAt)/1000).
+- At the game's planned duration (`defaultMinutes`) a **one-time signal** fires: `expo-haptics` notification + a short beep (`expo-audio`, `assets/beep.wav`). Both best-effort/guarded (web/no-audio just skips sound; haptic still fires).
+- Then **overrun** state (amber timer + "+M:SS over"); the game keeps counting until manual **STOP**. STOP captures the real `endedAt` and records `durationSeconds`, then auto-advances.
+- Timer `useEffect` depends on **primitives** (status / startedAt / index / plannedMinutes), not the whole log object, to avoid interval churn (fixes audit #9).
+- Unplayed games emit **no timestamps** — `GameLog.startedAt` is optional now (fixes audit #8: no fake completion-time stamps).
+- Signal fires once per run via a `signaledRef` Set of game indices; re-START clears the index so it can fire again.
 
 ### Persistence Strategy
 - DataContext dispatches trigger immediate `setGameLogs` update

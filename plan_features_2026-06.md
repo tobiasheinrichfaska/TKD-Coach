@@ -65,6 +65,8 @@ Foundation (model, persistence, games library) is solid; headline flows have nev
 
 ## Phase 1 — Activity timers with signal
 
+> **Status — done 2026-05-31 (verified at tsc + bundle level; on-device signal still to confirm).** Implemented in `RunSessionScreen`: count-up timer, one-time signal at `defaultMinutes` via **expo-haptics** + **expo-audio** (`assets/beep.wav`), overrun (amber) state, manual STOP captures real `endedAt`. Used **expo-audio** (SDK 54) instead of the deprecated `expo-av`. Folded in audit #8 (`GameLog.startedAt` optional; no fake timestamps) and #9 (primitive effect deps). Backgrounded `expo-notifications` signal not added (foreground haptic+sound only).
+
 Start a planned game by button → counts toward `defaultMinutes` → **signals at planned stop** (haptic + sound), but **allows overrun** until manual stop.
 
 - Deps (Expo-Go-safe): `expo-haptics`, `expo-av` (sound); optional `expo-notifications` for backgrounded signal.

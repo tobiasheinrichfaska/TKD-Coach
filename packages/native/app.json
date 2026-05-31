@@ -19,7 +19,8 @@
         {
           "cameraPermission": "TKD Coach benötigt Kamerazugriff für QR-Code Erfassung."
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "orientation": "default",
     "backgroundColor": "#F8F8F8",

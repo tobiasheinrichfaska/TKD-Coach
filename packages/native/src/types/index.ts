@@ -85,7 +85,8 @@ export interface SessionPlan {
 
 export interface GameLog {
   gameId: string;
-  startedAt: string;
+  /** undefined for a game that was never started during the session */
+  startedAt?: string;
   endedAt?: string;
   durationSeconds?: number;
 }
