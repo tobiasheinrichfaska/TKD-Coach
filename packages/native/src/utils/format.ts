@@ -13,6 +13,18 @@ export function formatDate(iso: string): string {
 }
 
 /**
+ * Local calendar date as YYYY-MM-DD — no UTC shift.
+ * (new Date().toISOString() converts to UTC, which is the *previous* day for
+ * timezones ahead of UTC after local midnight — that broke "today" matching.)
+ */
+export function toLocalDateISO(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d
+    .getDate()
+    .toString()
+    .padStart(2, '0')}`;
+}
+
+/**
  * Format seconds to readable duration (e.g., "1m 23s" or "45s").
  */
 export function formatDuration(seconds: number | undefined): string {

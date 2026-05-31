@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useData } from '../context/DataContext';
 import { COLORS } from '../constants/colors';
-import { formatDateShort } from '../utils/format';
+import { formatDateShort, toLocalDateISO } from '../utils/format';
 import { APP_INFO } from '../constants/appInfo';
 import type { RootTabScreenProps } from '../types/navigation';
 
@@ -29,9 +29,7 @@ const styles = StyleSheet.create({
 export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dashboard'>) {
   const { state } = useData();
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayISO = today.toISOString().split('T')[0];
+  const todayISO = toLocalDateISO();
 
   const todaysPlans = state.sessionPlans.filter(p => p.plannedDate === todayISO);
   // Copy before sort: Array.prototype.sort mutates in place — sorting state.sessionLogs

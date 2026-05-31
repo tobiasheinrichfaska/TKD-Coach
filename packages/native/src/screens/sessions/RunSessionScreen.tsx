@@ -87,14 +87,22 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const currentGameLog = gameLogs[currentGameIndex];
   const currentGame = state.games.find(g => g.id === currentGameLog?.gameId);
 
-  /** Signal that the planned duration was reached: haptic + sound (both best-effort). */
+  /**
+   * Strong, repeated signal that the planned duration was reached — meant to cut
+   * through a noisy dojo. Loud 3-pulse beep + a Warning buzz + 3 heavy taps.
+   * All best-effort (web/silent just skips what it can't do).
+   */
   const fireSignal = useCallback(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    [180, 420, 660].forEach(ms =>
+      setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {}), ms)
+    );
     try {
+      beep.volume = 1;
       beep.seekTo(0);
       beep.play();
     } catch {
-      // audio unavailable (e.g. web) — haptic still fired
+      // audio unavailable (e.g. web) — haptics still fired
     }
   }, [beep]);
 

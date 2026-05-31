@@ -13,6 +13,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { SESSION_TEMPLATES } from '../../constants/games';
 import { generateId } from '../../utils/ids';
+import { toLocalDateISO } from '../../utils/format';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -61,7 +62,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
 
   const [name, setName] = useState(plan?.name || '');
   const [groupId, setGroupId] = useState(plan?.groupId || '');
-  const [date, setDate] = useState(plan?.plannedDate || new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(plan?.plannedDate || toLocalDateISO());
   const [template, setTemplate] = useState<'kids-2h' | 'youth-adult-1h30' | 'custom'>(plan?.template || 'kids-2h');
   const [gameIds, setGameIds] = useState<string[]>(plan?.plannedGames || [...SESSION_TEMPLATES.KIDS_2H]);
 
