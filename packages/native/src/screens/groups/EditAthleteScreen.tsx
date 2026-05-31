@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { getBeltLabel } from '../../constants/belts';
-import { promote, demote, canConvertToDan, convertToDan } from '../../domain';
-import type { Belt } from '../../types';
+import { promote, demote, canConvertToDan, convertToDan, getPerson, contactsForAthlete } from '../../domain';
+import { callNumber } from '../../utils/linking';
+import type { Belt, Person } from '../../types';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -23,19 +24,28 @@ const styles = StyleSheet.create({
   gradeBtnDisabled: { opacity: 0.4 },
   convertBtn: { marginTop: 8, paddingVertical: 10, borderRadius: 8, alignItems: 'center', backgroundColor: COLORS.info },
   hint: { fontSize: 12, color: COLORS.textMuted, marginTop: 6, textAlign: 'center' },
+  contactCard: { backgroundColor: COLORS.surface, padding: 12, marginBottom: 8, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border },
+  contactName: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  contactLine: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6, alignItems: 'center' },
+  link: { color: COLORS.info, fontWeight: '500' },
+  remove: { color: COLORS.danger, fontSize: 13 },
 });
 
 export default function EditAthleteScreen({ route, navigation }: GroupsStackScreenProps<'EditAthlete'>) {
   const { state, dispatch } = useData();
   const athleteId = route.params?.athleteId;
   const groupId = route.params?.groupId;
-  const person = athleteId ? state.persons.find(p => p.id === athleteId) : null;
-  const profile = person?.athlete;
+  const existing = athleteId ? getPerson(state.persons, athleteId) : null;
 
-  const [name, setName] = useState(person?.name || '');
+  // Stable id for the whole edit session — lets us link contacts during *create* too
+  // (the athlete is persisted on first contact-add, so the link always has a real target).
+  const [personId] = useState(existing?.id ?? generateId());
+  const profile = existing?.athlete;
+
+  const [name, setName] = useState(existing?.name || '');
   const [belt, setBelt] = useState<Belt>(profile?.belt || 'none');
   const [birthYear, setBirthYear] = useState(profile?.birthYear ? String(profile.birthYear) : '');
-  const [phone, setPhone] = useState(person?.phones?.[0] || '');
+  const [phone, setPhone] = useState(existing?.phones?.[0] || '');
 
   const refYear = new Date().getFullYear();
   const by = birthYear.trim() ? Number(birthYear) : undefined;
@@ -44,57 +54,49 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
   const nextDown = demote(belt);
   const showConvert = canConvertToDan(belt, birthYearNum, refYear);
 
-  const handleSave = () => {
-    // Name is always required.
-    if (!name.trim()) return;
+  // Live person row (may appear after the first persist in create mode) + its contacts.
+  const personNow = getPerson(state.persons, personId);
+  const contacts = contactsForAthlete(state.persons, state.contactLinks, personId);
 
-    const phones = phone.trim() ? [phone.trim()] : [];
+  const buildPerson = (): Person => ({
+    id: personId,
+    name: name.trim(),
+    email: personNow?.email,
+    phones: phone.trim() ? [phone.trim()] : [],
+    isCoach: personNow?.isCoach ?? false,
+    athlete: {
+      ...(personNow?.athlete ?? { neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] }),
+      belt,
+      birthYear: birthYearNum,
+    },
+  });
 
-    if (person) {
-      // Preserve the rest of the person (coach role, email, neuroProfile, poomsae, …).
-      dispatch({
-        type: 'UPDATE_PERSON',
-        payload: {
-          ...person,
-          name,
-          phones,
-          athlete: {
-            ...(person.athlete ?? { neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] }),
-            belt,
-            birthYear: birthYearNum,
-          },
-        },
-      });
+  /** Save the athlete (create or update). Returns false if name is missing. */
+  const persist = (): boolean => {
+    if (!name.trim()) return false;
+    if (personNow) {
+      dispatch({ type: 'UPDATE_PERSON', payload: buildPerson() });
     } else {
-      // Athletes exist independently of groups (M:N). If we arrived from a group context,
-      // file the new athlete into that group; otherwise create them ungrouped.
-      const newId = generateId();
-      dispatch({
-        type: 'ADD_PERSON',
-        payload: {
-          id: newId,
-          name,
-          phones,
-          isCoach: false,
-          athlete: {
-            belt,
-            birthYear: birthYearNum,
-            neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 },
-            poomsae: [],
-            techniques: [],
-          },
-        },
-      });
+      dispatch({ type: 'ADD_PERSON', payload: buildPerson() });
       const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
-      if (group) {
-        dispatch({
-          type: 'UPDATE_GROUP',
-          payload: { ...group, athleteIds: [...group.athleteIds, newId] },
-        });
+      if (group && !group.athleteIds.includes(personId)) {
+        dispatch({ type: 'UPDATE_GROUP', payload: { ...group, athleteIds: [...group.athleteIds, personId] } });
       }
     }
-    navigation.goBack();
+    return true;
   };
+
+  const handleSave = () => { if (persist()) navigation.goBack(); };
+
+  const handleAddContact = () => {
+    if (!persist()) {
+      Alert.alert('Name required', 'Enter the athlete’s name first — the athlete is saved before a contact is linked.');
+      return;
+    }
+    navigation.navigate('AddContact', { athleteId: personId });
+  };
+
+  const removeContact = (linkId: string) => dispatch({ type: 'DELETE_CONTACT_LINK', payload: { id: linkId } });
 
   return (
     <ScrollView style={styles.container}>
@@ -146,9 +148,25 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
           )}
         </View>
 
-        <Text style={styles.section}>Contact</Text>
+        <Text style={styles.section}>Contact (own)</Text>
         <TextInput style={styles.input} placeholder="Phone (own)" placeholderTextColor={COLORS.textMuted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        <Text style={styles.hint}>Parents/guardians are managed as Emergency Contacts on the athlete's detail page.</Text>
+
+        <Text style={styles.section}>Emergency contacts</Text>
+        {contacts.map(c => (
+          <View key={c.link.id} style={styles.contactCard}>
+            <Text style={styles.contactName}>{c.person.name}{c.guardian ? '  · Erz.-ber.' : ''}</Text>
+            <View style={styles.contactLine}>
+              {c.person.phones.map((p, i) => (
+                <Text key={i} style={styles.link} onPress={() => callNumber(p)}>📞 {p}</Text>
+              ))}
+              <Text style={styles.remove} onPress={() => removeContact(c.link.id)}>Entfernen</Text>
+            </View>
+          </View>
+        ))}
+        {!personNow && <Text style={[styles.hint, { textAlign: 'left' }]}>Adding a contact saves the athlete first.</Text>}
+        <TouchableOpacity onPress={handleAddContact}>
+          <Text style={[styles.link, { marginTop: 4 }]}>+ Kontakt hinzufügen / auswählen</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handleSave}>
           <Text style={styles.buttonText}>Save</Text>
