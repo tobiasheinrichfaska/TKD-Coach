@@ -6,14 +6,14 @@
 
 | Block | Game | Time |
 |---|---|---|
-| Warm-up | [W1 · Farben-Chagi](../games/warmup/W1-farben-chagi.md) | 8 min |
-| Warm-up | [W3 · Leiter-Stand-Exit](../games/warmup/W3-leiter-stand-exit.md) | 8 min |
-| Main | [M1 · Zahlen-Kombi](../games/main/M1-zahlen-kombi.md) | 12 min |
-| Main | [M3 · Einbein-Poomsae](../games/main/M3-einbein-poomsae.md) | 12 min |
-| Main | [W2 · Spiegel-Stand](../games/warmup/W2-spiegel-stand.md) | 5 min |
-| Main | [M4 · Poomsae unter Störung](../games/main/M4-poomsae-unter-stoerung.md) | 12 min |
-| Cool-down | [C1 · Balance-Hold Challenge](../games/cooldown/C1-balance-hold.md) (log) | 8 min |
-| Cool-down | [C2 · Atem-Augen-Fokus](../games/cooldown/C2-atem-augen-fokus.md) | 6 min |
+| Warm-up | [W1 · Farben-Chagi](../uebungen/neuro-game/W1-farben-chagi.md) | 8 min |
+| Warm-up | [W3 · Leiter-Stand-Exit](../uebungen/neuro-game/W3-leiter-stand-exit.md) | 8 min |
+| Main | [M1 · Zahlen-Kombi](../uebungen/neuro-game/M1-zahlen-kombi.md) | 12 min |
+| Main | [M3 · Einbein-Poomsae](../uebungen/neuro-game/M3-einbein-poomsae.md) | 12 min |
+| Main | [W2 · Spiegel-Stand](../uebungen/neuro-game/W2-spiegel-stand.md) | 5 min |
+| Main | [M4 · Poomsae unter Störung](../uebungen/neuro-game/M4-poomsae-unter-stoerung.md) | 12 min |
+| Cool-down | [C1 · Balance-Hold Challenge](../uebungen/neuro-game/C1-balance-hold.md) (log) | 8 min |
+| Cool-down | [C2 · Atem-Augen-Fokus](../uebungen/neuro-game/C2-atem-augen-fokus.md) | 6 min |
 
 **Total:** ~71 min core + buffer = **~90 min available**
 
