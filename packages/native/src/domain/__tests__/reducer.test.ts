@@ -1,5 +1,5 @@
 import { appReducer, EMPTY_STATE } from '../../context/reducer';
-import { Group, Athlete, SessionLog, Assessment, AppData } from '../../types';
+import { Group, Athlete, SessionLog, Assessment, SessionTemplate, AppData } from '../../types';
 
 const grp = (id: string, athleteIds: string[] = []): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });
 const ath = (id: string, groupId: string): Athlete => ({
@@ -54,10 +54,22 @@ describe('appReducer', () => {
   });
 
   it('LOAD_ALL replaces state and sets isLoaded', () => {
-    const data: AppData = { version: 1, games: [], athletes: [], groups: [grp('g')], sessionPlans: [], sessionLogs: [], assessments: [] };
+    const data: AppData = { version: 1, games: [], athletes: [], groups: [grp('g')], sessionPlans: [], sessionLogs: [], assessments: [], sessionTemplates: [] };
     const s = appReducer(EMPTY_STATE, { type: 'LOAD_ALL', payload: data });
     expect(s.isLoaded).toBe(true);
     expect(s.groups).toHaveLength(1);
+  });
+
+  it('adds, updates and deletes a session template', () => {
+    const tmpl: SessionTemplate = { id: 't1', name: 'T', ageGroup: 'all', itemIds: ['W1'], isBuiltIn: false };
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_SESSION_TEMPLATE', payload: tmpl });
+    expect(s.sessionTemplates).toHaveLength(1);
+    s = appReducer(s, { type: 'UPDATE_SESSION_TEMPLATE', payload: { ...tmpl, name: 'Renamed', itemIds: ['W1', 'M1'] } });
+    expect(s.sessionTemplates[0].name).toBe('Renamed');
+    expect(s.sessionTemplates[0].itemIds).toEqual(['W1', 'M1']);
+    expect(s.sessionTemplates).toHaveLength(1);
+    s = appReducer(s, { type: 'DELETE_SESSION_TEMPLATE', payload: { id: 't1' } });
+    expect(s.sessionTemplates).toHaveLength(0);
   });
 
   it('is immutable — does not mutate the previous state', () => {

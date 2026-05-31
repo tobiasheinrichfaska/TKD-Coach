@@ -1,9 +1,11 @@
 import { migrate } from '../migration';
 import { BUILTIN_GAMES } from '../../constants/games';
-import { AppData, GameDefinition } from '../../types';
+import { BUILTIN_TEMPLATES } from '../templates';
+import { AppData, GameDefinition, SessionTemplate } from '../../types';
 
 const base = (games: GameDefinition[]): AppData => ({
   version: 1, games, athletes: [], groups: [], sessionPlans: [], sessionLogs: [], assessments: [],
+  sessionTemplates: [],
 });
 
 describe('migrate', () => {
@@ -39,5 +41,27 @@ describe('migrate', () => {
     const d = base([]);
     d.groups = [{ id: 'g', name: 'G', ageCategory: 'kids', athleteIds: [] }];
     expect(migrate(d).groups).toEqual(d.groups);
+  });
+
+  it('seeds built-in session templates from an empty seed', () => {
+    const out = migrate(base([]));
+    expect(out.sessionTemplates.length).toBe(BUILTIN_TEMPLATES.length);
+    for (const b of BUILTIN_TEMPLATES) expect(out.sessionTemplates.some(t => t.id === b.id)).toBe(true);
+  });
+
+  it('refreshes a stale built-in template and preserves user templates', () => {
+    const stale: SessionTemplate = { ...BUILTIN_TEMPLATES[0], name: 'OLD' };
+    const custom: SessionTemplate = {
+      id: 'tmpl-custom', name: 'My Template', ageGroup: 'all', itemIds: ['W1'], isBuiltIn: false,
+    };
+    const out = migrate({ ...base([]), sessionTemplates: [stale, custom] });
+    expect(out.sessionTemplates.find(t => t.id === stale.id)?.name).toBe(BUILTIN_TEMPLATES[0].name);
+    expect(out.sessionTemplates.some(t => t.id === 'tmpl-custom')).toBe(true);
+    expect(out.sessionTemplates.length).toBe(BUILTIN_TEMPLATES.length + 1);
+  });
+
+  it('handles a missing sessionTemplates array', () => {
+    const out = migrate({ ...base([]), sessionTemplates: undefined as unknown as SessionTemplate[] });
+    expect(out.sessionTemplates.length).toBe(BUILTIN_TEMPLATES.length);
   });
 });

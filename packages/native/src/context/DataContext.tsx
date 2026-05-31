@@ -2,7 +2,6 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback, u
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppData } from '../types';
 import { appReducer, EMPTY_STATE, Action, EMPTY_APP_DATA } from './reducer';
-import { BUILTIN_GAMES } from '../constants/games';
 import { migrate } from '../domain/migration';
 
 const STORAGE_KEY = 'tkd_coach_app_data';
@@ -26,27 +25,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const data = JSON.parse(stored) as AppData;
-          // Migration (pure, unit-tested in domain/migration): refresh built-in Übungen
-          // from the seed, preserving user-created games.
-          dispatch({ type: 'LOAD_ALL', payload: migrate(data) });
-        } else {
-          // First run: seed with built-in games
-          const initialData: AppData = {
-            ...EMPTY_APP_DATA,
-            games: BUILTIN_GAMES,
-          };
-          dispatch({ type: 'LOAD_ALL', payload: initialData });
-        }
+        // migrate() (pure, unit-tested in domain/migration) refreshes built-in Übungen +
+        // templates and backfills missing collections. On a fresh install it seeds them
+        // from EMPTY_APP_DATA, so both branches go through the same path.
+        const data = stored ? (JSON.parse(stored) as AppData) : EMPTY_APP_DATA;
+        dispatch({ type: 'LOAD_ALL', payload: migrate(data) });
       } catch (e) {
         console.error('Error loading app data:', e);
-        // Fallback: seed with built-in games
-        const initialData: AppData = {
-          ...EMPTY_APP_DATA,
-          games: BUILTIN_GAMES,
-        };
-        dispatch({ type: 'LOAD_ALL', payload: initialData });
+        dispatch({ type: 'LOAD_ALL', payload: migrate(EMPTY_APP_DATA) });
       }
     })();
   }, []);
@@ -71,6 +57,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           sessionPlans: state.sessionPlans,
           sessionLogs: state.sessionLogs,
           assessments: state.assessments,
+          sessionTemplates: state.sessionTemplates,
         };
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
       } catch (e) {
@@ -99,6 +86,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         sessionPlans: state.sessionPlans,
         sessionLogs: state.sessionLogs,
         assessments: state.assessments,
+        sessionTemplates: state.sessionTemplates,
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
     } catch (e) {

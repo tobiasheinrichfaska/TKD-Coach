@@ -95,9 +95,24 @@ export interface SessionPlan {
   groupId: string;
   name: string;
   plannedDate: string;
+  /** @deprecated coarse template tag; superseded by templateId. Kept for back-compat. */
   template: 'kids-2h' | 'youth-adult-1h30' | 'custom';
+  /** Id of the SessionTemplate this plan was seeded from (built-in or user). */
+  templateId?: string;
   plannedGames: string[];
   createdAt: string;
+}
+
+/** A reusable, ordered set of Übung ids used to seed a SessionPlan. */
+export interface SessionTemplate {
+  id: string;
+  name: string;
+  /** Who the template is aimed at; 'all' = any group. */
+  ageGroup: 'kids' | 'youth-adults' | 'all';
+  /** Ordered Übung (GameDefinition) ids. */
+  itemIds: string[];
+  isBuiltIn: boolean;
+  description?: string;
 }
 
 export interface GameLog {
@@ -138,6 +153,7 @@ export interface AppData {
   sessionPlans: SessionPlan[];
   sessionLogs: SessionLog[];
   assessments: Assessment[];
+  sessionTemplates: SessionTemplate[];
   exportedAt?: string;
 }
 

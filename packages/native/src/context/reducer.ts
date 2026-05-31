@@ -6,6 +6,7 @@ import {
   SessionPlan,
   SessionLog,
   Assessment,
+  SessionTemplate,
   AppData,
 } from '../types';
 
@@ -28,7 +29,10 @@ export type Action =
   | { type: 'UPDATE_SESSION_LOG'; payload: SessionLog }
   | { type: 'DELETE_SESSION_LOG'; payload: { id: string } }
   | { type: 'ADD_ASSESSMENT'; payload: Assessment }
-  | { type: 'DELETE_ASSESSMENT'; payload: { id: string } };
+  | { type: 'DELETE_ASSESSMENT'; payload: { id: string } }
+  | { type: 'ADD_SESSION_TEMPLATE'; payload: SessionTemplate }
+  | { type: 'UPDATE_SESSION_TEMPLATE'; payload: SessionTemplate }
+  | { type: 'DELETE_SESSION_TEMPLATE'; payload: { id: string } };
 
 export const EMPTY_APP_DATA: AppData = {
   version: 1,
@@ -38,6 +42,7 @@ export const EMPTY_APP_DATA: AppData = {
   sessionPlans: [],
   sessionLogs: [],
   assessments: [],
+  sessionTemplates: [],
 };
 
 export const EMPTY_STATE: AppState = {
@@ -170,6 +175,27 @@ export function appReducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         assessments: state.assessments.filter(a => a.id !== action.payload.id),
+      };
+
+    // Session Templates
+    case 'ADD_SESSION_TEMPLATE':
+      return {
+        ...state,
+        sessionTemplates: [...state.sessionTemplates, action.payload],
+      };
+
+    case 'UPDATE_SESSION_TEMPLATE':
+      return {
+        ...state,
+        sessionTemplates: state.sessionTemplates.map(t =>
+          t.id === action.payload.id ? action.payload : t,
+        ),
+      };
+
+    case 'DELETE_SESSION_TEMPLATE':
+      return {
+        ...state,
+        sessionTemplates: state.sessionTemplates.filter(t => t.id !== action.payload.id),
       };
 
     default:
