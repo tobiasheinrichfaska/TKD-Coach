@@ -1,6 +1,6 @@
 # CLAUDE.md — TKD-Coach
 
-> Workspace-wide conventions: [`c:\skripte\private\general stuff\general_stuff_claude.md`](../../private/general%20stuff/general_stuff_claude.md)
+> Workspace-wide conventions: [`c:\skripte\private\general stuff\CLAUDE.md`](../../private/general%20stuff/CLAUDE.md)
 
 ---
 

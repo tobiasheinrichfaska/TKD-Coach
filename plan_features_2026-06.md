@@ -1,6 +1,6 @@
 # TKD-Coach — Feature Plan (2026-06)
 
-> Planning doc. Per workspace convention, migrate accepted sections into `tkd-coach_claude.md` before archiving.
+> Planning doc. Per workspace convention, migrate accepted sections into `CLAUDE.md` before archiving.
 > Created 2026-05-31. Decisions captured from planning session below.
 
 ## Decisions (2026-05-31)
