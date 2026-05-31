@@ -5,14 +5,8 @@ import {
   coverageByTechnique,
   coverageByBodyPart,
   assessmentHistory,
-  athletesInGroup,
-  groupsForAthlete,
-  ungroupedAthletes,
-  contactsForAthlete,
-  guardiansForAthlete,
-  athletesForContact,
 } from '../selectors';
-import { GameDefinition, SessionLog, SessionPlan, Assessment, Athlete, Group, EmergencyContact } from '../../types';
+import { GameDefinition, SessionLog, SessionPlan, Assessment } from '../../types';
 
 const game = (id: string, min: number, techniques: string[], bodyParts: string[]): GameDefinition => ({
   id, name: id, shortName: id, phase: 'main', defaultMinutes: min, ageGroup: 'all', isBuiltIn: true,
@@ -68,58 +62,6 @@ describe('coverage', () => {
     const cov = coverageByBodyPart(logs, games);
     expect(cov.find(c => c.id === 'hip')).toEqual({ id: 'hip', sessions: 2, seconds: 350 });
     expect(cov.find(c => c.id === 'knee')).toEqual({ id: 'knee', sessions: 2, seconds: 300 });
-  });
-});
-
-describe('group membership (M:N)', () => {
-  const mkAth = (id: string): Athlete => ({
-    id, name: id, belt: 'kup-10',
-    neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
-  });
-  const mkGrp = (id: string, athleteIds: string[]): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });
-  const athletes = [mkAth('a1'), mkAth('a2'), mkAth('a3')];
-  const groups = [mkGrp('g1', ['a2', 'a1']), mkGrp('g2', ['a1'])]; // a1 in both, a3 in none
-
-  it('athletesInGroup returns members in stored order, skipping missing ids', () => {
-    expect(athletesInGroup(athletes, groups[0]).map(a => a.id)).toEqual(['a2', 'a1']);
-    expect(athletesInGroup(athletes, undefined)).toEqual([]);
-    expect(athletesInGroup(athletes, mkGrp('gx', ['a1', 'ghost'])).map(a => a.id)).toEqual(['a1']);
-  });
-
-  it('groupsForAthlete finds every group the athlete is in', () => {
-    expect(groupsForAthlete(groups, 'a1').map(g => g.id)).toEqual(['g1', 'g2']);
-    expect(groupsForAthlete(groups, 'a3')).toEqual([]);
-  });
-
-  it('ungroupedAthletes finds athletes in no group', () => {
-    expect(ungroupedAthletes(athletes, groups).map(a => a.id)).toEqual(['a3']);
-    expect(ungroupedAthletes(athletes, []).map(a => a.id)).toEqual(['a1', 'a2', 'a3']);
-  });
-});
-
-describe('emergency contacts (M:N)', () => {
-  const mkAth = (id: string): Athlete => ({
-    id, name: id, belt: 'kup-10',
-    neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
-  });
-  const athletes = [mkAth('a1'), mkAth('a2')];
-  const contacts: EmergencyContact[] = [
-    { id: 'c1', name: 'Mum', phones: ['1'], isGuardian: true, athleteIds: ['a1', 'a2'] },
-    { id: 'c2', name: 'Neighbour', phones: ['2'], isGuardian: false, athleteIds: ['a1'] },
-  ];
-
-  it('contactsForAthlete returns all linked contacts', () => {
-    expect(contactsForAthlete(contacts, 'a1').map(c => c.id)).toEqual(['c1', 'c2']);
-    expect(contactsForAthlete(contacts, 'a2').map(c => c.id)).toEqual(['c1']);
-  });
-
-  it('guardiansForAthlete returns only guardians', () => {
-    expect(guardiansForAthlete(contacts, 'a1').map(c => c.id)).toEqual(['c1']);
-  });
-
-  it('athletesForContact returns linked athletes in order', () => {
-    expect(athletesForContact(athletes, contacts[0]).map(a => a.id)).toEqual(['a1', 'a2']);
-    expect(athletesForContact(athletes, undefined)).toEqual([]);
   });
 });
 

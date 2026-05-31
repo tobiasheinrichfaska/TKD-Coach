@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { ungroupedAthletes } from '../../domain';
+import { ungroupedAthletes, athleteViews } from '../../domain';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -16,7 +16,9 @@ const styles = StyleSheet.create({
 
 export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'GroupsList'>) {
   const { state } = useData();
-  const ungroupedCount = ungroupedAthletes(state.athletes, state.groups).length;
+  const athleteCount = athleteViews(state.persons).length;
+  const ungroupedCount = ungroupedAthletes(state.persons, state.groups).length;
+  const contactCount = new Set(state.contactLinks.map(l => l.contactId)).size;
 
   return (
     <View style={styles.container}>
@@ -24,7 +26,7 @@ export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'Gro
         <View>
           <Text style={styles.text}>All Athletes</Text>
           <Text style={{ fontSize: 12, color: COLORS.textMuted }}>
-            {state.athletes.length} total{ungroupedCount > 0 ? ` · ${ungroupedCount} ungrouped` : ''}
+            {athleteCount} total{ungroupedCount > 0 ? ` · ${ungroupedCount} ungrouped` : ''}
           </Text>
         </View>
         <Text style={{ fontSize: 20, color: COLORS.textMuted }}>›</Text>
@@ -33,7 +35,7 @@ export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'Gro
       <TouchableOpacity style={styles.contactsRow} onPress={() => navigation.navigate('EmergencyContacts')}>
         <View>
           <Text style={styles.text}>Emergency Contacts</Text>
-          <Text style={{ fontSize: 12, color: COLORS.textMuted }}>{state.emergencyContacts.length} contacts</Text>
+          <Text style={{ fontSize: 12, color: COLORS.textMuted }}>{contactCount} contacts</Text>
         </View>
         <Text style={{ fontSize: 20, color: COLORS.textMuted }}>›</Text>
       </TouchableOpacity>

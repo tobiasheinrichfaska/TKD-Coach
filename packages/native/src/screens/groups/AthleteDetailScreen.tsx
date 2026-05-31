@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
-import { groupsForAthlete, contactsForAthlete, guardiansForAthlete } from '../../domain';
+import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson } from '../../domain';
 import { callNumber, sendEmail } from '../../utils/linking';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
@@ -38,14 +38,14 @@ const styles = StyleSheet.create({
 export default function AthleteDetailScreen({ route, navigation }: GroupsStackScreenProps<'AthleteDetail'>) {
   const { state, dispatch } = useData();
   const athleteId = route.params.athleteId;
-  const athlete = state.athletes.find(a => a.id === athleteId);
+  const athlete = toAthleteView(getPerson(state.persons, athleteId));
 
   if (!athlete) return <View style={styles.container}><Text style={styles.rowValue}>Athlete not found</Text></View>;
 
   const memberGroups = groupsForAthlete(state.groups, athlete.id);
   const otherGroups = state.groups.filter(g => !g.athleteIds.includes(athlete.id));
-  const contacts = contactsForAthlete(state.emergencyContacts, athlete.id);
-  const guardians = guardiansForAthlete(state.emergencyContacts, athlete.id);
+  const contacts = contactsForAthlete(state.persons, state.contactLinks, athlete.id);
+  const guardians = guardiansForAthlete(state.persons, state.contactLinks, athlete.id);
   const refYear = new Date().getFullYear();
   // "optional if 18+": warn about a missing guardian unless the athlete is definitely 18+.
   const definitely18 = !!athlete.birthYear && refYear - athlete.birthYear - 1 >= 18;
@@ -71,7 +71,7 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            dispatch({ type: 'DELETE_ATHLETE', payload: { id: athlete.id } });
+            dispatch({ type: 'DELETE_PERSON', payload: { id: athlete.id } });
             navigation.goBack();
           },
         },
@@ -91,10 +91,10 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
           <Text style={styles.rowLabel}>Birth Year</Text>
           <Text style={styles.rowValue}>{athlete.birthYear || 'N/A'}</Text>
         </View>
-        {athlete.contact?.phone && (
+        {athlete.phones[0] && (
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Phone</Text>
-            <Text style={[styles.rowValue, styles.link]} onPress={() => callNumber(athlete.contact!.phone!)}>{athlete.contact.phone}</Text>
+            <Text style={[styles.rowValue, styles.link]} onPress={() => callNumber(athlete.phones[0])}>{athlete.phones[0]}</Text>
           </View>
         )}
 
@@ -102,17 +102,17 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
         {needsGuardian && <Text style={styles.warnHint}>⚠ Kein Erziehungsberechtigter hinterlegt (Athlet evtl. unter 18).</Text>}
         {contacts.length === 0 && <Text style={styles.hint}>No contacts linked yet.</Text>}
         {contacts.map(c => (
-          <View key={c.id} style={styles.contactCard}>
-            <TouchableOpacity onPress={() => navigation.navigate('EditEmergencyContact', { contactId: c.id })}>
+          <View key={c.link.id} style={styles.contactCard}>
+            <TouchableOpacity onPress={() => navigation.navigate('EditEmergencyContact', { contactId: c.person.id })}>
               <Text style={styles.contactName}>
-                {c.name}{c.isGuardian ? <Text style={styles.guardianTag}>  Erz.-ber.  </Text> : null}
+                {c.person.name}{c.guardian ? <Text style={styles.guardianTag}>  Erz.-ber.  </Text> : null}
               </Text>
             </TouchableOpacity>
             <View style={styles.contactLine}>
-              {c.phones.map((p, i) => (
+              {c.person.phones.map((p, i) => (
                 <Text key={i} style={styles.link} onPress={() => callNumber(p)}>📞 {p}</Text>
               ))}
-              {c.email ? <Text style={styles.link} onPress={() => sendEmail(c.email!)}>✉ {c.email}</Text> : null}
+              {c.person.email ? <Text style={styles.link} onPress={() => sendEmail(c.person.email!)}>✉ {c.person.email}</Text> : null}
             </View>
           </View>
         ))}

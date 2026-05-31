@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { groupsForAthlete, ungroupedAthletes } from '../../domain';
+import { groupsForAthlete, ungroupedAthletes, athleteViews } from '../../domain';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -33,22 +33,23 @@ export default function AllAthletesScreen({ navigation }: GroupsStackScreenProps
       `This permanently deletes ${name} and everything linked to them — group memberships, all assessments, and attendance records (Teilnahme). This cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => dispatch({ type: 'DELETE_ATHLETE', payload: { id } }) },
+        { text: 'Delete', style: 'destructive', onPress: () => dispatch({ type: 'DELETE_PERSON', payload: { id } }) },
       ],
     );
   };
 
-  const ungrouped = useMemo(() => ungroupedAthletes(state.athletes, state.groups), [state.athletes, state.groups]);
+  const allAthletes = useMemo(() => athleteViews(state.persons), [state.persons]);
+  const ungrouped = useMemo(() => ungroupedAthletes(state.persons, state.groups), [state.persons, state.groups]);
   const data = useMemo(() => {
-    const list = filter === 'ungrouped' ? ungrouped : state.athletes;
+    const list = filter === 'ungrouped' ? ungrouped : allAthletes;
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
-  }, [filter, ungrouped, state.athletes]);
+  }, [filter, ungrouped, allAthletes]);
 
   return (
     <View style={styles.container}>
       <View style={styles.filterRow}>
         <TouchableOpacity style={[styles.tab, filter === 'all' && styles.tabActive]} onPress={() => setFilter('all')}>
-          <Text style={filter === 'all' ? styles.tabActiveText : styles.tabText}>All ({state.athletes.length})</Text>
+          <Text style={filter === 'all' ? styles.tabActiveText : styles.tabText}>All ({allAthletes.length})</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.tab, filter === 'ungrouped' && styles.tabActive]} onPress={() => setFilter('ungrouped')}>
           <Text style={filter === 'ungrouped' ? styles.tabActiveText : styles.tabText}>Ungrouped ({ungrouped.length})</Text>

@@ -108,7 +108,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
         <Text style={styles.section}>📈 Quick Stats</Text>
         <View style={styles.sessionCard}>
           <Text style={styles.sessionMeta}>Total Groups: {state.groups.length}</Text>
-          <Text style={styles.sessionMeta}>Total Athletes: {state.athletes.length}</Text>
+          <Text style={styles.sessionMeta}>Total Athletes: {state.persons.filter(p => p.athlete).length}</Text>
           <Text style={styles.sessionMeta}>Sessions Completed: {state.sessionLogs.filter(l => l.status === 'completed').length}</Text>
           <Text style={styles.sessionMeta}>Assessments Logged: {state.assessments.length}</Text>
         </View>

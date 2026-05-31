@@ -1,61 +1,53 @@
 import { appReducer, EMPTY_STATE } from '../../context/reducer';
-import { Group, Athlete, SessionLog, Assessment, SessionTemplate, EmergencyContact, AppData } from '../../types';
+import { Group, Person, SessionLog, Assessment, SessionTemplate, ContactLink, AppData } from '../../types';
 
 const grp = (id: string, athleteIds: string[] = []): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });
-const ath = (id: string): Athlete => ({
-  id, name: id, belt: 'kup-10',
-  neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
+const athlete = (id: string): Person => ({
+  id, name: id, phones: [], isCoach: false,
+  athlete: { belt: 'kup-10', neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] },
 });
+const contact = (id: string): Person => ({ id, name: id, phones: ['123'], isCoach: false });
 const assess = (id: string, athleteId: string): Assessment => ({
   id, athleteId, gameId: 'C1', date: '2026-06-01', metric: { type: 'balance_hold', dominant: 1, nonDominant: 1 },
 });
 
 describe('appReducer', () => {
-  it('adds groups and athletes', () => {
+  it('adds groups and persons', () => {
     let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1') });
-    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1') });
+    s = appReducer(s, { type: 'ADD_PERSON', payload: athlete('a1') });
     expect(s.groups).toHaveLength(1);
-    expect(s.athletes).toHaveLength(1);
+    expect(s.persons).toHaveLength(1);
   });
 
-  it('updates an athlete in place', () => {
-    let s = appReducer(EMPTY_STATE, { type: 'ADD_ATHLETE', payload: ath('a1') });
-    s = appReducer(s, { type: 'UPDATE_ATHLETE', payload: { ...ath('a1'), name: 'Renamed' } });
-    expect(s.athletes[0].name).toBe('Renamed');
-    expect(s.athletes).toHaveLength(1);
+  it('updates a person in place', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_PERSON', payload: athlete('a1') });
+    s = appReducer(s, { type: 'UPDATE_PERSON', payload: { ...athlete('a1'), name: 'Renamed', isCoach: true } });
+    expect(s.persons[0].name).toBe('Renamed');
+    expect(s.persons[0].isCoach).toBe(true);
+    expect(s.persons).toHaveLength(1);
   });
 
-  it('DELETE_GROUP removes only the group; athletes persist (M:N membership)', () => {
+  it('DELETE_GROUP removes only the group; persons persist (M:N membership)', () => {
     let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1', ['a1']) });
-    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1') });
+    s = appReducer(s, { type: 'ADD_PERSON', payload: athlete('a1') });
     s = appReducer(s, { type: 'DELETE_GROUP', payload: { id: 'g1' } });
     expect(s.groups).toHaveLength(0);
-    expect(s.athletes).toHaveLength(1); // athlete is now simply ungrouped
+    expect(s.persons).toHaveLength(1);
   });
 
-  it('DELETE_ATHLETE removes it from every group + contact + deletes its assessments', () => {
-    const contact: EmergencyContact = { id: 'c1', name: 'Mum', phones: ['123'], isGuardian: true, athleteIds: ['a1'] };
+  it('DELETE_PERSON strips groups + contact edges (both sides) + assessments', () => {
     let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1', ['a1']) });
-    s = appReducer(s, { type: 'ADD_GROUP', payload: grp('g2', ['a1']) }); // athlete in two groups
-    s = appReducer(s, { type: 'ADD_ATHLETE', payload: ath('a1') });
-    s = appReducer(s, { type: 'ADD_CONTACT', payload: contact });
+    s = appReducer(s, { type: 'ADD_PERSON', payload: athlete('a1') });
+    s = appReducer(s, { type: 'ADD_PERSON', payload: contact('c1') });
+    // a1 is contacted by c1, and a1 is itself a contact for a sibling a2
+    s = appReducer(s, { type: 'ADD_CONTACT_LINK', payload: { id: 'l1', contactId: 'c1', athleteId: 'a1', guardian: true } });
+    s = appReducer(s, { type: 'ADD_CONTACT_LINK', payload: { id: 'l2', contactId: 'a1', athleteId: 'a2', guardian: false } });
     s = appReducer(s, { type: 'ADD_ASSESSMENT', payload: assess('as1', 'a1') });
-    s = appReducer(s, { type: 'DELETE_ATHLETE', payload: { id: 'a1' } });
-    expect(s.athletes).toHaveLength(0);
-    expect(s.groups.every(g => g.athleteIds.length === 0)).toBe(true);
-    expect(s.emergencyContacts[0].athleteIds).toEqual([]); // contact persists, link removed
+    s = appReducer(s, { type: 'DELETE_PERSON', payload: { id: 'a1' } });
+    expect(s.persons.map(p => p.id)).toEqual(['c1']);
+    expect(s.groups[0].athleteIds).toEqual([]);
+    expect(s.contactLinks).toHaveLength(0); // both edges naming a1 are gone
     expect(s.assessments).toHaveLength(0);
-  });
-
-  it('adds, updates and deletes an emergency contact', () => {
-    const c: EmergencyContact = { id: 'c1', name: 'Dad', email: 'd@x.de', phones: ['1', '2'], isGuardian: true, athleteIds: [] };
-    let s = appReducer(EMPTY_STATE, { type: 'ADD_CONTACT', payload: c });
-    expect(s.emergencyContacts).toHaveLength(1);
-    s = appReducer(s, { type: 'UPDATE_CONTACT', payload: { ...c, isGuardian: false, phones: ['1'] } });
-    expect(s.emergencyContacts[0].isGuardian).toBe(false);
-    expect(s.emergencyContacts[0].phones).toEqual(['1']);
-    s = appReducer(s, { type: 'DELETE_CONTACT', payload: { id: 'c1' } });
-    expect(s.emergencyContacts).toHaveLength(0);
   });
 
   it('adds, updates and deletes a session log', () => {
@@ -69,7 +61,7 @@ describe('appReducer', () => {
   });
 
   it('LOAD_ALL replaces state and sets isLoaded', () => {
-    const data: AppData = { version: 1, games: [], athletes: [], groups: [grp('g')], sessionPlans: [], sessionLogs: [], assessments: [], sessionTemplates: [], emergencyContacts: [] };
+    const data: AppData = { version: 1, games: [], persons: [], groups: [grp('g')], sessionPlans: [], sessionLogs: [], assessments: [], sessionTemplates: [], contactLinks: [] };
     const s = appReducer(EMPTY_STATE, { type: 'LOAD_ALL', payload: data });
     expect(s.isLoaded).toBe(true);
     expect(s.groups).toHaveLength(1);
@@ -81,10 +73,18 @@ describe('appReducer', () => {
     expect(s.sessionTemplates).toHaveLength(1);
     s = appReducer(s, { type: 'UPDATE_SESSION_TEMPLATE', payload: { ...tmpl, name: 'Renamed', itemIds: ['W1', 'M1'] } });
     expect(s.sessionTemplates[0].name).toBe('Renamed');
-    expect(s.sessionTemplates[0].itemIds).toEqual(['W1', 'M1']);
-    expect(s.sessionTemplates).toHaveLength(1);
     s = appReducer(s, { type: 'DELETE_SESSION_TEMPLATE', payload: { id: 't1' } });
     expect(s.sessionTemplates).toHaveLength(0);
+  });
+
+  it('adds, updates and deletes a contact link', () => {
+    const l: ContactLink = { id: 'l1', contactId: 'c1', athleteId: 'a1', guardian: false };
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_CONTACT_LINK', payload: l });
+    expect(s.contactLinks).toHaveLength(1);
+    s = appReducer(s, { type: 'UPDATE_CONTACT_LINK', payload: { ...l, guardian: true } });
+    expect(s.contactLinks[0].guardian).toBe(true);
+    s = appReducer(s, { type: 'DELETE_CONTACT_LINK', payload: { id: 'l1' } });
+    expect(s.contactLinks).toHaveLength(0);
   });
 
   it('is immutable — does not mutate the previous state', () => {

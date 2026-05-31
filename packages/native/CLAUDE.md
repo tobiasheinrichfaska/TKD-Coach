@@ -14,8 +14,9 @@
 **Visual reference:** open [`docs/data-model.html`](docs/data-model.html) in a browser — a self-contained doc of every entity, the reducer actions, and the pure domain functions (metrics/selectors/templates/catalogs/migration). Regenerate it when the model changes.
 
 See [`src/types/index.ts`](src/types/index.ts) for full schema. Core entities:
-- **Athlete:** name, belt, birth year, contact info (phone/parent), neuro profile (vestibular/visual/proprioceptive 1-5), poomsae list, techniques list. **No `groupId`** — group membership is many-to-many and lives only on `Group.athleteIds` (an athlete may be in 0..n groups). Resolve via the domain selectors `athletesInGroup` / `groupsForAthlete` / `ungroupedAthletes`.
-- **Group:** name, age category (kids/youth/adult/mixed), athlete IDs (the sole membership link)
+- **Person:** the single human identity (name, email?, phones≤5, `isCoach`). Roles attach by **composition, not inheritance**: an embedded `athlete` profile (belt/birthYear/neuroProfile/poomsae/techniques) and `isCoach`. One person can be athlete + coach + another athlete's guardian at once. The UI keeps "athlete" via the flat `AthleteView` (`domain/people.ts`: `athleteViews`, `toAthleteView`).
+- **Group:** name, age category, `athleteIds` → Person ids (M:N, sole membership link; 0..n groups).
+- **ContactLink:** edge {`contactId`→Person, `athleteId`→Person, `guardian`} — emergency-contact/guardian relationship; **guardian is per-edge**. Phones/emails are tappable (`utils/linking.ts`).
 - **GameDefinition:** 11 built-in + user-configurable, seeded on first run. Each has phase, neuro target, duration, metric type
 - **SessionPlan:** group, date, template (kids-2h / youth-adult-1h30 / custom), planned game IDs
 - **SessionLog:** completed session with per-game durations

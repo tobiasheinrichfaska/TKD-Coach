@@ -162,13 +162,13 @@ seeds the built-in games + templates, so there is one seeding code path, not sev
 <tbody>
 <tr><td><code>version</code></td><td>number</td><td>Schema version for migrations.</td></tr>
 <tr><td><code>games</code></td><td>GameDefinition[]</td><td>The Übung library (built-in + user).</td></tr>
-<tr><td><code>athletes</code></td><td>Athlete[]</td><td>All athletes across all groups.</td></tr>
+<tr><td><code>persons</code></td><td>Person[]</td><td>Every human — one identity, with athlete/coach roles attached.</td></tr>
 <tr><td><code>groups</code></td><td>Group[]</td><td>Training groups; each lists its athlete ids.</td></tr>
 <tr><td><code>sessionPlans</code></td><td>SessionPlan[]</td><td>Planned (future/today) sessions.</td></tr>
 <tr><td><code>sessionLogs</code></td><td>SessionLog[]</td><td>Running / completed / cancelled sessions.</td></tr>
 <tr><td><code>assessments</code></td><td>Assessment[]</td><td>Per-athlete metric measurements.</td></tr>
 <tr><td><code>sessionTemplates</code></td><td>SessionTemplate[]</td><td>Reusable ordered Übung sets (built-in + user).</td></tr>
-<tr><td><code>emergencyContacts</code></td><td>EmergencyContact[]</td><td>Contacts/guardians, linked M:N to athletes.</td></tr>
+<tr><td><code>contactLinks</code></td><td>ContactLink[]</td><td>Edges linking contact-persons to athlete-persons (guardian flag per edge).</td></tr>
 <tr><td><code>exportedAt</code> <span class="opt">?</span></td><td>string</td><td>Set on a transfer export payload only.</td></tr>
 </tbody>
 </table>
@@ -220,8 +220,9 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
   <path class="edge e-blue"   d="M468,90 L612,90"              marker-end="url(#a-blue)"/>
   <!-- belt catalog (amber) -->
   <path class="edge e-amber"  d="M768,90 L893,90"              marker-end="url(#a-amber)"/>
-  <!-- emergency contacts (blue, M:N to athlete) -->
-  <path class="edge e-blue"   d="M948,170 Q860,150 726,116"    marker-end="url(#a-blue)"/>
+  <!-- contact link → person (two FKs: athleteId, contactId) -->
+  <path class="edge e-gray"   d="M948,170 Q860,150 730,116"    marker-end="url(#a-gray)"/>
+  <path class="edge e-gray"   d="M905,170 Q800,132 692,118"    marker-end="url(#a-gray)"/>
   <path class="edge e-blue"   d="M688,274 Q560,150 434,118"    marker-end="url(#a-blue)"/>
   <path class="edge e-blue"   d="M945,274 Q660,150 442,120"    marker-end="url(#a-blue)"/>
   <!-- generic id refs (gray) -->
@@ -244,7 +245,8 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
   <text class="elabel" x="322" y="553">metric.type</text>
   <text class="elabel" x="540" y="84">athleteIds[]</text>
   <text class="elabel" x="830" y="84">belt</text>
-  <text class="elabel" x="858" y="150">athleteIds[]</text>
+  <text class="elabel" x="868" y="152">athleteId</text>
+  <text class="elabel" x="792" y="128">contactId</text>
   <text class="elabel" x="556" y="150">groupId</text>
   <text class="elabel" x="712" y="168">groupId</text>
   <text class="elabel" x="400" y="390" text-anchor="start">itemIds[]</text>
@@ -258,9 +260,9 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
 
   <!-- ===== nodes ===== -->
   <g class="enode people"><rect x="315" y="64"  width="150" height="52" rx="10"/><text class="t" x="390" y="86">Group</text><text class="s" x="390" y="104">groups[]</text></g>
-  <g class="enode people"><rect x="615" y="64"  width="150" height="52" rx="10"/><text class="t" x="690" y="86">Athlete</text><text class="s" x="690" y="104">athletes[]</text></g>
+  <g class="enode people"><rect x="615" y="64"  width="150" height="52" rx="10"/><text class="t" x="690" y="86">Person</text><text class="s" x="690" y="104">persons[] · roles</text></g>
   <g class="enode cat"><rect x="895" y="64" width="150" height="52" rx="10"/><text class="t" x="970" y="86">Belt</text><text class="s" x="970" y="104">BELT_INFOS</text></g>
-  <g class="enode people"><rect x="895" y="170" width="150" height="52" rx="10"/><text class="t" x="970" y="192">EmergencyContact</text><text class="s" x="970" y="210">emergencyContacts[]</text></g>
+  <g class="enode sess"><rect x="895" y="170" width="150" height="52" rx="10"/><text class="t" x="970" y="192">ContactLink</text><text class="s" x="970" y="210">contactLinks[]</text></g>
 
   <g class="enode cat"><rect x="40"  y="114" width="150" height="52" rx="10"/><text class="t" x="115" y="136">BodyPart</text><text class="s" x="115" y="154">BODY_PARTS</text></g>
   <g class="enode cat"><rect x="40"  y="234" width="150" height="52" rx="10"/><text class="t" x="115" y="256">Technique</text><text class="s" x="115" y="274">TECHNIQUES</text></g>
@@ -290,9 +292,11 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
 <table>
 <thead><tr><th>From</th><th>Field</th><th>To</th><th>Kind</th></tr></thead>
 <tbody>
-<tr><td>Group</td><td><code>athleteIds[]</code></td><td>Athlete</td><td>many ↔ many <span class="mono-sm">(sole membership link; an athlete may be in 0..n groups)</span></td></tr>
-<tr><td>Athlete</td><td><code>belt</code></td><td>Belt (BELT_INFOS)</td><td>many → one</td></tr>
-<tr><td>EmergencyContact</td><td><code>athleteIds[]</code></td><td>Athlete</td><td>many ↔ many <span class="mono-sm">(link lives here; contact may be guardian)</span></td></tr>
+<tr><td>Person</td><td><code>athlete</code></td><td>AthleteProfile</td><td>embedded role (0..1)</td></tr>
+<tr><td>Group</td><td><code>athleteIds[]</code></td><td>Person</td><td>many ↔ many <span class="mono-sm">(sole membership link; 0..n groups)</span></td></tr>
+<tr><td>Person.athlete</td><td><code>belt</code></td><td>Belt (BELT_INFOS)</td><td>many → one</td></tr>
+<tr><td>ContactLink</td><td><code>contactId</code></td><td>Person</td><td>many → one (the contact)</td></tr>
+<tr><td>ContactLink</td><td><code>athleteId</code></td><td>Person</td><td>many → one (the athlete)</td></tr>
 <tr><td>GameDefinition</td><td><code>techniques[]</code></td><td>Technique</td><td>many ↔ many</td></tr>
 <tr><td>GameDefinition</td><td><code>bodyParts[]</code></td><td>BodyPart</td><td>many ↔ many</td></tr>
 <tr><td>GameDefinition</td><td><code>logMetricType</code></td><td>Metric schema</td><td>many → one <span class="opt">(optional)</span></td></tr>
@@ -305,60 +309,67 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
 <tr><td>SessionLog</td><td><code>groupId</code></td><td>Group</td><td>many → one</td></tr>
 <tr><td>SessionLog</td><td><code>gameLogs[]</code></td><td>GameLog</td><td><span class="tag-good">composition</span> (owned, embedded)</td></tr>
 <tr><td>GameLog</td><td><code>gameId</code></td><td>GameDefinition</td><td>many → one</td></tr>
-<tr><td>Assessment</td><td><code>athleteId</code></td><td>Athlete</td><td>many → one</td></tr>
+<tr><td>Assessment</td><td><code>athleteId</code></td><td>Person</td><td>many → one</td></tr>
 <tr><td>Assessment</td><td><code>gameId</code></td><td>GameDefinition</td><td>many → one</td></tr>
 <tr><td>Assessment</td><td><code>metric.type</code></td><td>Metric schema</td><td>many → one</td></tr>
 </tbody>
 </table>
 <p class="legend">Deletes are enforced by the reducer (see <a href="#reducer">Reducer actions</a>):
-deleting a <strong>Group</strong> removes only the group (athletes persist — M:N); deleting an <strong>Athlete</strong> strips its id
-from every <code>Group.athleteIds</code> and deletes its Assessments.</p>
+deleting a <strong>Group</strong> removes only the group (persons persist — M:N); deleting a <strong>Person</strong> strips its id
+from every <code>Group.athleteIds</code>, removes every <code>ContactLink</code> naming it (as contact <em>or</em> athlete), and deletes its Assessments.</p>
 
-<!-- ============ ATHLETE / GROUP ============ -->
-<h2 id="athlete">Athlete &amp; Group</h2>
+<!-- ============ PERSON / GROUP ============ -->
+<h2 id="athlete">Person, roles &amp; Group</h2>
+<p>One <strong>Person</strong> is the identity (name + reachability). Roles attach by <strong>composition, not inheritance</strong>:
+an embedded <code>athlete</code> profile and an <code>isCoach</code> flag. The same person can be an athlete, a coach, and another
+athlete's guardian simultaneously. The UI keeps "athlete" as a concept via the flat <code>AthleteView</code> read-model.</p>
 <div class="er">
 <table>
-<thead><tr><th>Athlete</th><th>Type</th><th>Notes</th></tr></thead>
+<thead><tr><th>Person</th><th>Type</th><th>Notes</th></tr></thead>
 <tbody>
-<tr><td><code class="req">id</code></td><td>string</td><td>Phone-primed unique id.</td></tr>
+<tr><td><code class="req">id</code></td><td>string</td><td>Phone-primed unique id (= old athlete id, preserved by migration).</td></tr>
 <tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
-<tr><td><code>birthYear</code> <span class="opt">?</span></td><td>number</td><td></td></tr>
-<tr><td><code class="req">belt</code></td><td>Belt</td><td>Grade id → BELT_INFOS catalog (Kup 10→1, then Poom/Dan).</td></tr>
-<tr><td><code>contact</code> <span class="opt">?</span></td><td>AthleteContact</td><td>phone / email / parent…</td></tr>
+<tr><td><code>email</code> <span class="opt">?</span></td><td>string</td><td>tappable mailto:</td></tr>
+<tr><td><code class="req">phones</code></td><td>string[]</td><td>up to 5; tappable tel:</td></tr>
+<tr><td><code class="req">isCoach</code></td><td>boolean</td><td>Coach role.</td></tr>
+<tr><td><code>athlete</code> <span class="opt">?</span></td><td>AthleteProfile</td><td>Present ⇔ this person trains.</td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>AthleteProfile (embedded)</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>birthYear</code> <span class="opt">?</span></td><td>number</td><td>Drives the graduation age rules.</td></tr>
+<tr><td><code class="req">belt</code></td><td>Belt</td><td>Grade id → BELT_INFOS (Kup 10→1, Poom/Dan).</td></tr>
 <tr><td><code class="req">neuroProfile</code></td><td>{vestibular, visual, proprioceptive: 1–5}</td><td>Coach rating.</td></tr>
 <tr><td><code class="req">poomsae</code></td><td>string[]</td><td>Forms known.</td></tr>
-<tr><td><code class="req">techniques</code></td><td>{name; level 1–3}[]</td><td>Free-text skill list.</td></tr>
+<tr><td><code class="req">techniques</code></td><td>{name; level 1–3}[]</td><td>Skill list.</td></tr>
 <tr><td><code>notes</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
+</div>
 <table>
 <thead><tr><th>Group</th><th>Type</th><th>Notes</th></tr></thead>
 <tbody>
 <tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
 <tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
 <tr><td><code class="req">ageCategory</code></td><td>'kids' | 'youth' | 'adult' | 'mixed'</td><td></td></tr>
-<tr><td><code class="req">athleteIds</code></td><td>string[]</td><td>Membership (denormalised).</td></tr>
+<tr><td><code class="req">athleteIds</code></td><td>string[]</td><td>→ Person ids (of athletes). Sole membership link.</td></tr>
 </tbody>
 </table>
-</div>
-<div class="note good">Membership is <strong>many-to-many</strong> and stored in <strong>one place only</strong>: <code>Group.athleteIds</code>.
-An athlete can belong to several groups or none — <code>Athlete</code> has no <code>groupId</code>. Resolve membership with the
-domain selectors <code>athletesInGroup</code> / <code>groupsForAthlete</code> / <code>ungroupedAthletes</code>. The full athlete
-roster is always <code>AppData.athletes</code>, independent of any group.</div>
+<div class="note good">Membership is <strong>many-to-many</strong> on <code>Group.athleteIds</code> (→ Person ids). A person can be in several
+groups or none. Resolve with <code>athletesInGroup</code> / <code>groupsForAthlete</code> / <code>ungroupedAthletes</code>;
+"all athletes" = <code>athleteViews(persons)</code>.</div>
 
-<h3>EmergencyContact</h3>
-<p>A contact for an athlete; <code>isGuardian</code> distinguishes a legal guardian from a plain emergency contact.
-Linked many-to-many to athletes (a contact can cover siblings; an athlete can have several). Phones/emails render as
-tappable <code>tel:</code>/<code>mailto:</code> links.</p>
+<h3>ContactLink — emergency contact / guardian edge</h3>
+<p>An edge between two Persons: the contact and the athlete. <code>guardian</code> lives <strong>on the edge</strong>, so the same
+person can be a guardian for one athlete and only a contact for another. Phones/emails of the contact render as tappable links.</p>
 <table>
 <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
 <tbody>
 <tr><td><code class="req">id</code></td><td>string</td><td></td></tr>
-<tr><td><code class="req">name</code></td><td>string</td><td></td></tr>
-<tr><td><code>email</code> <span class="opt">?</span></td><td>string</td><td>tappable mailto:</td></tr>
-<tr><td><code class="req">phones</code></td><td>string[]</td><td>up to 5; each tappable tel:</td></tr>
-<tr><td><code class="req">isGuardian</code></td><td>boolean</td><td>true = legal guardian.</td></tr>
-<tr><td><code class="req">athleteIds</code></td><td>string[]</td><td>→ Athlete ids (M:N link, lives here).</td></tr>
+<tr><td><code class="req">contactId</code></td><td>string</td><td>→ Person.id (the contact).</td></tr>
+<tr><td><code class="req">athleteId</code></td><td>string</td><td>→ Person.id (an athlete).</td></tr>
+<tr><td><code class="req">guardian</code></td><td>boolean</td><td>Per-relationship guardian flag.</td></tr>
 </tbody>
 </table>
 
@@ -518,14 +529,14 @@ age-aware <a href="#graduation">graduation rules</a>.</p>
 <tr><td><code>LOAD_ALL</code></td><td>AppData</td><td>Replace whole state; set <code>isLoaded=true</code>.</td></tr>
 <tr><td><code>ADD_GROUP</code> / <code>UPDATE_GROUP</code></td><td>Group</td><td>Append / replace by id.</td></tr>
 <tr><td><code>DELETE_GROUP</code></td><td>{id}</td><td>Removes <em>only</em> the group — athletes persist (M:N; they may be in other groups or become ungrouped).</td></tr>
-<tr><td><code>ADD_ATHLETE</code> / <code>UPDATE_ATHLETE</code></td><td>Athlete</td><td>Append / replace by id. Group membership is managed via <code>UPDATE_GROUP</code> (athleteIds).</td></tr>
-<tr><td><code>DELETE_ATHLETE</code></td><td>{id}</td><td><span class="tag-warn">cascade</span> removes the athlete, strips its id from <em>every</em> <code>Group.athleteIds</code> and <code>EmergencyContact.athleteIds</code>, and deletes its assessments.</td></tr>
+<tr><td><code>ADD_PERSON</code> / <code>UPDATE_PERSON</code></td><td>Person</td><td>Append / replace by id (carries athlete/coach roles). Group membership is managed via <code>UPDATE_GROUP</code>.</td></tr>
+<tr><td><code>DELETE_PERSON</code></td><td>{id}</td><td><span class="tag-warn">cascade</span> removes the person, strips its id from <em>every</em> <code>Group.athleteIds</code>, deletes every <code>ContactLink</code> naming it (either side), and deletes its assessments.</td></tr>
 <tr><td><code>ADD_GAME</code> / <code>UPDATE_GAME</code> / <code>DELETE_GAME</code></td><td>GameDefinition / {id}</td><td>Library CRUD.</td></tr>
 <tr><td><code>ADD_SESSION_PLAN</code> / <code>UPDATE_SESSION_PLAN</code> / <code>DELETE_SESSION_PLAN</code></td><td>SessionPlan / {id}</td><td>Plan CRUD.</td></tr>
 <tr><td><code>ADD_SESSION_LOG</code> / <code>UPDATE_SESSION_LOG</code> / <code>DELETE_SESSION_LOG</code></td><td>SessionLog / {id}</td><td>Log CRUD (status changes go through UPDATE).</td></tr>
 <tr><td><code>ADD_ASSESSMENT</code> / <code>DELETE_ASSESSMENT</code></td><td>Assessment / {id}</td><td>Assessment add/remove.</td></tr>
 <tr><td><code>ADD_SESSION_TEMPLATE</code> / <code>UPDATE_SESSION_TEMPLATE</code> / <code>DELETE_SESSION_TEMPLATE</code></td><td>SessionTemplate / {id}</td><td>Template CRUD.</td></tr>
-<tr><td><code>ADD_CONTACT</code> / <code>UPDATE_CONTACT</code> / <code>DELETE_CONTACT</code></td><td>EmergencyContact / {id}</td><td>Emergency-contact CRUD (M:N links edited on the contact).</td></tr>
+<tr><td><code>ADD_CONTACT_LINK</code> / <code>UPDATE_CONTACT_LINK</code> / <code>DELETE_CONTACT_LINK</code></td><td>ContactLink / {id}</td><td>Emergency-contact/guardian edge CRUD (guardian flag per edge).</td></tr>
 </tbody>
 </table>
 <pre>const { dispatch } = useData();
@@ -549,12 +560,17 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 <table>
 <thead><tr><th>Function</th><th>Signature</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>athletesInGroup</code></td><td>(athletes, group) → Athlete[]</td><td>Members of a group, in stored order (M:N membership lives on <code>Group.athleteIds</code>).</td></tr>
+<tr><td colspan="3" class="mono-sm" style="background:var(--panel2)">— people &amp; roles (<code>domain/people.ts</code>) —</td></tr>
+<tr><td><code>athleteViews</code></td><td>(persons) → AthleteView[]</td><td>Flat read-model of all persons holding the athlete role.</td></tr>
+<tr><td><code>toAthleteView</code></td><td>(person) → AthleteView | null</td><td>Flatten one person+profile; null if not an athlete.</td></tr>
+<tr><td><code>coaches</code> / <code>personName</code></td><td>(persons[, id])</td><td>Coach role list / name lookup.</td></tr>
+<tr><td><code>athletesInGroup</code></td><td>(persons, group) → AthleteView[]</td><td>Members of a group, in stored order.</td></tr>
 <tr><td><code>groupsForAthlete</code></td><td>(groups, athleteId) → Group[]</td><td>Every group an athlete belongs to (0..n).</td></tr>
-<tr><td><code>ungroupedAthletes</code></td><td>(athletes, groups) → Athlete[]</td><td>Athletes in no group — the "findable orphans" view.</td></tr>
-<tr><td><code>contactsForAthlete</code></td><td>(contacts, athleteId) → EmergencyContact[]</td><td>All contacts linked to an athlete.</td></tr>
-<tr><td><code>guardiansForAthlete</code></td><td>(contacts, athleteId) → EmergencyContact[]</td><td>Linked contacts where <code>isGuardian</code>.</td></tr>
-<tr><td><code>athletesForContact</code></td><td>(athletes, contact) → Athlete[]</td><td>Athletes a contact covers.</td></tr>
+<tr><td><code>ungroupedAthletes</code></td><td>(persons, groups) → AthleteView[]</td><td>Athletes in no group — the "findable orphans" view.</td></tr>
+<tr><td><code>contactsForAthlete</code></td><td>(persons, links, athleteId) → ContactView[]</td><td>Linked contacts resolved to Person + per-edge guardian flag.</td></tr>
+<tr><td><code>guardiansForAthlete</code></td><td>(persons, links, athleteId) → ContactView[]</td><td>The subset that are guardians.</td></tr>
+<tr><td><code>athletesForContact</code></td><td>(persons, links, contactId) → Person[]</td><td>Athletes a contact covers.</td></tr>
+<tr><td colspan="3" class="mono-sm" style="background:var(--panel2)">— sessions &amp; assessments (<code>domain/selectors.ts</code>) —</td></tr>
 <tr><td><code>planStatus</code></td><td>(planId, logs) → 'done' | 'running' | 'to-start'</td><td>Status of a plan from its logs.</td></tr>
 <tr><td><code>sessionTotals</code></td><td>(log, games) → {plannedSec, actualSec, playedCount, totalCount}</td><td>Planned vs actual time and played/total counts.</td></tr>
 <tr><td><code>todaysPlans</code></td><td>(plans, todayISO) → SessionPlan[]</td><td>Plans dated today.</td></tr>
@@ -624,10 +640,10 @@ dispatch({ type: 'LOAD_ALL', payload: migrate(data) });   // one path for both i
 <h2 id="sync">Data manipulation 8 — Sync (QR transfer) <span class="src">utils/qrChunks.ts</span></h2>
 <p>The QR engine (<code>@tobiasheinrichfaska/qr-sync</code>) operates over named id-keyed collections. TKD-Coach configures:</p>
 <p>
-<span class="pill">games*</span><span class="pill">groups</span><span class="pill">athletes</span>
+<span class="pill">games*</span><span class="pill">groups</span><span class="pill">persons</span>
 <span class="pill">sessionPlans</span><span class="pill">sessionLogs</span><span class="pill">assessments</span>
 <span class="pill">sessionTemplates*</span>
-<span class="pill">emergencyContacts</span>
+<span class="pill">contactLinks</span>
 </p>
 <p class="legend">* always shared (the library); the rest follow the coach's <code>TransferSelection</code>.
 The flat, id-referenced model is what makes change-detection and merge work: <code>detectChanges</code> diffs by id,
@@ -637,7 +653,7 @@ The flat, id-referenced model is what makes change-detection and merge work: <co
 <h2 id="testing">Testing</h2>
 <p>The domain layer is exhaustively unit-tested with <strong>ts-jest</strong> (no UI/Expo runtime needed) — per the workspace
 "intensive unit testing is mandatory" rule. Run from <code>packages/native</code>:</p>
-<pre>npx jest        # 71 tests across 8 suites</pre>
+<pre>npx jest        # 75 tests across 9 suites</pre>
 <table>
 <thead><tr><th>Suite</th><th>Guards</th></tr></thead>
 <tbody>
@@ -645,6 +661,7 @@ The flat, id-referenced model is what makes change-detection and merge work: <co
 <tr><td><code>catalogs.test.ts</code></td><td>catalog integrity — every Übung tag resolves.</td></tr>
 <tr><td><code>belts.test.ts</code></td><td>belt ladder integrity (23 ordered ids), label fallback, legacy map.</td></tr>
 <tr><td><code>graduation.test.ts</code></td><td>age bounds + promote/demote/convert at every boundary.</td></tr>
+<tr><td><code>people.test.ts</code></td><td>AthleteView adapter, role/membership selectors, contact edges + guardian.</td></tr>
 <tr><td><code>selectors.test.ts</code></td><td>status, totals, today filter, coverage, history ordering.</td></tr>
 <tr><td><code>templates.test.ts</code></td><td>template item integrity + helpers.</td></tr>
 <tr><td><code>migration.test.ts</code></td><td>seed/refresh built-ins, preserve user data, backfill.</td></tr>

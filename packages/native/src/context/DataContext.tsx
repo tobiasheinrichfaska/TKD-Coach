@@ -52,13 +52,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const dataToSave: AppData = {
           version: state.version,
           games: state.games,
-          athletes: state.athletes,
+          persons: state.persons,
           groups: state.groups,
           sessionPlans: state.sessionPlans,
           sessionLogs: state.sessionLogs,
           assessments: state.assessments,
           sessionTemplates: state.sessionTemplates,
-          emergencyContacts: state.emergencyContacts,
+          contactLinks: state.contactLinks,
         };
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
       } catch (e) {
@@ -82,13 +82,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const dataToSave: AppData = {
         version: state.version,
         games: state.games,
-        athletes: state.athletes,
+        persons: state.persons,
         groups: state.groups,
         sessionPlans: state.sessionPlans,
         sessionLogs: state.sessionLogs,
         assessments: state.assessments,
         sessionTemplates: state.sessionTemplates,
-        emergencyContacts: state.emergencyContacts,
+        contactLinks: state.contactLinks,
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
     } catch (e) {

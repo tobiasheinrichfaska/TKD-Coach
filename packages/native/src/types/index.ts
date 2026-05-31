@@ -24,22 +24,27 @@ export type AssessmentMetric =
   | { type: 'balance_poomsae'; holdSeconds: number; armErrors: number }
   | { type: 'poomsae_distraction'; errors: number; baseline: number };
 
-export interface AthleteContact {
-  phone?: string;
-  email?: string;
-  parentName?: string;
-  parentPhone?: string;
-  parentEmail?: string;
-}
-
-export interface Athlete {
+/**
+ * One human. Identity + reachability live here; roles attach on top:
+ *  - `athlete` present  ⇔ this person trains (athlete role),
+ *  - `isCoach` true      ⇔ coach role.
+ * The same Person can be an athlete, a coach, and (via ContactLink) an emergency
+ * contact / guardian for other athletes — all at once, with one name + phone list.
+ */
+export interface Person {
   id: string;
   name: string;
+  email?: string;
+  /** Up to 5 phone numbers; surfaced as tappable tel: links. */
+  phones: string[];
+  isCoach: boolean;
+  athlete?: AthleteProfile;
+}
+
+/** Athlete-role data carried by a Person (no own id — keyed by the Person). */
+export interface AthleteProfile {
   birthYear?: number;
   belt: Belt;
-  // Group membership is many-to-many and lives only on Group.athleteIds — an athlete
-  // can belong to several groups, or none (find via domain selectors). No groupId here.
-  contact?: AthleteContact;
   neuroProfile: {
     vestibular: 1 | 2 | 3 | 4 | 5;
     visual: 1 | 2 | 3 | 4 | 5;
@@ -50,26 +55,22 @@ export interface Athlete {
   notes?: string;
 }
 
+/**
+ * Edge: a Person (contactId) is an emergency contact for an athlete Person (athleteId).
+ * `guardian` is per-relationship — the same contact can be a guardian for one athlete
+ * and only an emergency contact for another. Group membership stays on Group.athleteIds.
+ */
+export interface ContactLink {
+  id: string;
+  contactId: string;
+  athleteId: string;
+  guardian: boolean;
+}
+
 export interface Group {
   id: string;
   name: string;
   ageCategory: 'kids' | 'youth' | 'adult' | 'mixed';
-  athleteIds: string[];
-}
-
-/**
- * An emergency contact, optionally a legal guardian (isGuardian). Linked to athletes
- * many-to-many via athleteIds — a contact can cover several athletes (siblings),
- * an athlete can have several contacts (e.g. both parents). Phones/emails are surfaced
- * as tappable tel:/mailto: links in the UI.
- */
-export interface EmergencyContact {
-  id: string;
-  name: string;
-  email?: string;
-  /** Up to 5 phone numbers. */
-  phones: string[];
-  isGuardian: boolean;
   athleteIds: string[];
 }
 
@@ -161,13 +162,13 @@ export interface Assessment {
 export interface AppData {
   version: number;
   games: GameDefinition[];
-  athletes: Athlete[];
+  persons: Person[];
   groups: Group[];
   sessionPlans: SessionPlan[];
   sessionLogs: SessionLog[];
   assessments: Assessment[];
   sessionTemplates: SessionTemplate[];
-  emergencyContacts: EmergencyContact[];
+  contactLinks: ContactLink[];
   exportedAt?: string;
 }
 
@@ -177,7 +178,7 @@ export interface AppState extends AppData {
 
 export interface TransferSelection {
   groups: boolean;
-  athletes: boolean;
+  persons: boolean;
   sessionPlans: boolean;
   sessionLogs: boolean;
   assessments: boolean;

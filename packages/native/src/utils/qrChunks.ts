@@ -14,7 +14,7 @@ import type { ChangeDetection as GenericChangeDetection, QRChunk } from '@tobias
 import type { AppData, TransferSelection } from '../types';
 
 const engine = createSyncEngine<AppData>({
-  collections: ['games', 'groups', 'athletes', 'sessionPlans', 'sessionLogs', 'assessments', 'sessionTemplates', 'emergencyContacts'],
+  collections: ['games', 'groups', 'persons', 'sessionPlans', 'sessionLogs', 'assessments', 'sessionTemplates', 'contactLinks'],
 });
 
 export type ChangeDetection = GenericChangeDetection<AppData>;
@@ -29,9 +29,9 @@ export function assembleFromChunks(packets: string[]): AppData {
 }
 
 /** Games + session templates are always shared (the shared library); the rest follow the coach's selection.
- *  Emergency contacts ride along with athletes (they're personal to them). */
+ *  Contact links ride along with persons (they're personal to them). */
 export function exportSelected(data: AppData, selection: TransferSelection): AppData {
-  return engine.exportSelected(data, { ...selection, games: true, sessionTemplates: true, emergencyContacts: selection.athletes });
+  return engine.exportSelected(data, { ...selection, games: true, sessionTemplates: true, contactLinks: selection.persons });
 }
 
 export function detectChanges(local: AppData, imported: AppData): ChangeDetection {

@@ -34,7 +34,7 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
   const { state } = useData();
   const [selection, setSelection] = useState<TransferSelection>({
     groups: true,
-    athletes: true,
+    persons: true,
     sessionPlans: false,
     sessionLogs: false,
     assessments: false,
@@ -47,7 +47,7 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
   const selectAll = () => {
     setSelection({
       groups: true,
-      athletes: true,
+      persons: true,
       sessionPlans: true,
       sessionLogs: true,
       assessments: true,
@@ -57,7 +57,7 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
   const selectNone = () => {
     setSelection({
       groups: false,
-      athletes: false,
+      persons: false,
       sessionPlans: false,
       sessionLogs: false,
       assessments: false,
@@ -67,7 +67,7 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
   const hasSelection = Object.values(selection).some(v => v);
   const totalItems =
     (selection.groups ? state.groups.length : 0) +
-    (selection.athletes ? state.athletes.length : 0) +
+    (selection.persons ? state.persons.length : 0) +
     (selection.sessionPlans ? state.sessionPlans.length : 0) +
     (selection.sessionLogs ? state.sessionLogs.length : 0) +
     (selection.assessments ? state.assessments.length : 0);
@@ -95,15 +95,15 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.checkbox, selection.athletes && styles.checkboxChecked]}
-          onPress={() => toggle('athletes')}
+          style={[styles.checkbox, selection.persons && styles.checkboxChecked]}
+          onPress={() => toggle('persons')}
         >
-          <View style={[styles.box, selection.athletes && styles.boxChecked]}>
-            {selection.athletes && <Text style={styles.checkmark}>✓</Text>}
+          <View style={[styles.box, selection.persons && styles.boxChecked]}>
+            {selection.persons && <Text style={styles.checkmark}>✓</Text>}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Athletes</Text>
-            <Text style={styles.count}>{state.athletes.length} items</Text>
+            <Text style={styles.label}>People (athletes &amp; contacts)</Text>
+            <Text style={styles.count}>{state.persons.length} items</Text>
           </View>
         </TouchableOpacity>
 

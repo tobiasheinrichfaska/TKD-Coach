@@ -1,43 +1,4 @@
-import { SessionLog, SessionPlan, GameDefinition, Assessment, Athlete, Group, EmergencyContact } from '../types';
-
-// ===== Emergency contacts (many-to-many via EmergencyContact.athleteIds) =====
-
-/** All emergency contacts linked to an athlete. */
-export function contactsForAthlete(contacts: EmergencyContact[], athleteId: string): EmergencyContact[] {
-  return contacts.filter(c => c.athleteIds.includes(athleteId));
-}
-
-/** The subset of an athlete's contacts that are legal guardians. */
-export function guardiansForAthlete(contacts: EmergencyContact[], athleteId: string): EmergencyContact[] {
-  return contactsForAthlete(contacts, athleteId).filter(c => c.isGuardian);
-}
-
-/** Athletes linked to a contact, in stored order. */
-export function athletesForContact(athletes: Athlete[], contact: EmergencyContact | undefined): Athlete[] {
-  if (!contact) return [];
-  const byId = new Map(athletes.map(a => [a.id, a]));
-  return contact.athleteIds.map(id => byId.get(id)).filter((a): a is Athlete => a !== undefined);
-}
-
-// ===== Group membership (many-to-many; the link lives only on Group.athleteIds) =====
-
-/** Athletes in a group, in the group's stored order. Missing ids are skipped. */
-export function athletesInGroup(athletes: Athlete[], group: Group | undefined): Athlete[] {
-  if (!group) return [];
-  const byId = new Map(athletes.map(a => [a.id, a]));
-  return group.athleteIds.map(id => byId.get(id)).filter((a): a is Athlete => a !== undefined);
-}
-
-/** Every group an athlete belongs to (may be several, or none). */
-export function groupsForAthlete(groups: Group[], athleteId: string): Group[] {
-  return groups.filter(g => g.athleteIds.includes(athleteId));
-}
-
-/** Athletes that belong to no group at all. */
-export function ungroupedAthletes(athletes: Athlete[], groups: Group[]): Athlete[] {
-  const claimed = new Set(groups.flatMap(g => g.athleteIds));
-  return athletes.filter(a => !claimed.has(a.id));
-}
+import { SessionLog, SessionPlan, GameDefinition, Assessment } from '../types';
 
 export type PlanStatus = 'done' | 'running' | 'to-start';
 

@@ -97,4 +97,4 @@
 4. Also open **Groups** tab → **Emergency Contacts** row to see the global list; tap **Anrufen** on a row.
 
 **Expected:** The contact appears under the athlete with an **Erz.-ber.** tag; tapping a phone opens the dialer (`tel:`), tapping the email opens the mail app (`mailto:`). A guardian-linked athlete no longer shows the ⚠ "Kein Erziehungsberechtigter" warning. One contact can be linked to several athletes (siblings).
-> Not obvious: the ⚠ warning only shows when no guardian is linked **and** the athlete isn't definitely 18+ (from birth year). Phone/email are live device links — on a simulator without a dialer/mail app they may do nothing.
+> Not obvious: the ⚠ warning only shows when no guardian is linked **and** the athlete isn't definitely 18+ (from birth year). Phone/email are live device links — on a simulator without a dialer/mail app they may do nothing. Under the hood every human is one **Person** — the same person can be an athlete *and* a contact/guardian for siblings, with one shared name + phone list; "guardian" is set per athlete relationship.

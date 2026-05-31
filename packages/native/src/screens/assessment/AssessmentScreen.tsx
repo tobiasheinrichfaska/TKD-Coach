@@ -67,7 +67,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
   const [notes, setNotes] = useState('');
 
   const selectedGroup = state.groups.find(g => g.id === selectedGroupId);
-  const groupAthletes = athletesInGroup(state.athletes, selectedGroup);
+  const groupAthletes = athletesInGroup(state.persons, selectedGroup);
   const selectedGame = state.games.find(g => g.id === selectedGameId);
 
   const handleGameSelect = (gameId: string) => {

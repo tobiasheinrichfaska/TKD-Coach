@@ -1,11 +1,11 @@
 import { migrate } from '../migration';
 import { BUILTIN_GAMES } from '../../constants/games';
 import { BUILTIN_TEMPLATES } from '../templates';
-import { AppData, GameDefinition, SessionTemplate, Athlete, Belt } from '../../types';
+import { AppData, GameDefinition, SessionTemplate } from '../../types';
 
 const base = (games: GameDefinition[]): AppData => ({
-  version: 1, games, athletes: [], groups: [], sessionPlans: [], sessionLogs: [], assessments: [],
-  sessionTemplates: [], emergencyContacts: [],
+  version: 1, games, persons: [], groups: [], sessionPlans: [], sessionLogs: [], assessments: [],
+  sessionTemplates: [], contactLinks: [],
 });
 
 describe('migrate', () => {
@@ -65,14 +65,45 @@ describe('migrate', () => {
     expect(out.sessionTemplates.length).toBe(BUILTIN_TEMPLATES.length);
   });
 
-  it('normalises legacy colour-belt ids to ladder ids', () => {
-    const mk = (belt: string): Athlete => ({
-      id: belt, name: belt, belt: belt as Belt,
+  // Real legacy data has athletes/emergencyContacts and NO persons/contactLinks keys.
+  const legacy = (extra: Record<string, unknown>): AppData => ({
+    version: 1, games: [], groups: [], sessionPlans: [], sessionLogs: [], assessments: [],
+    sessionTemplates: [], ...extra,
+  } as unknown as AppData);
+
+  it('converts legacy athletes → persons (keeping id) and normalises belts', () => {
+    const legacyAthlete = (id: string, belt: string) => ({
+      id, name: id, belt, birthYear: 2014,
+      contact: { phone: '0151', email: 'a@x.de' },
       neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
     });
-    const out = migrate({ ...base([]), athletes: [mk('white'), mk('black'), mk('dan-3')] });
-    expect(out.athletes[0].belt).toBe('kup-10'); // white -> 10. Kup
-    expect(out.athletes[1].belt).toBe('dan-1');  // black -> 1. Dan
-    expect(out.athletes[2].belt).toBe('dan-3');  // already a ladder id, untouched
+    const out = migrate(legacy({ athletes: [legacyAthlete('a1', 'white'), legacyAthlete('a2', 'dan-3')] }));
+    expect(out.persons.map(p => p.id)).toEqual(['a1', 'a2']); // ids preserved
+    expect(out.persons[0].athlete?.belt).toBe('kup-10');      // white -> 10. Kup
+    expect(out.persons[1].athlete?.belt).toBe('dan-3');       // ladder id untouched
+    expect(out.persons[0].phones).toEqual(['0151']);          // athlete's own phone
+    expect(out.persons[0].email).toBe('a@x.de');
+  });
+
+  it('converts legacy emergencyContacts → contact persons + contactLinks', () => {
+    const out = migrate(legacy({
+      emergencyContacts: [
+        { id: 'mum', name: 'Mum', email: 'm@x.de', phones: ['1', '2'], isGuardian: true, athleteIds: ['a1', 'a2'] },
+      ],
+    }));
+    expect(out.persons.find(p => p.id === 'mum')?.phones).toEqual(['1', '2']);
+    expect(out.contactLinks).toHaveLength(2);
+    expect(out.contactLinks.every(l => l.contactId === 'mum' && l.guardian === true)).toBe(true);
+    expect(out.contactLinks.map(l => l.athleteId)).toEqual(['a1', 'a2']);
+  });
+
+  it('is idempotent on already-migrated data (persons present, belts re-normalised)', () => {
+    const migrated: AppData = {
+      ...base([]),
+      persons: [{ id: 'a1', name: 'A', phones: [], isCoach: false, athlete: { belt: 'dan-2', neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] } }],
+    };
+    const out = migrate(migrated);
+    expect(out.persons).toHaveLength(1);
+    expect(out.persons[0].athlete?.belt).toBe('dan-2');
   });
 });

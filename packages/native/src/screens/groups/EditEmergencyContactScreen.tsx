@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView, Alert 
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
+import { athleteViews } from '../../domain';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const MAX_PHONES = 5;
@@ -37,14 +38,16 @@ export default function EditEmergencyContactScreen({ route, navigation }: Groups
   const { state, dispatch } = useData();
   const contactId = route.params?.contactId;
   const prelinkAthleteId = route.params?.athleteId;
-  const contact = contactId ? state.emergencyContacts.find(c => c.id === contactId) : null;
+  const contact = contactId ? state.persons.find(p => p.id === contactId) : null;
+  const existingLinks = state.contactLinks.filter(l => l.contactId === contactId);
 
   const [name, setName] = useState(contact?.name || '');
   const [email, setEmail] = useState(contact?.email || '');
   const [phones, setPhones] = useState<string[]>(contact?.phones?.length ? contact.phones : ['']);
-  const [isGuardian, setIsGuardian] = useState(contact?.isGuardian ?? true);
+  // Single guardian flag applied to all of this contact's links (data model supports per-edge).
+  const [isGuardian, setIsGuardian] = useState(existingLinks.length ? existingLinks.every(l => l.guardian) : true);
   const [athleteIds, setAthleteIds] = useState<string[]>(
-    contact?.athleteIds || (prelinkAthleteId ? [prelinkAthleteId] : []),
+    existingLinks.length ? existingLinks.map(l => l.athleteId) : (prelinkAthleteId ? [prelinkAthleteId] : []),
   );
 
   const setPhoneAt = (i: number, v: string) => setPhones(p => p.map((x, idx) => (idx === i ? v : x)));
@@ -56,15 +59,32 @@ export default function EditEmergencyContactScreen({ route, navigation }: Groups
   const handleSave = () => {
     if (!name.trim()) return;
     const cleanedPhones = phones.map(p => p.trim()).filter(Boolean).slice(0, MAX_PHONES);
-    const payload = {
-      id: contact?.id || generateId(),
-      name: name.trim(),
-      email: email.trim() || undefined,
-      phones: cleanedPhones,
-      isGuardian,
-      athleteIds,
-    };
-    dispatch({ type: contact ? 'UPDATE_CONTACT' : 'ADD_CONTACT', payload });
+    const personId = contact?.id || generateId();
+
+    // Upsert the contact Person — preserve any athlete role / coach flag they already hold.
+    dispatch({
+      type: contact ? 'UPDATE_PERSON' : 'ADD_PERSON',
+      payload: {
+        id: personId,
+        name: name.trim(),
+        email: email.trim() || undefined,
+        phones: cleanedPhones,
+        isCoach: contact?.isCoach ?? false,
+        athlete: contact?.athlete,
+      },
+    });
+
+    // Reconcile contact edges to the selected athletes.
+    const desired = new Set(athleteIds);
+    existingLinks.filter(l => !desired.has(l.athleteId)).forEach(l => dispatch({ type: 'DELETE_CONTACT_LINK', payload: { id: l.id } }));
+    for (const aid of athleteIds) {
+      const ex = existingLinks.find(l => l.athleteId === aid);
+      if (ex) {
+        if (ex.guardian !== isGuardian) dispatch({ type: 'UPDATE_CONTACT_LINK', payload: { ...ex, guardian: isGuardian } });
+      } else {
+        dispatch({ type: 'ADD_CONTACT_LINK', payload: { id: generateId(), contactId: personId, athleteId: aid, guardian: isGuardian } });
+      }
+    }
     navigation.goBack();
   };
 
@@ -75,12 +95,21 @@ export default function EditEmergencyContactScreen({ route, navigation }: Groups
       'This removes the contact and unlinks it from all athletes. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => { dispatch({ type: 'DELETE_CONTACT', payload: { id: contact.id } }); navigation.goBack(); } },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            existingLinks.forEach(l => dispatch({ type: 'DELETE_CONTACT_LINK', payload: { id: l.id } }));
+            // If this person only ever served as a contact, remove the dangling Person too.
+            if (!contact.athlete && !contact.isCoach) dispatch({ type: 'DELETE_PERSON', payload: { id: contact.id } });
+            navigation.goBack();
+          },
+        },
       ],
     );
   };
 
-  const athletes = [...state.athletes].sort((a, b) => a.name.localeCompare(b.name));
+  const athletes = athleteViews(state.persons).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <ScrollView style={styles.container}>

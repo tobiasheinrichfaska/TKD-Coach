@@ -29,13 +29,13 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
   const { state, dispatch } = useData();
   const athleteId = route.params?.athleteId;
   const groupId = route.params?.groupId;
-  const athlete = athleteId ? state.athletes.find(a => a.id === athleteId) : null;
+  const person = athleteId ? state.persons.find(p => p.id === athleteId) : null;
+  const profile = person?.athlete;
 
-  const [name, setName] = useState(athlete?.name || '');
-  const [belt, setBelt] = useState<Belt>(athlete?.belt || 'none');
-  const [birthYear, setBirthYear] = useState(athlete?.birthYear ? String(athlete.birthYear) : '');
-  const [phone, setPhone] = useState(athlete?.contact?.phone || '');
-  const [parentName, setParentName] = useState(athlete?.contact?.parentName || '');
+  const [name, setName] = useState(person?.name || '');
+  const [belt, setBelt] = useState<Belt>(profile?.belt || 'none');
+  const [birthYear, setBirthYear] = useState(profile?.birthYear ? String(profile.birthYear) : '');
+  const [phone, setPhone] = useState(person?.phones?.[0] || '');
 
   const refYear = new Date().getFullYear();
   const by = birthYear.trim() ? Number(birthYear) : undefined;
@@ -48,15 +48,21 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
     // Name is always required.
     if (!name.trim()) return;
 
-    if (athleteId && athlete) {
+    const phones = phone.trim() ? [phone.trim()] : [];
+
+    if (person) {
+      // Preserve the rest of the person (coach role, email, neuroProfile, poomsae, …).
       dispatch({
-        type: 'UPDATE_ATHLETE',
+        type: 'UPDATE_PERSON',
         payload: {
-          ...athlete,
+          ...person,
           name,
-          belt,
-          birthYear: birthYearNum,
-          contact: { phone, parentName, email: athlete.contact?.email },
+          phones,
+          athlete: {
+            ...(person.athlete ?? { neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] }),
+            belt,
+            birthYear: birthYearNum,
+          },
         },
       });
     } else {
@@ -64,16 +70,19 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
       // file the new athlete into that group; otherwise create them ungrouped.
       const newId = generateId();
       dispatch({
-        type: 'ADD_ATHLETE',
+        type: 'ADD_PERSON',
         payload: {
           id: newId,
           name,
-          belt,
-          birthYear: birthYearNum,
-          neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 },
-          poomsae: [],
-          techniques: [],
-          contact: { phone, parentName },
+          phones,
+          isCoach: false,
+          athlete: {
+            belt,
+            birthYear: birthYearNum,
+            neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 },
+            poomsae: [],
+            techniques: [],
+          },
         },
       });
       const group = groupId ? state.groups.find(g => g.id === groupId) : undefined;
@@ -138,8 +147,8 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
         </View>
 
         <Text style={styles.section}>Contact</Text>
-        <TextInput style={styles.input} placeholder="Phone" placeholderTextColor={COLORS.textMuted} value={phone} onChangeText={setPhone} />
-        <TextInput style={styles.input} placeholder="Parent Name" placeholderTextColor={COLORS.textMuted} value={parentName} onChangeText={setParentName} />
+        <TextInput style={styles.input} placeholder="Phone (own)" placeholderTextColor={COLORS.textMuted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <Text style={styles.hint}>Parents/guardians are managed as Emergency Contacts on the athlete's detail page.</Text>
 
         <TouchableOpacity style={styles.button} onPress={handleSave}>
           <Text style={styles.buttonText}>Save</Text>

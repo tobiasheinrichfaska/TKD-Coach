@@ -153,9 +153,9 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
   }
 
   if (receiverState === 'review' && changes) {
-    const totalNew = changes.new.groups.length + changes.new.athletes.length + changes.new.sessionPlans.length + changes.new.sessionLogs.length + changes.new.assessments.length;
-    const totalChanged = changes.changed.groups.length + changes.changed.athletes.length + changes.changed.sessionPlans.length + changes.changed.sessionLogs.length + changes.changed.assessments.length;
-    const totalUnchanged = changes.unchanged.groups.length + changes.unchanged.athletes.length + changes.unchanged.sessionPlans.length + changes.unchanged.sessionLogs.length + changes.unchanged.assessments.length;
+    const totalNew = changes.new.groups.length + changes.new.persons.length + changes.new.sessionPlans.length + changes.new.sessionLogs.length + changes.new.assessments.length;
+    const totalChanged = changes.changed.groups.length + changes.changed.persons.length + changes.changed.sessionPlans.length + changes.changed.sessionLogs.length + changes.changed.assessments.length;
+    const totalUnchanged = changes.unchanged.groups.length + changes.unchanged.persons.length + changes.unchanged.sessionPlans.length + changes.unchanged.sessionLogs.length + changes.unchanged.assessments.length;
 
     return (
       <View style={styles.container}>
@@ -167,7 +167,7 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
             <View style={styles.changeSection}>
               <Text style={[styles.changeTitle, { color: COLORS.success }]}>New Data ({totalNew})</Text>
               {changes.new.groups.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.groups.length} groups</Text>}
-              {changes.new.athletes.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.athletes.length} athletes</Text>}
+              {changes.new.persons.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.persons.length} people</Text>}
               {changes.new.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionPlans.length} session plans</Text>}
               {changes.new.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionLogs.length} session logs</Text>}
               {changes.new.assessments.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.assessments.length} assessments</Text>}
@@ -178,7 +178,7 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
             <View style={styles.changeSection}>
               <Text style={[styles.changeTitle, { color: COLORS.warning }]}>Updated Data ({totalChanged})</Text>
               {changes.changed.groups.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.groups.length} groups</Text>}
-              {changes.changed.athletes.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.athletes.length} athletes</Text>}
+              {changes.changed.persons.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.persons.length} people</Text>}
               {changes.changed.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionPlans.length} session plans</Text>}
               {changes.changed.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionLogs.length} session logs</Text>}
               {changes.changed.assessments.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.assessments.length} assessments</Text>}

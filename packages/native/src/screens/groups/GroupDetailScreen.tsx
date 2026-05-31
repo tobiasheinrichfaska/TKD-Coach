@@ -16,7 +16,7 @@ export default function GroupDetailScreen({ route, navigation }: GroupsStackScre
   const { state } = useData();
   const groupId = route.params.groupId;
   const group = state.groups.find(g => g.id === groupId);
-  const athletes = athletesInGroup(state.athletes, group);
+  const athletes = athletesInGroup(state.persons, group);
 
   if (!group) return <View style={styles.container}><Text>Group not found</Text></View>;
 

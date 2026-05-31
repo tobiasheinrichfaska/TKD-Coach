@@ -1,13 +1,13 @@
 import {
   AppState,
-  Athlete,
+  Person,
   Group,
   GameDefinition,
   SessionPlan,
   SessionLog,
   Assessment,
   SessionTemplate,
-  EmergencyContact,
+  ContactLink,
   AppData,
 } from '../types';
 
@@ -17,9 +17,9 @@ export type Action =
   | { type: 'ADD_GROUP'; payload: Group }
   | { type: 'UPDATE_GROUP'; payload: Group }
   | { type: 'DELETE_GROUP'; payload: { id: string } }
-  | { type: 'ADD_ATHLETE'; payload: Athlete }
-  | { type: 'UPDATE_ATHLETE'; payload: Athlete }
-  | { type: 'DELETE_ATHLETE'; payload: { id: string } }
+  | { type: 'ADD_PERSON'; payload: Person }
+  | { type: 'UPDATE_PERSON'; payload: Person }
+  | { type: 'DELETE_PERSON'; payload: { id: string } }
   | { type: 'ADD_GAME'; payload: GameDefinition }
   | { type: 'UPDATE_GAME'; payload: GameDefinition }
   | { type: 'DELETE_GAME'; payload: { id: string } }
@@ -34,20 +34,20 @@ export type Action =
   | { type: 'ADD_SESSION_TEMPLATE'; payload: SessionTemplate }
   | { type: 'UPDATE_SESSION_TEMPLATE'; payload: SessionTemplate }
   | { type: 'DELETE_SESSION_TEMPLATE'; payload: { id: string } }
-  | { type: 'ADD_CONTACT'; payload: EmergencyContact }
-  | { type: 'UPDATE_CONTACT'; payload: EmergencyContact }
-  | { type: 'DELETE_CONTACT'; payload: { id: string } };
+  | { type: 'ADD_CONTACT_LINK'; payload: ContactLink }
+  | { type: 'UPDATE_CONTACT_LINK'; payload: ContactLink }
+  | { type: 'DELETE_CONTACT_LINK'; payload: { id: string } };
 
 export const EMPTY_APP_DATA: AppData = {
   version: 1,
   games: [],
-  athletes: [],
+  persons: [],
   groups: [],
   sessionPlans: [],
   sessionLogs: [],
   assessments: [],
   sessionTemplates: [],
-  emergencyContacts: [],
+  contactLinks: [],
 };
 
 export const EMPTY_STATE: AppState = {
@@ -68,10 +68,7 @@ export function appReducer(state: AppState, action: Action): AppState {
 
     // Groups
     case 'ADD_GROUP':
-      return {
-        ...state,
-        groups: [...state.groups, action.payload],
-      };
+      return { ...state, groups: [...state.groups, action.payload] };
 
     case 'UPDATE_GROUP':
       return {
@@ -81,48 +78,40 @@ export function appReducer(state: AppState, action: Action): AppState {
 
     case 'DELETE_GROUP':
       // Membership is many-to-many (Group.athleteIds), so deleting a group only removes
-      // the group — its athletes persist (they may belong to other groups, or become
-      // ungrouped). Removing the group removes its athleteIds entry along with it.
+      // the group — its athletes (persons) persist.
       return {
         ...state,
         groups: state.groups.filter(g => g.id !== action.payload.id),
       };
 
-    // Athletes
-    case 'ADD_ATHLETE':
+    // Persons (the single human identity; athlete/coach are roles on top)
+    case 'ADD_PERSON':
+      return { ...state, persons: [...state.persons, action.payload] };
+
+    case 'UPDATE_PERSON':
       return {
         ...state,
-        athletes: [...state.athletes, action.payload],
+        persons: state.persons.map(p => (p.id === action.payload.id ? action.payload : p)),
       };
 
-    case 'UPDATE_ATHLETE':
+    case 'DELETE_PERSON': {
+      const personId = action.payload.id;
       return {
         ...state,
-        athletes: state.athletes.map(a => (a.id === action.payload.id ? action.payload : a)),
-      };
-
-    case 'DELETE_ATHLETE':
-      const athleteId = action.payload.id;
-      return {
-        ...state,
-        athletes: state.athletes.filter(a => a.id !== athleteId),
+        persons: state.persons.filter(p => p.id !== personId),
         groups: state.groups.map(g => ({
           ...g,
-          athleteIds: g.athleteIds.filter(id => id !== athleteId),
+          athleteIds: g.athleteIds.filter(id => id !== personId),
         })),
-        emergencyContacts: state.emergencyContacts.map(c => ({
-          ...c,
-          athleteIds: c.athleteIds.filter(id => id !== athleteId),
-        })),
-        assessments: state.assessments.filter(a => a.athleteId !== athleteId),
+        // Drop any contact edge that names this person on either side.
+        contactLinks: state.contactLinks.filter(l => l.contactId !== personId && l.athleteId !== personId),
+        assessments: state.assessments.filter(a => a.athleteId !== personId),
       };
+    }
 
     // Games
     case 'ADD_GAME':
-      return {
-        ...state,
-        games: [...state.games, action.payload],
-      };
+      return { ...state, games: [...state.games, action.payload] };
 
     case 'UPDATE_GAME':
       return {
@@ -131,17 +120,11 @@ export function appReducer(state: AppState, action: Action): AppState {
       };
 
     case 'DELETE_GAME':
-      return {
-        ...state,
-        games: state.games.filter(g => g.id !== action.payload.id),
-      };
+      return { ...state, games: state.games.filter(g => g.id !== action.payload.id) };
 
     // Session Plans
     case 'ADD_SESSION_PLAN':
-      return {
-        ...state,
-        sessionPlans: [...state.sessionPlans, action.payload],
-      };
+      return { ...state, sessionPlans: [...state.sessionPlans, action.payload] };
 
     case 'UPDATE_SESSION_PLAN':
       return {
@@ -150,17 +133,11 @@ export function appReducer(state: AppState, action: Action): AppState {
       };
 
     case 'DELETE_SESSION_PLAN':
-      return {
-        ...state,
-        sessionPlans: state.sessionPlans.filter(p => p.id !== action.payload.id),
-      };
+      return { ...state, sessionPlans: state.sessionPlans.filter(p => p.id !== action.payload.id) };
 
     // Session Logs
     case 'ADD_SESSION_LOG':
-      return {
-        ...state,
-        sessionLogs: [...state.sessionLogs, action.payload],
-      };
+      return { ...state, sessionLogs: [...state.sessionLogs, action.payload] };
 
     case 'UPDATE_SESSION_LOG':
       return {
@@ -169,37 +146,23 @@ export function appReducer(state: AppState, action: Action): AppState {
       };
 
     case 'DELETE_SESSION_LOG':
-      return {
-        ...state,
-        sessionLogs: state.sessionLogs.filter(l => l.id !== action.payload.id),
-      };
+      return { ...state, sessionLogs: state.sessionLogs.filter(l => l.id !== action.payload.id) };
 
     // Assessments
     case 'ADD_ASSESSMENT':
-      return {
-        ...state,
-        assessments: [...state.assessments, action.payload],
-      };
+      return { ...state, assessments: [...state.assessments, action.payload] };
 
     case 'DELETE_ASSESSMENT':
-      return {
-        ...state,
-        assessments: state.assessments.filter(a => a.id !== action.payload.id),
-      };
+      return { ...state, assessments: state.assessments.filter(a => a.id !== action.payload.id) };
 
     // Session Templates
     case 'ADD_SESSION_TEMPLATE':
-      return {
-        ...state,
-        sessionTemplates: [...state.sessionTemplates, action.payload],
-      };
+      return { ...state, sessionTemplates: [...state.sessionTemplates, action.payload] };
 
     case 'UPDATE_SESSION_TEMPLATE':
       return {
         ...state,
-        sessionTemplates: state.sessionTemplates.map(t =>
-          t.id === action.payload.id ? action.payload : t,
-        ),
+        sessionTemplates: state.sessionTemplates.map(t => (t.id === action.payload.id ? action.payload : t)),
       };
 
     case 'DELETE_SESSION_TEMPLATE':
@@ -208,23 +171,20 @@ export function appReducer(state: AppState, action: Action): AppState {
         sessionTemplates: state.sessionTemplates.filter(t => t.id !== action.payload.id),
       };
 
-    // Emergency contacts
-    case 'ADD_CONTACT':
+    // Contact links (emergency-contact / guardian edges)
+    case 'ADD_CONTACT_LINK':
+      return { ...state, contactLinks: [...state.contactLinks, action.payload] };
+
+    case 'UPDATE_CONTACT_LINK':
       return {
         ...state,
-        emergencyContacts: [...state.emergencyContacts, action.payload],
+        contactLinks: state.contactLinks.map(l => (l.id === action.payload.id ? action.payload : l)),
       };
 
-    case 'UPDATE_CONTACT':
+    case 'DELETE_CONTACT_LINK':
       return {
         ...state,
-        emergencyContacts: state.emergencyContacts.map(c => (c.id === action.payload.id ? action.payload : c)),
-      };
-
-    case 'DELETE_CONTACT':
-      return {
-        ...state,
-        emergencyContacts: state.emergencyContacts.filter(c => c.id !== action.payload.id),
+        contactLinks: state.contactLinks.filter(l => l.id !== action.payload.id),
       };
 
     default:

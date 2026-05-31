@@ -18,28 +18,38 @@ const styles = StyleSheet.create({
 
 export default function EmergencyContactsScreen({ navigation }: GroupsStackScreenProps<'EmergencyContacts'>) {
   const { state } = useData();
-  const contacts = [...state.emergencyContacts].sort((a, b) => a.name.localeCompare(b.name));
+  // A "contact" is any person referenced as a contact in ≥1 link.
+  const contactIds = [...new Set(state.contactLinks.map(l => l.contactId))];
+  const contacts = contactIds
+    .map(id => {
+      const person = state.persons.find(p => p.id === id);
+      if (!person) return null;
+      const links = state.contactLinks.filter(l => l.contactId === id);
+      return { person, count: links.length, anyGuardian: links.some(l => l.guardian) };
+    })
+    .filter((c): c is { person: NonNullable<typeof c>['person']; count: number; anyGuardian: boolean } => c !== null)
+    .sort((a, b) => a.person.name.localeCompare(b.person.name));
 
   return (
     <View style={styles.container}>
       <FlatList
         data={contacts}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.person.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('EditEmergencyContact', { contactId: item.id })}>
+          <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('EditEmergencyContact', { contactId: item.person.id })}>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={styles.text}>{item.name}</Text>
-                {item.isGuardian && <Text style={styles.badge}>Erz.-berechtigt</Text>}
+                <Text style={styles.text}>{item.person.name}</Text>
+                {item.anyGuardian && <Text style={styles.badge}>Erz.-berechtigt</Text>}
               </View>
               <Text style={styles.muted}>
-                {item.athleteIds.length} athlete{item.athleteIds.length === 1 ? '' : 's'}
-                {item.phones[0] ? ` · ${item.phones[0]}` : ''}
-                {item.email ? ` · ${item.email}` : ''}
+                {item.count} athlete{item.count === 1 ? '' : 's'}
+                {item.person.phones[0] ? ` · ${item.person.phones[0]}` : ''}
+                {item.person.email ? ` · ${item.person.email}` : ''}
               </Text>
             </View>
-            {item.phones[0] && (
-              <TouchableOpacity style={styles.call} onPress={() => callNumber(item.phones[0])}>
+            {item.person.phones[0] && (
+              <TouchableOpacity style={styles.call} onPress={() => callNumber(item.person.phones[0])}>
                 <Text style={styles.callText}>Anrufen</Text>
               </TouchableOpacity>
             )}
