@@ -17,4 +17,16 @@ See workspace CLAUDE.md § Development Server Ports (Per-Project) for port strat
 
 ---
 
-*Last updated: 2026-05-30*
+## Manual Tests
+
+Human-tester instructions live in [`manual_tests/`](manual_tests/README.md): groups/athletes, sessions + timers, assessment, and the two-phone QR transfer. Keep them current when user-facing flows change.
+
+---
+
+## Notes
+
+- The app consumes `@tobiasheinrichfaska/qr-sync` (QR sync engine) from the separate [`expo-shared`](../expo-shared) repo via a local `file:` link — both repos must sit side-by-side under `c:\skripte\public\`. Not yet on a registry (see README build note). Detailed app architecture: [`packages/native/CLAUDE.md`](packages/native/CLAUDE.md).
+
+---
+
+*Last updated: 2026-05-31 — relocated to public/; added manual_tests/; consumes qr-sync from expo-shared.*
