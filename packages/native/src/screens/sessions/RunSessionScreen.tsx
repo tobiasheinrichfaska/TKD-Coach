@@ -79,6 +79,11 @@ const styles = StyleSheet.create({
   button: { flex: 1, padding: 10, borderRadius: 8, alignItems: 'center' },
   buttonStart: { backgroundColor: COLORS.success },
   buttonStop: { backgroundColor: COLORS.warning },
+  buttonSwap: { backgroundColor: COLORS.info },
+  swapList: { marginTop: 8, backgroundColor: COLORS.surface, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
+  swapItem: { padding: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  swapItemText: { fontSize: 13, color: COLORS.text, fontWeight: '500' },
+  swapItemMeta: { fontSize: 11, color: COLORS.textMuted, marginTop: 2 },
   buttonText: { color: COLORS.surface, fontWeight: 'bold', fontSize: 12 },
   footer: { backgroundColor: COLORS.surface, padding: 16, borderTopWidth: 1, borderTopColor: COLORS.border },
   footerButtons: { flexDirection: 'row', gap: 8 },
@@ -112,6 +117,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const [timerDisplay, setTimerDisplay] = useState('0:00');
   const [remainingDisplay, setRemainingDisplay] = useState('');
   const [isOverrun, setIsOverrun] = useState(false);
+  const [swapOpen, setSwapOpen] = useState(false);
 
   // Game indices whose planned-time signal has already fired (so it fires once).
   const signaledRef = useRef<Set<number>>(new Set());
@@ -212,6 +218,16 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     };
     setGameLogs(newLogs);
     persistRunning(newLogs);
+  };
+
+  /** Reconfigure mid-session: replace the current (not-yet-started) Übung with another. */
+  const swapCurrent = (gid: string) => {
+    const newLogs = [...gameLogs];
+    newLogs[currentGameIndex] = { gameId: gid, status: 'pending' };
+    setGameLogs(newLogs);
+    signaledRef.current.delete(currentGameIndex);
+    persistRunning(newLogs);
+    setSwapOpen(false);
   };
 
   const handleStopGame = () => {
@@ -332,9 +348,14 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                   )}
                   <View style={styles.buttons}>
                     {log.status === 'pending' && (
-                      <TouchableOpacity style={[styles.button, styles.buttonStart]} onPress={handleStartGame}>
-                        <Text style={styles.buttonText}>START</Text>
-                      </TouchableOpacity>
+                      <>
+                        <TouchableOpacity style={[styles.button, styles.buttonStart]} onPress={handleStartGame}>
+                          <Text style={styles.buttonText}>START</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.button, styles.buttonSwap]} onPress={() => setSwapOpen(o => !o)}>
+                          <Text style={styles.buttonText}>{swapOpen ? 'CLOSE' : '⇄ SWAP'}</Text>
+                        </TouchableOpacity>
+                      </>
                     )}
                     {log.status === 'running' && (
                       <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={handleStopGame}>
@@ -342,6 +363,20 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                       </TouchableOpacity>
                     )}
                   </View>
+                  {log.status === 'pending' && swapOpen && (
+                    <View style={styles.swapList}>
+                      {(['warmup', 'main', 'cooldown'] as const).map(phase =>
+                        state.games
+                          .filter(g => g.phase === phase && g.id !== log.gameId)
+                          .map(g => (
+                            <TouchableOpacity key={g.id} style={styles.swapItem} onPress={() => swapCurrent(g.id)}>
+                              <Text style={styles.swapItemText}>{g.name}</Text>
+                              <Text style={styles.swapItemMeta}>{phase} · {g.defaultMinutes}min · {g.neuroTarget}</Text>
+                            </TouchableOpacity>
+                          ))
+                      )}
+                    </View>
+                  )}
                 </>
               )}
             </View>
