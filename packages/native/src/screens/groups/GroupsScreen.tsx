@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import type { ScreenNavigationProp } from '../../types/navigation';
+import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   fab: { position: 'absolute', bottom: 24, right: 24, width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
 });
 
-export default function GroupsScreen({ navigation }: { navigation: ScreenNavigationProp }) {
+export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'GroupsList'>) {
   const { state } = useData();
 
   return (

@@ -3,9 +3,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SessionsScreen from './SessionsScreen';
 import PlanSessionScreen from './PlanSessionScreen';
 import RunSessionScreen from './RunSessionScreen';
+import type { SessionsStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<SessionsStackParamList>();
 
 export default function SessionsNavigator() {
   return (

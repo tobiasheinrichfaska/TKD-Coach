@@ -5,9 +5,10 @@ import GroupDetailScreen from './GroupDetailScreen';
 import EditGroupScreen from './EditGroupScreen';
 import AthleteDetailScreen from './AthleteDetailScreen';
 import EditAthleteScreen from './EditAthleteScreen';
+import type { GroupsStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<GroupsStackParamList>();
 
 export default function GroupsNavigator() {
   return (

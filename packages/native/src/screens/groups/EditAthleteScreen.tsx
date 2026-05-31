@@ -4,7 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import type { Belt } from '../../types';
-import type { ScreenProps } from '../../types/navigation';
+import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -15,11 +15,10 @@ const styles = StyleSheet.create({
   section: { fontSize: 14, fontWeight: 'bold', marginTop: 20, marginBottom: 8, color: COLORS.text },
 });
 
-export default function EditAthleteScreen({ route, navigation }: ScreenProps) {
+export default function EditAthleteScreen({ route, navigation }: GroupsStackScreenProps<'EditAthlete'>) {
   const { state, dispatch } = useData();
-  const params = route.params as { athleteId?: string; groupId?: string } | undefined;
-  const athleteId = params?.athleteId;
-  const groupId = params?.groupId;
+  const athleteId = route.params?.athleteId;
+  const groupId = route.params?.groupId;
   const athlete = athleteId ? state.athletes.find(a => a.id === athleteId) : null;
 
   const [name, setName] = useState(athlete?.name || '');
@@ -28,7 +27,8 @@ export default function EditAthleteScreen({ route, navigation }: ScreenProps) {
   const [parentName, setParentName] = useState(athlete?.contact?.parentName || '');
 
   const handleSave = () => {
-    if (!name.trim() || !groupId) return;
+    // Name is always required.
+    if (!name.trim()) return;
 
     if (athleteId && athlete) {
       dispatch({
@@ -41,6 +41,8 @@ export default function EditAthleteScreen({ route, navigation }: ScreenProps) {
         },
       });
     } else {
+      // Create mode requires a target group to file the new athlete under.
+      if (!groupId) return;
       const newId = generateId();
       dispatch({
         type: 'ADD_ATHLETE',

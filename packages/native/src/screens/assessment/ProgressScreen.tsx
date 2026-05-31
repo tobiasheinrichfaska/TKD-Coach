@@ -4,7 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { MetricRow } from '../../components/MetricRow';
 import { formatBelt, generateProgressSummaryText } from '../../utils/format';
-import type { ScreenProps } from '../../types/navigation';
+import type { AssessmentStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -18,9 +18,9 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function ProgressScreen({ route }: Pick<ScreenProps, 'route'>) {
+export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Progress'>) {
   const { state } = useData();
-  const athleteId = (route.params as { athleteId?: string } | undefined)?.athleteId;
+  const athleteId = route.params?.athleteId;
   const athlete = state.athletes.find(a => a.id === athleteId);
   // .filter() returns a new array, so the subsequent .sort() is safe (does not mutate state).
   const assessments = state.assessments

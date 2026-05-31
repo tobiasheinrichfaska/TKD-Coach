@@ -12,7 +12,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { generateSessionSummaryText } from '../../utils/format';
-import type { ScreenProps } from '../../types/navigation';
+import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -51,9 +51,9 @@ interface GameLogState {
   status: 'pending' | 'running' | 'completed';
 }
 
-export default function RunSessionScreen({ route, navigation }: ScreenProps) {
+export default function RunSessionScreen({ route, navigation }: SessionsStackScreenProps<'RunSession'>) {
   const { state, dispatch } = useData();
-  const planId = (route.params as { planId?: string } | undefined)?.planId;
+  const planId = route.params.planId;
   const plan = state.sessionPlans.find(p => p.id === planId);
   const group = plan ? state.groups.find(g => g.id === plan.groupId) : null;
 

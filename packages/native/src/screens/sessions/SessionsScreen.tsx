@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from '
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort } from '../../utils/format';
-import type { ScreenNavigationProp } from '../../types/navigation';
+import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function SessionsScreen({ navigation }: { navigation: ScreenNavigationProp }) {
+export default function SessionsScreen({ navigation }: SessionsStackScreenProps<'SessionsList'>) {
   const { state } = useData();
 
   // Copy before sort: sort() mutates; sorting state arrays directly corrupts reducer state.

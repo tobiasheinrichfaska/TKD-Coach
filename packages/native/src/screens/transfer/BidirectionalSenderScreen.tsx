@@ -15,11 +15,9 @@ const styles = StyleSheet.create({
   status: { fontSize: 14, color: COLORS.text, marginBottom: 8, textAlign: 'center' },
   progress: { fontSize: 12, color: COLORS.textMuted, marginBottom: 12, textAlign: 'center' },
   instruction: { fontSize: 13, color: COLORS.textMuted, textAlign: 'center', marginTop: 12, marginBottom: 16, paddingHorizontal: 8 },
-  ackContainer: { backgroundColor: COLORS.success, opacity: 0.1, padding: 12, borderRadius: 8, marginBottom: 12, borderLeftWidth: 4, borderLeftColor: COLORS.success },
-  ackText: { color: COLORS.text, fontSize: 12, fontWeight: '600' },
-  ackPreview: { color: COLORS.textMuted, fontSize: 11, marginTop: 4 },
   controls: { flexDirection: 'row', gap: 8, marginTop: 16 },
   button: { flex: 1, backgroundColor: COLORS.primary, paddingVertical: 12, borderRadius: 8, alignItems: 'center' },
+  buttonSecondary: { backgroundColor: COLORS.info },
   buttonDanger: { backgroundColor: COLORS.danger },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
   loading: { justifyContent: 'center', alignItems: 'center', padding: 24 },
@@ -37,7 +35,6 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
   const { state } = useData();
   const [transferState, setTransferState] = useState<TransferState>('handshake');
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
-  const [acknowledged, setAcknowledged] = useState<Map<number, string>>(new Map());
   const [transferId] = useState(generateId());
   const [error, setError] = useState<string | null>(null);
 
@@ -70,34 +67,28 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
   }, [transferId, chunks.length]);
 
   const currentChunkQr = chunks[currentChunkIndex];
-  const currentAck = acknowledged.get(currentChunkIndex);
+  const isLastChunk = currentChunkIndex === chunks.length - 1;
 
-  const handleAcknowledge = () => {
-    if (transferState === 'handshake') {
-      if (chunks.length === 0) {
-        Alert.alert('No Data', 'No data selected to transfer');
-        return;
-      }
-      setTransferState('transferring');
-    } else if (transferState === 'transferring') {
-      if (currentAck) {
-        if (currentChunkIndex < chunks.length - 1) {
-          setCurrentChunkIndex(currentChunkIndex + 1);
-          setAcknowledged(new Map(acknowledged).set(currentChunkIndex + 1, 'waiting'));
-        } else {
-          setTransferState('complete');
-        }
-      }
+  const handleStartTransfer = () => {
+    if (chunks.length === 0) {
+      Alert.alert('No Data', 'No data selected to transfer');
+      return;
+    }
+    setTransferState('transferring');
+  };
+
+  // Manual advance: there is no receiver→sender back-channel, so the sender
+  // simply pages through the chunk QRs at the receiver's scanning pace.
+  const handleNext = () => {
+    if (isLastChunk) {
+      setTransferState('complete');
+    } else {
+      setCurrentChunkIndex(i => i + 1);
     }
   };
 
-  const handleRepeat = () => {
-    Alert.alert('Repeat Chunk', 'Receiver will rescan this chunk');
-    setAcknowledged(prev => {
-      const next = new Map(prev);
-      next.delete(currentChunkIndex);
-      return next;
-    });
+  const handlePrev = () => {
+    setCurrentChunkIndex(i => Math.max(0, i - 1));
   };
 
   if (error) {
@@ -136,7 +127,7 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
           <Text style={styles.instruction}>
             This QR announces you as sender with {chunks.length} chunks to transfer. Once receiver confirms, you'll send the data.
           </Text>
-          <TouchableOpacity style={styles.button} onPress={handleAcknowledge}>
+          <TouchableOpacity style={styles.button} onPress={handleStartTransfer}>
             <Text style={styles.buttonText}>Receiver Scanned → Start Transfer</Text>
           </TouchableOpacity>
         </>
@@ -149,32 +140,22 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
             <QRCode value={currentChunkQr} size={250} ecl="H" />
           </View>
 
-          {currentAck && (
-            <View style={styles.ackContainer}>
-              <Text style={styles.ackText}>✓ Chunk {currentChunkIndex + 1} Acknowledged</Text>
-              <Text style={styles.ackPreview}>{currentAck}</Text>
-            </View>
-          )}
-
           <Text style={styles.instruction}>
-            {currentAck
-              ? 'Receiver confirmed receipt. Tap Next to continue.'
-              : 'Waiting for receiver to scan and confirm...'}
+            Hold each code in front of the receiver's camera until it scans, then tap Next.
+            The receiver assembles automatically once it has all {chunks.length} chunks.
           </Text>
 
           <View style={styles.controls}>
             <TouchableOpacity
-              style={[styles.button, !currentAck && { opacity: 0.5 }]}
-              onPress={handleAcknowledge}
-              disabled={!currentAck}
+              style={[styles.button, styles.buttonSecondary, currentChunkIndex === 0 && { opacity: 0.5 }]}
+              onPress={handlePrev}
+              disabled={currentChunkIndex === 0}
             >
-              <Text style={styles.buttonText}>Next Chunk</Text>
+              <Text style={styles.buttonText}>Previous</Text>
             </TouchableOpacity>
-            {currentAck && (
-              <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={handleRepeat}>
-                <Text style={styles.buttonText}>Repeat</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity style={styles.button} onPress={handleNext}>
+              <Text style={styles.buttonText}>{isLastChunk ? 'Finish' : 'Next'}</Text>
+            </TouchableOpacity>
           </View>
         </>
       )}

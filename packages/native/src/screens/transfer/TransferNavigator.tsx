@@ -1,19 +1,14 @@
 import React, { useState } from 'react';
-import { createNativeStackNavigator, type NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { ParamListBase, RouteProp } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TransferScreen from './TransferScreen';
 import SelectDataScreen from './SelectDataScreen';
 import { TransferSelection } from '../../types';
+import type { TransferStackParamList } from '../../types/navigation';
 import BidirectionalSenderScreen from './BidirectionalSenderScreen';
 import BidirectionalReceiverScreen from './BidirectionalReceiverScreen';
 import { COLORS } from '../../constants/colors';
 
-type StackChildProps = {
-  navigation: NativeStackNavigationProp<ParamListBase>;
-  route: RouteProp<ParamListBase, string>;
-};
-
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<TransferStackParamList>();
 
 export default function TransferNavigator() {
   const [senderSelection, setSenderSelection] = useState<TransferSelection | null>(null);
@@ -36,7 +31,7 @@ export default function TransferNavigator() {
         name="SelectData"
         options={{ title: 'Select Data', headerShown: false }}
       >
-        {({ navigation }: StackChildProps) => (
+        {({ navigation }) => (
           <SelectDataScreen
             onConfirm={(selection) => {
               handleSelectData(selection);
@@ -51,9 +46,8 @@ export default function TransferNavigator() {
         name="Sender"
         options={{ title: 'Send Data', headerShown: false }}
       >
-        {({ navigation, route }: StackChildProps) => {
-          const routeSelection = (route.params as { selection?: TransferSelection } | undefined)?.selection;
-          const effective = senderSelection || routeSelection;
+        {({ navigation, route }) => {
+          const effective = senderSelection || route.params.selection;
           if (!effective) {
             // Defensive: should not happen because SelectData always navigates with a selection.
             navigation.popToTop();
@@ -73,7 +67,7 @@ export default function TransferNavigator() {
         name="Receiver"
         options={{ title: 'Receive Data', headerShown: false }}
       >
-        {({ navigation }: StackChildProps) => (
+        {({ navigation }) => (
           <BidirectionalReceiverScreen
             onComplete={() => navigation.popToTop()}
             onCancel={() => navigation.popToTop()}

@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from '
 import { useData } from '../context/DataContext';
 import { COLORS } from '../constants/colors';
 import { formatDateShort } from '../utils/format';
-import type { ScreenNavigationProp } from '../types/navigation';
+import { APP_INFO } from '../constants/appInfo';
+import type { RootTabScreenProps } from '../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function DashboardScreen({ navigation }: { navigation: ScreenNavigationProp }) {
+export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dashboard'>) {
   const { state } = useData();
 
   const today = new Date();
@@ -56,14 +57,14 @@ export default function DashboardScreen({ navigation }: { navigation: ScreenNavi
               <TouchableOpacity
                 key={plan.id}
                 style={styles.sessionCard}
-                onPress={() => navigation.navigate('SessionsTab', { screen: 'SessionsList', params: { planId: plan.id } })}
+                onPress={() => navigation.navigate('Sessions', { screen: 'RunSession', params: { planId: plan.id } })}
               >
                 <Text style={styles.sessionTitle}>{plan.name}</Text>
                 <Text style={styles.sessionMeta}>{getGroupName(plan.groupId)}</Text>
                 <Text style={styles.gameList}>{getGameNames(plan.plannedGames)}</Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SessionsTab')}>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Sessions', { screen: 'SessionsList' })}>
               <Text style={styles.buttonText}>Start Session</Text>
             </TouchableOpacity>
           </>
@@ -97,6 +98,14 @@ export default function DashboardScreen({ navigation }: { navigation: ScreenNavi
           <Text style={styles.sessionMeta}>Total Athletes: {state.athletes.length}</Text>
           <Text style={styles.sessionMeta}>Sessions Completed: {state.sessionLogs.filter(l => l.status === 'completed').length}</Text>
           <Text style={styles.sessionMeta}>Assessments Logged: {state.assessments.length}</Text>
+        </View>
+
+        {/* About */}
+        <Text style={styles.section}>ℹ️ About</Text>
+        <View style={styles.sessionCard}>
+          <Text style={styles.sessionTitle}>{APP_INFO.name} v{APP_INFO.version}</Text>
+          <Text style={styles.sessionMeta}>{APP_INFO.tagline}</Text>
+          <Text style={styles.sessionMeta}>von {APP_INFO.author}</Text>
         </View>
       </View>
     </ScrollView>

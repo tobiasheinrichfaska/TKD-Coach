@@ -4,7 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import type { Group } from '../../types';
-import type { ScreenProps } from '../../types/navigation';
+import type { GroupsStackScreenProps } from '../../types/navigation';
 
 type AgeCategory = Group['ageCategory'];
 
@@ -15,9 +15,9 @@ const styles = StyleSheet.create({
   buttonText: { color: COLORS.surface, fontWeight: 'bold', fontSize: 16 },
 });
 
-export default function EditGroupScreen({ route, navigation }: ScreenProps) {
+export default function EditGroupScreen({ route, navigation }: GroupsStackScreenProps<'EditGroup'>) {
   const { state, dispatch } = useData();
-  const groupId = (route.params as { groupId?: string } | undefined)?.groupId;
+  const groupId = route.params?.groupId;
   const group = groupId ? state.groups.find(g => g.id === groupId) : null;
 
   const [name, setName] = useState(group?.name || '');

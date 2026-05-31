@@ -12,7 +12,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { SESSION_TEMPLATES } from '../../constants/games';
 import { generateId } from '../../utils/ids';
-import type { ScreenProps } from '../../types/navigation';
+import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -53,9 +53,9 @@ const styles = StyleSheet.create({
   templateButtonTextActive: { color: COLORS.surface, fontWeight: 'bold' },
 });
 
-export default function PlanSessionScreen({ route, navigation }: ScreenProps) {
+export default function PlanSessionScreen({ route, navigation }: SessionsStackScreenProps<'PlanSession'>) {
   const { state, dispatch } = useData();
-  const planId = (route.params as { planId?: string } | undefined)?.planId;
+  const planId = route.params?.planId;
   const plan = planId ? state.sessionPlans.find(p => p.id === planId) : null;
 
   const [name, setName] = useState(plan?.name || '');

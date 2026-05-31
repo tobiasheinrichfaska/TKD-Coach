@@ -12,7 +12,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { AssessmentMetric } from '../../types';
 import { generateId } from '../../utils/ids';
-import type { ScreenNavigationProp } from '../../types/navigation';
+import type { AssessmentStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -56,7 +56,7 @@ type MetricDraft = {
   baseline?: number;
 };
 
-export default function AssessmentScreen(_props: { navigation: ScreenNavigationProp }) {
+export default function AssessmentScreen(_props: AssessmentStackScreenProps<'AssessmentList'>) {
   const { state, dispatch } = useData();
   const [step, setStep] = useState<'group' | 'athlete' | 'game' | 'metric'>('group');
   const [selectedGroupId, setSelectedGroupId] = useState('');

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS } from '../../constants/colors';
-import type { ScreenNavigationProp } from '../../types/navigation';
+import type { TransferStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
   buttonSubtitle: { fontSize: 12, color: COLORS.surface, opacity: 0.8, textAlign: 'center' },
 });
 
-export default function TransferScreen({ navigation }: { navigation: ScreenNavigationProp }) {
+export default function TransferScreen({ navigation }: TransferStackScreenProps<'TransferMain'>) {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Sync Data With Another Coach</Text>
@@ -24,7 +24,7 @@ export default function TransferScreen({ navigation }: { navigation: ScreenNavig
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('SelectData', { role: 'sender' })}
+          onPress={() => navigation.navigate('SelectData')}
         >
           <Text style={styles.buttonTitle}>📤 Start Transfer Sender</Text>
           <Text style={styles.buttonSubtitle}>You will display QR codes for other phone to scan</Text>
@@ -43,7 +43,7 @@ export default function TransferScreen({ navigation }: { navigation: ScreenNavig
         <Text style={{ fontWeight: 'bold' }}>How it works:</Text>
         {'\n'}1. Sender selects data to share
         {'\n'}2. Receiver scans handshake QR
-        {'\n'}3. Data transfers chunk-by-chunk with verification
+        {'\n'}3. Sender pages through chunk QRs; receiver scans each
         {'\n'}4. Receiver reviews changes and confirms merge
       </Text>
     </ScrollView>

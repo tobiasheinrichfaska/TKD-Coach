@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Scr
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { assembleFromChunks, detectChanges } from '../../utils/qrChunks';
+import { assembleFromChunks, detectChanges, applyChanges } from '../../utils/qrChunks';
 import type { QRChunk, ChangeDetection } from '../../utils/qrChunks';
 
 const styles = StyleSheet.create({
@@ -115,44 +115,8 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
 
   const handleAccept = () => {
     if (!changes) return;
-
-    // Merge: add new data, update changed data, keep unchanged
-    const changedIds = new Set(changes.changed.groups.map(g => g.id));
-    const changedAthleteIds = new Set(changes.changed.athletes.map(a => a.id));
-    const changedPlanIds = new Set(changes.changed.sessionPlans.map(p => p.id));
-    const changedLogIds = new Set(changes.changed.sessionLogs.map(l => l.id));
-    const changedAssessmentIds = new Set(changes.changed.assessments.map(a => a.id));
-
-    const merged = {
-      version: state.version,
-      games: [...state.games, ...changes.new.games],
-      groups: [
-        ...state.groups.map(g => changedIds.has(g.id) ? changes.changed.groups.find(cg => cg.id === g.id) || g : g),
-        ...changes.new.groups,
-      ],
-      athletes: [
-        ...state.athletes.map(a => changedAthleteIds.has(a.id) ? changes.changed.athletes.find(ca => ca.id === a.id) || a : a),
-        ...changes.new.athletes,
-      ],
-      sessionPlans: [
-        ...state.sessionPlans.map(p => changedPlanIds.has(p.id) ? changes.changed.sessionPlans.find(cp => cp.id === p.id) || p : p),
-        ...changes.new.sessionPlans,
-      ],
-      sessionLogs: [
-        ...state.sessionLogs.map(l => changedLogIds.has(l.id) ? changes.changed.sessionLogs.find(cl => cl.id === l.id) || l : l),
-        ...changes.new.sessionLogs,
-      ],
-      assessments: [
-        ...state.assessments.map(a => changedAssessmentIds.has(a.id) ? changes.changed.assessments.find(ca => ca.id === a.id) || a : a),
-        ...changes.new.assessments,
-      ],
-    };
-
-    dispatch({
-      type: 'LOAD_ALL',
-      payload: merged,
-    });
-
+    // Single shared merge: replace changed entities by id, append new ones.
+    dispatch({ type: 'LOAD_ALL', payload: applyChanges(state, changes) });
     setReceiverState('complete');
   };
 

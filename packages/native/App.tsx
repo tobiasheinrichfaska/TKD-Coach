@@ -6,6 +6,7 @@ import { View, ActivityIndicator } from 'react-native';
 
 import { DataProvider, useData } from './src/context/DataContext';
 import { COLORS } from './src/constants/colors';
+import type { RootTabParamList } from './src/types/navigation';
 
 import DashboardScreen from './src/screens/DashboardScreen';
 import GroupsNavigator from './src/screens/groups/GroupsNavigator';
@@ -13,7 +14,7 @@ import SessionsNavigator from './src/screens/sessions/SessionsNavigator';
 import AssessmentNavigator from './src/screens/assessment/AssessmentNavigator';
 import TransferNavigator from './src/screens/transfer/TransferNavigator';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<RootTabParamList>();
 
 function RootNavigator() {
   const { isLoaded } = useData();

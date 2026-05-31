@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
-import type { ScreenProps } from '../../types/navigation';
+import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -18,9 +18,9 @@ const styles = StyleSheet.create({
   buttonGroup: { flexDirection: 'row', gap: 8, marginTop: 16 },
 });
 
-export default function AthleteDetailScreen({ route, navigation }: ScreenProps) {
+export default function AthleteDetailScreen({ route, navigation }: GroupsStackScreenProps<'AthleteDetail'>) {
   const { state } = useData();
-  const athleteId = (route.params as { athleteId?: string } | undefined)?.athleteId;
+  const athleteId = route.params.athleteId;
   const athlete = state.athletes.find(a => a.id === athleteId);
 
   if (!athlete) return <View style={styles.container}><Text>Athlete not found</Text></View>;
@@ -54,7 +54,7 @@ export default function AthleteDetailScreen({ route, navigation }: ScreenProps) 
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditAthlete', { athleteId: athlete.id })}>
             <Text style={styles.buttonText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={() => navigation.navigate('AssessmentTab', { screen: 'Progress', params: { athleteId: athlete.id } })}>
+          <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={() => navigation.navigate('Assessment', { screen: 'Progress', params: { athleteId: athlete.id } })}>
             <Text style={styles.buttonText}>Progress</Text>
           </TouchableOpacity>
         </View>

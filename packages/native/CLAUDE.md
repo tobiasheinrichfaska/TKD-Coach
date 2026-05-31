@@ -56,17 +56,19 @@ State persisted to AsyncStorage; changes debounced 300ms.
 **Completed Implementation:**
 - ✅ Phone-primed ID generation (prevents collisions between coaches)
 - ✅ Selective data export (checkboxes for groups/athletes/sessions/assessments)
-- ✅ Bidirectional handshake protocol (sender announces totalChunks, receiver confirms ready)
-- ✅ Chunk transfer with ACK verification (sender shows chunk, receiver scans & acknowledges, resend on mismatch)
+- ✅ Handshake QR (sender announces totalChunks so the receiver knows when it's done)
+- ✅ One-way chunk broadcast (sender pages through chunk QRs; receiver scans them off the sender's screen — **no receiver→sender back-channel exists**)
 - ✅ Change detection (new vs changed vs unchanged data)
 - ✅ Merge review screen (summarizes changes before accepting)
+
+> **Correction (2026-05-31):** Earlier docs claimed a "bidirectional ACK handshake with resend on mismatch." That was never real — there is no back-channel; the receiver only ever scans. The sender now advances chunks **manually** (Previous/Next), which is the honest model. The single `applyChanges()` in `qrChunks.ts` is the one merge path (the old unused `mergeAppData` was deleted).
 - ✅ Stop button (manual termination, no timeout needed)
 
 **Transfer Flow:**
 1. Both phones tap Transfer tab → choose role (Sender or Receiver)
 2. Sender: SelectData → choose what to sync → display handshake QR
 3. Receiver: scan handshake QR → awaits chunks
-4. For each chunk: Sender displays → Receiver scans & accumulates → Receiver confirms via ACK
+4. For each chunk: Sender displays → Receiver scans & accumulates → Sender taps Next (manual advance, no ACK)
 5. After all chunks: Receiver assembles data → detects changes → shows review screen
 6. Review shows: New (green) | Changed (amber) | Unchanged (gray)
 7. Accept → merge with updates → return to Transfer screen
@@ -75,15 +77,15 @@ State persisted to AsyncStorage; changes debounced 300ms.
 **Screens:**
 - TransferScreen: Role selection buttons (Sender/Receiver)
 - SelectDataScreen: Checkboxes for data categories + All/None quick select
-- BidirectionalSenderScreen: Handshake QR → chunk pagination with ACK indicators
+- BidirectionalSenderScreen: Handshake QR → manual chunk pagination (Previous/Next)
 - BidirectionalReceiverScreen: Handshake scan → chunk accumulation with progress → review → complete
 
 **Key Features:**
 - Phone-primed IDs (DEVICEID_timestamp_random) prevent ID collisions when coaches work independently
 - Selective export reduces transfer size (can choose just groups, or full sync with assessments)
 - Change detection allows updating existing data (not just adding new)
-- ACK verification provides error detection (if receiver's preview doesn't match, chunk repeats)
-- Review screen gives coach visibility before merging
+- Receiver de-dupes chunks by `id_index`, so re-showing a chunk (Previous/Next) is harmless
+- Review screen gives coach visibility before merging via the single `applyChanges()` merge path
 
 ## Critical Implementation Details
 
