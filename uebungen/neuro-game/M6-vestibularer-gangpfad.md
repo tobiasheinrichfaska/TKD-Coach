@@ -1,3 +1,16 @@
+---
+id: M6
+title: Vestibularer Gangpfad
+kind: neuro-game
+phase: main
+minutes: 10
+ageGroup: all
+neuroTarget: Vestibular + Gaze Stability
+techniques: [footwork]
+bodyParts: [ankle, knee, hip, neck]
+hasSteps: false
+---
+
 # M6 · Vestibularer Gangpfad
 
 *Gaze-fixed directional walk — vestibular + visual-spatial*

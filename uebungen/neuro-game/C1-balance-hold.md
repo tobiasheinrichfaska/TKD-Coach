@@ -1,3 +1,17 @@
+---
+id: C1
+title: Balance-Hold Challenge
+kind: neuro-game
+phase: cooldown
+minutes: 8
+ageGroup: all
+neuroTarget: Proprioceptive Baseline
+techniques: [seogi, poomsae]
+bodyParts: [ankle, knee, hip, core]
+logMetric: balance_hold
+hasSteps: false
+---
+
 # C1 · Balance-Hold Challenge
 
 *Single-leg timed hold — primary progress metric*

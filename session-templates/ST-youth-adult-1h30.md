@@ -1,3 +1,11 @@
+---
+id: ST-youth-adult-1h30
+title: "Youth & Adults · 1h30"
+ageGroup: youth-adults
+durationMinutes: 90
+items: [W3, W1, M2, M3, W2, M4, C1, C2]
+---
+
 # Session Template: Youth & Adults · 1.5h
 
 ---

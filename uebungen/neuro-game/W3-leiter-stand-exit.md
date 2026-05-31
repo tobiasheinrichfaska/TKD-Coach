@@ -1,3 +1,16 @@
+---
+id: W3
+title: Leiter-Stand-Exit
+kind: neuro-game
+phase: warmup
+minutes: 8
+ageGroup: all
+neuroTarget: Proprioceptive + Motor Chaining
+techniques: [seogi, footwork]
+bodyParts: [ankle, knee, hip, calves]
+hasSteps: false
+---
+
 # W3 · Leiter-Stand-Exit
 
 *Coordination ladder into named stance*

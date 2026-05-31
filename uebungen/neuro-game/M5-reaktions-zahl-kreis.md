@@ -1,3 +1,16 @@
+---
+id: M5
+title: Reaktions-Zahl-Kreis
+kind: neuro-game
+phase: main
+minutes: 8
+ageGroup: all
+neuroTarget: Auditory Reaction + Attention
+techniques: [arae-makki, momtong-makki, olgul-makki]
+bodyParts: [shoulders, arms, core]
+hasSteps: false
+---
+
 # M5 · Reaktions-Zahl-Kreis
 
 *Auditory cue → block selection — group re-engagement tool*

@@ -1,3 +1,17 @@
+---
+id: M1
+title: Zahlen-Kombi
+kind: neuro-game
+phase: main
+minutes: 11
+ageGroup: all
+neuroTarget: Working Memory + Sequencing
+techniques: [ap-chagi, dollyo-chagi, dwit-chagi, jireugi]
+bodyParts: [hip, knee, core]
+logMetric: combo_accuracy
+hasSteps: false
+---
+
 # M1 · Zahlen-Kombi
 
 *Working memory + kick combination sequencing*

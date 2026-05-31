@@ -1,3 +1,11 @@
+---
+id: ST-kids-2h
+title: "Kids 8–13 · 2h"
+ageGroup: kids
+durationMinutes: 90
+items: [W1, W3, M1, M3, W2, M4, C1, C2]
+---
+
 # Session Template: Kids 8–13 · 2h
 
 ---

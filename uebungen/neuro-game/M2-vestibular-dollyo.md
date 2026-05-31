@@ -1,3 +1,17 @@
+---
+id: M2
+title: Vestibular Dollyo
+kind: neuro-game
+phase: main
+minutes: 12
+ageGroup: youth-adults
+neuroTarget: Vestibular Recalibration
+techniques: [dollyo-chagi]
+bodyParts: [ankle, knee, hip, core, neck]
+logMetric: vestibular_landing
+hasSteps: false
+---
+
 # M2 · Vestibular Dollyo
 
 *Post-rotation balance → full kick execution*

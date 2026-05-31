@@ -1,3 +1,16 @@
+---
+id: C2
+title: Atem-Augen-Fokus
+kind: neuro-game
+phase: cooldown
+minutes: 9
+ageGroup: all
+neuroTarget: Parasympathetic + Gaze
+techniques: []
+bodyParts: [spine, core]
+hasSteps: false
+---
+
 # C2 · Atem-Augen-Fokus
 
 *Breathing + gaze — parasympathetic cool-down*

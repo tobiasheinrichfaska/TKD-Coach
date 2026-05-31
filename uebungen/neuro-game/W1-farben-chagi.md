@@ -1,3 +1,17 @@
+---
+id: W1
+title: Farben-Chagi
+kind: neuro-game
+phase: warmup
+minutes: 7
+ageGroup: all
+neuroTarget: Visual-Motor Coupling
+techniques: [ap-chagi, dollyo-chagi, yop-chagi]
+bodyParts: [hip, knee, ankle]
+logMetric: reaction_errors
+hasSteps: false
+---
+
 # W1 · Farben-Chagi
 
 *Color kick — visual cue to kick selection*

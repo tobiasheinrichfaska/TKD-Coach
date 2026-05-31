@@ -1,3 +1,17 @@
+---
+id: M4
+title: Poomsae unter Störung
+kind: neuro-game
+phase: main
+minutes: 18
+ageGroup: all
+neuroTarget: Attentional Filtering
+techniques: [poomsae]
+bodyParts: [full-body]
+logMetric: poomsae_distraction
+hasSteps: false
+---
+
 # M4 · Poomsae unter Störung
 
 *Motor-program persistence under visual distraction*

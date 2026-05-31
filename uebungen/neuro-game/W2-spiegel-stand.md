@@ -1,3 +1,16 @@
+---
+id: W2
+title: Spiegel-Stand
+kind: neuro-game
+phase: warmup
+minutes: 5
+ageGroup: all
+neuroTarget: Visual + Proprioceptive Integration
+techniques: [ap-seogi, juchum-seogi, makki]
+bodyParts: [hip, knee, spine, shoulders]
+hasSteps: false
+---
+
 # W2 · Spiegel-Stand
 
 *Mirror stance — visual-proprioceptive mirroring*

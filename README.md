@@ -1,4 +1,5 @@
 # TKD-Coach: Neuroathletik × Taekwondo
+> **Repo structure:** see [STRUCTURE.md](STRUCTURE.md) — content is organized as Übungen (incl. the neuro-games), session-templates, and sessions.
 
 **Coaching methods, games and background on coaching Taekwondo through neural system training**
 
@@ -29,7 +30,7 @@ This is a complete, ready-to-use library of 11 neuro-stimulus games embedded in 
 
 ## How This Repo Is Organized
 
-### [`games/`](games/) — The Game Library
+### [`uebungen/`](uebungen/) — The Game Library
 
 11 games organized by session phase:
 
@@ -59,12 +60,12 @@ This is a complete, ready-to-use library of 11 neuro-stimulus games embedded in 
 - Log Metric (what to measure)
 - Why It Works Neurologically (the science)
 
-See [`games/README.md`](games/README.md) for the complete index.
+See [`games/README.md`](uebungen/README.md) for the complete index.
 
-### [`sessions/`](sessions/) — Ready-to-Run Session Templates
+### [`session-templates/`](session-templates/) — Ready-to-Run Session Templates
 
-- **[`kids-2h.md`](sessions/kids-2h.md):** Ages 8–13, 2-hour session (W1, W3, M1, M3, W2, M4, C1, C2)
-- **[`youth-adult-1h30.md`](sessions/youth-adult-1h30.md):** Youth & Adults, 1.5-hour session (W3, W1, M2, M3, W2, M4, C1, C2)
+- **[`kids-2h.md`](session-templates/ST-kids-2h.md):** Ages 8–13, 2-hour session (W1, W3, M1, M3, W2, M4, C1, C2)
+- **[`youth-adult-1h30.md`](session-templates/ST-youth-adult-1h30.md):** Youth & Adults, 1.5-hour session (W3, W1, M2, M3, W2, M4, C1, C2)
 
 Each template:
 - Lists games in order with timing
@@ -120,9 +121,9 @@ These are archived here for reference and provenance. The repo content is the de
 
 ## Getting Started
 
-1. **Pick a session template** → [`sessions/kids-2h.md`](sessions/kids-2h.md) or [`sessions/youth-adult-1h30.md`](sessions/youth-adult-1h30.md)
+1. **Pick a session template** → [`session-templates/ST-kids-2h.md`](session-templates/ST-kids-2h.md) or [`session-templates/ST-youth-adult-1h30.md`](session-templates/ST-youth-adult-1h30.md)
 
-2. **Read the game files** for the games in your session → [`games/`](games/)
+2. **Read the game files** for the games in your session → [`uebungen/`](uebungen/)
    - Each file is stand-alone and takes ~2–3 minutes to read
 
 3. **Set up equipment** (cones, pads, ladder) before the session

@@ -1,3 +1,17 @@
+---
+id: M3
+title: Einbein-Poomsae
+kind: neuro-game
+phase: main
+minutes: 12
+ageGroup: all
+neuroTarget: Proprioceptive + Vestibular Load
+techniques: [poomsae, seogi]
+bodyParts: [ankle, knee, hip, core]
+logMetric: balance_poomsae
+hasSteps: false
+---
+
 # M3 · Einbein-Poomsae
 
 *Single-leg Poomsae — proprioceptive overload*
