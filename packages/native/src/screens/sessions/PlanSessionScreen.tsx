@@ -59,12 +59,19 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   const { state, dispatch } = useData();
   const planId = route.params?.planId;
   const plan = planId ? state.sessionPlans.find(p => p.id === planId) : null;
+  // Prefill from a completed session ("use as template"), when not editing an existing plan.
+  const fromGroupId = route.params?.fromGroupId;
+  const fromGameIds = route.params?.fromGameIds;
 
   const [name, setName] = useState(plan?.name || '');
-  const [groupId, setGroupId] = useState(plan?.groupId || '');
+  const [groupId, setGroupId] = useState(plan?.groupId || fromGroupId || '');
   const [date, setDate] = useState(plan?.plannedDate || toLocalDateISO());
-  const [template, setTemplate] = useState<'kids-2h' | 'youth-adult-1h30' | 'custom'>(plan?.template || 'kids-2h');
-  const [gameIds, setGameIds] = useState<string[]>(plan?.plannedGames || [...SESSION_TEMPLATES.KIDS_2H]);
+  const [template, setTemplate] = useState<'kids-2h' | 'youth-adult-1h30' | 'custom'>(
+    plan?.template || (fromGameIds && fromGameIds.length > 0 ? 'custom' : 'kids-2h')
+  );
+  const [gameIds, setGameIds] = useState<string[]>(
+    plan?.plannedGames || fromGameIds || [...SESSION_TEMPLATES.KIDS_2H]
+  );
 
   const handleTemplateChange = (newTemplate: typeof template) => {
     setTemplate(newTemplate);

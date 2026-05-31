@@ -94,6 +94,17 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                   {item.gameLogs.length} games ·{' '}
                   {item.gameLogs.reduce((sum, g) => sum + (g.durationSeconds || 0), 0)} sec
                 </Text>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonEdit, { marginTop: 8 }]}
+                  onPress={() =>
+                    navigation.navigate('PlanSession', {
+                      fromGroupId: item.groupId,
+                      fromGameIds: item.gameLogs.map(g => g.gameId),
+                    })
+                  }
+                >
+                  <Text style={styles.buttonText}>Use as template → plan again</Text>
+                </TouchableOpacity>
               </View>
             )}
           />

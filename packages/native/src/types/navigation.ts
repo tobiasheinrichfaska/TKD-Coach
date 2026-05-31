@@ -23,7 +23,7 @@ export type GroupsStackParamList = {
 
 export type SessionsStackParamList = {
   SessionsList: undefined;
-  PlanSession: { planId?: string } | undefined;
+  PlanSession: { planId?: string; fromGroupId?: string; fromGameIds?: string[] } | undefined;
   RunSession: { planId: string };
 };
 
