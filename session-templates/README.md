@@ -6,6 +6,8 @@ Reusable blueprints — an ordered sequence of Übungen with timings, parameteri
 |---|---|---|---|
 | [ST-kids-2h](ST-kids-2h.md) | Kids 8–13 · 2h | kids | ~90 min |
 | [ST-youth-adult-1h30](ST-youth-adult-1h30.md) | Youth & Adults · 1h30 | youth-adults | ~90 min |
-| [ST-mobility-stretching-protocol](ST-mobility-stretching-protocol.md) | Mobility / Warm-Up / Stretching protocol | all | (multi-phase routine) |
+| [ST-mobility-stretching-protocol](ST-mobility-stretching-protocol.md) | Mobility / Warm-Up / Stretching (reference) | all | multi-phase |
+| [ST-warmup-mobility](ST-warmup-mobility.md) | Warm-Up — Mobility + Dynamic | all | ~15 min |
+| [ST-static-block](ST-static-block.md) | Static Stretching Block | all | ~10 min |
 
-> `ST-mobility-stretching-protocol` is currently kept whole (`status: source-whole`); decomposing its movements into `uebungen/dehnung` + `kondition` and a static-block template is pending.
+> The mobility protocol has been **decomposed**: its movements are reusable Übungen in `uebungen/kondition` + `uebungen/dehnung` (+ breathing `C3`), its phases are `ST-warmup-mobility` and `ST-static-block`, and its flexibility tests live in `assessment/flexibility-measures.md`. The protocol doc remains the reference for principles, breathing tools, safety and coaching notes.

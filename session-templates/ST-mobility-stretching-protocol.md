@@ -5,10 +5,12 @@ type: protocol            # reusable multi-phase routine (warm-up + static block
 ageGroup: all
 phases: [mobility-floor, dynamic-standing, static-block, meditation]
 built: 2026-05-31
-status: source-whole      # kept intact; decomposition into uebungen/dehnung + kondition + breathing is pending
+status: decomposed   # extracted into uebungen/kondition + dehnung + C3; phases ST-warmup-mobility + ST-static-block
 ---
 
 # 🤸 Mobility, Warm-Up & Stretching Protocol
+
+> **Decomposed:** the movements are now reusable Übungen — [uebungen/kondition](../uebungen/kondition) (mobility/dynamic), [uebungen/dehnung](../uebungen/dehnung) (stretches), breathing as [C3](../uebungen/neuro-game/C3-atemfokus-meditation.md); phases as [ST-warmup-mobility](ST-warmup-mobility.md) + [ST-static-block](ST-static-block.md). This doc stays the reference for principles, breathing tools, safety and coaching notes.
 **TKD-focused. Personal use + adaptable for coaching (adults + kids).**
 _Built 31.05.2026._
 
