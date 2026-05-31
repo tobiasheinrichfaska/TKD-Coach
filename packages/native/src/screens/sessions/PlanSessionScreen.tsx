@@ -14,45 +14,47 @@ import { COLORS } from '../../constants/colors';
 import { SESSION_TEMPLATES } from '../../constants/games';
 import { generateId } from '../../utils/ids';
 import { toLocalDateISO } from '../../utils/format';
+import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
+
+type TemplateId = 'kids-2h' | 'youth-adult-1h30' | 'custom';
+const PHASES: SessionPhase[] = [1, 2, 3, 4, 5];
+
+// Chip-grouped template library (dive into a group → pick a template).
+const TEMPLATE_GROUPS: { label: string; items: { name: string; t: TemplateId; ids: readonly string[] }[] }[] = [
+  {
+    label: 'Full session',
+    items: [
+      { name: 'Kids 2h', t: 'kids-2h', ids: SESSION_TEMPLATES.KIDS_2H },
+      { name: 'Youth/Adult 1.5h', t: 'youth-adult-1h30', ids: SESSION_TEMPLATES.YOUTH_ADULT_1H30 },
+    ],
+  },
+  { label: 'Warm-up', items: [{ name: 'Mobility', t: 'custom', ids: SESSION_TEMPLATES.MOBILITY_WARMUP }] },
+  { label: 'Cool-down', items: [{ name: 'Static block', t: 'custom', ids: SESSION_TEMPLATES.STATIC_BLOCK }] },
+  { label: 'Empty', items: [{ name: 'Clear', t: 'custom', ids: [] }] },
+];
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { padding: 16 },
   section: { fontSize: 14, fontWeight: 'bold', marginTop: 16, marginBottom: 8, color: COLORS.text },
-  input: {
-    backgroundColor: COLORS.surface,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    color: COLORS.text,
-  },
-  picker: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 8,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
+  phaseHeading: { fontSize: 12, fontWeight: 'bold', color: COLORS.textMuted, marginTop: 10, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  input: { backgroundColor: COLORS.surface, padding: 12, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: COLORS.border, color: COLORS.text },
+  picker: { backgroundColor: COLORS.surface, borderRadius: 8, marginBottom: 12, overflow: 'hidden' },
   pickerItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   pickerItemText: { fontSize: 14, color: COLORS.text },
-  gameCard: {
-    backgroundColor: COLORS.surface,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-  },
   gameTitle: { fontSize: 14, fontWeight: '500', color: COLORS.text },
-  gameMeta: { fontSize: 12, color: COLORS.textMuted, marginTop: 4 },
+  gameMeta: { fontSize: 12, color: COLORS.textMuted, marginTop: 2 },
+  tags: { fontSize: 11, color: COLORS.textLight, marginTop: 2 },
   button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 16 },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
-  templateButtons: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  templateButton: { flex: 1, padding: 8, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center' },
-  templateButtonActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  templateButtonText: { fontSize: 12, color: COLORS.text },
-  templateButtonTextActive: { color: COLORS.surface, fontWeight: 'bold' },
+  // chips
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  chip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  chipText: { fontSize: 12, color: COLORS.text },
+  chipTextActive: { color: COLORS.surface, fontWeight: 'bold' },
+  // game rows
   gameRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8, marginBottom: 6, borderLeftWidth: 3 },
   gameRowInfo: { flex: 1 },
   ctrl: { paddingHorizontal: 8, paddingVertical: 4 },
@@ -60,46 +62,40 @@ const styles = StyleSheet.create({
   removeText: { fontSize: 18, color: COLORS.danger },
   addToggle: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.primary, padding: 10, borderRadius: 8, alignItems: 'center', marginTop: 4 },
   addToggleText: { color: COLORS.primary, fontWeight: 'bold' },
-  addItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  addItemText: { fontSize: 13, color: COLORS.text },
-  addItemMeta: { fontSize: 11, color: COLORS.textMuted },
+  addItem: { padding: 10, borderBottomWidth: 1, borderBottomColor: COLORS.border },
 });
 
 export default function PlanSessionScreen({ route, navigation }: SessionsStackScreenProps<'PlanSession'>) {
   const { state, dispatch } = useData();
   const planId = route.params?.planId;
   const plan = planId ? state.sessionPlans.find(p => p.id === planId) : null;
-  // Prefill from a completed session ("use as template"), when not editing an existing plan.
   const fromGroupId = route.params?.fromGroupId;
   const fromGameIds = route.params?.fromGameIds;
 
   const [name, setName] = useState(plan?.name || '');
   const [groupId, setGroupId] = useState(plan?.groupId || fromGroupId || '');
   const [date, setDate] = useState(plan?.plannedDate || toLocalDateISO());
-  const [template, setTemplate] = useState<'kids-2h' | 'youth-adult-1h30' | 'custom'>(
+  const [template, setTemplate] = useState<TemplateId>(
     plan?.template || (fromGameIds && fromGameIds.length > 0 ? 'custom' : 'kids-2h')
   );
   const [gameIds, setGameIds] = useState<string[]>(
     plan?.plannedGames || fromGameIds || [...SESSION_TEMPLATES.KIDS_2H]
   );
+  const [openGroup, setOpenGroup] = useState<string | null>('Full session');
   const [showAdd, setShowAdd] = useState(false);
+  const [query, setQuery] = useState('');
 
-  const handleTemplateChange = (newTemplate: typeof template) => {
-    setTemplate(newTemplate);
-    if (newTemplate === 'kids-2h') {
-      setGameIds([...SESSION_TEMPLATES.KIDS_2H]);
-    } else if (newTemplate === 'youth-adult-1h30') {
-      setGameIds([...SESSION_TEMPLATES.YOUTH_ADULT_1H30]);
-    }
+  const phaseOf = (gid: string): SessionPhase => state.games.find(g => g.id === gid)?.sessionPhase ?? 3;
+
+  const applyTemplate = (t: TemplateId, ids: readonly string[]) => {
+    setGameIds([...ids]);
+    setTemplate(t);
   };
-
-  // Editing the game list makes it a custom plan (no longer a named template).
   const setGames = (next: string[]) => {
     setGameIds(next);
     setTemplate('custom');
   };
   const removeGame = (idx: number) => setGames(gameIds.filter((_, i) => i !== idx));
-  const addGame = (gid: string) => setGames([...gameIds, gid]);
   const moveGame = (idx: number, dir: -1 | 1) => {
     const j = idx + dir;
     if (j < 0 || j >= gameIds.length) return;
@@ -107,9 +103,22 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     [next[idx], next[j]] = [next[j], next[idx]];
     setGames(next);
   };
+  // Insert a new Übung at the end of its phase section (then freely movable).
+  const addGame = (gid: string) => {
+    const p = phaseOf(gid);
+    let insertAt = gameIds.length;
+    for (let i = gameIds.length - 1; i >= 0; i--) {
+      if (phaseOf(gameIds[i]) <= p) {
+        insertAt = i + 1;
+        break;
+      }
+      if (i === 0) insertAt = 0;
+    }
+    const next = [...gameIds.slice(0, insertAt), gid, ...gameIds.slice(insertAt)];
+    setGames(next);
+  };
 
   const handleSave = () => {
-    // Visible validation instead of a silent no-op.
     if (!name.trim()) {
       Alert.alert('Name required', 'Enter a session name.');
       return;
@@ -124,57 +133,46 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
       return;
     }
     if (gameIds.length === 0) {
-      Alert.alert('No games', 'This plan has no games. Pick a template (or add games in Custom).');
+      Alert.alert('No Übungen', 'This plan has no Übungen. Pick a template or add some.');
       return;
     }
-
+    const payload = { name, groupId, plannedDate: date, template, plannedGames: gameIds };
     if (planId && plan) {
-      dispatch({
-        type: 'UPDATE_SESSION_PLAN',
-        payload: {
-          ...plan,
-          name,
-          groupId,
-          plannedDate: date,
-          template,
-          plannedGames: gameIds,
-        },
-      });
+      dispatch({ type: 'UPDATE_SESSION_PLAN', payload: { ...plan, ...payload } });
     } else {
-      dispatch({
-        type: 'ADD_SESSION_PLAN',
-        payload: {
-          id: generateId(),
-          name,
-          groupId,
-          plannedDate: date,
-          template,
-          plannedGames: gameIds,
-          createdAt: new Date().toISOString(),
-        },
-      });
+      dispatch({ type: 'ADD_SESSION_PLAN', payload: { id: generateId(), ...payload, createdAt: new Date().toISOString() } });
     }
-
     navigation.goBack();
   };
 
-  const getTotalMinutes = () =>
-    gameIds.reduce((sum, gid) => {
-      const game = state.games.find(g => g.id === gid);
-      return sum + (game?.defaultMinutes || 0);
-    }, 0);
+  const totalMinutes = gameIds.reduce((sum, gid) => sum + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
+  const tagLine = (gid: string): string => {
+    const g = state.games.find(x => x.id === gid);
+    const parts: string[] = [];
+    if (g?.bodyParts?.length) parts.push(`🦵 ${g.bodyParts.join(', ')}`);
+    if (g?.techniques?.length) parts.push(`🥋 ${g.techniques.join(', ')}`);
+    return parts.join('  ');
+  };
+
+  const q = query.trim().toLowerCase();
+  const matches = (gid: string): boolean => {
+    if (!q) return true;
+    const g = state.games.find(x => x.id === gid);
+    if (!g) return false;
+    return [g.name, g.shortName, ...(g.techniques || []), ...(g.bodyParts || []), g.neuroTarget]
+      .join(' ')
+      .toLowerCase()
+      .includes(q);
+  };
+
+  // Render the selected list with a heading whenever the phase changes.
+  let lastPhase: SessionPhase | null = null;
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.section}>Session Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g., Tuesday Evening Training"
-          placeholderTextColor={COLORS.textMuted}
-          value={name}
-          onChangeText={setName}
-        />
+        <TextInput style={styles.input} placeholder="e.g., Tuesday Evening Training" placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
 
         <Text style={styles.section}>Group</Text>
         <View style={styles.picker}>
@@ -183,80 +181,63 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
             data={state.groups}
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[styles.pickerItem, groupId === item.id && { backgroundColor: COLORS.primary }]}
-                onPress={() => setGroupId(item.id)}
-              >
-                <Text style={[styles.pickerItemText, groupId === item.id && { color: COLORS.surface }]}>
-                  {item.name}
-                </Text>
+              <TouchableOpacity style={[styles.pickerItem, groupId === item.id && { backgroundColor: COLORS.primary }]} onPress={() => setGroupId(item.id)}>
+                <Text style={[styles.pickerItemText, groupId === item.id && { color: COLORS.surface }]}>{item.name}</Text>
               </TouchableOpacity>
             )}
-            ListEmptyComponent={
-              <Text style={[styles.pickerItem, styles.pickerItemText, { color: COLORS.textMuted }]}>
-                No groups yet — create one in the Groups tab first.
-              </Text>
-            }
+            ListEmptyComponent={<Text style={[styles.pickerItem, styles.pickerItemText, { color: COLORS.textMuted }]}>No groups yet — create one in the Groups tab first.</Text>}
           />
         </View>
 
         <Text style={styles.section}>Date</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="YYYY-MM-DD"
-          placeholderTextColor={COLORS.textMuted}
-          value={date}
-          onChangeText={setDate}
-        />
+        <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor={COLORS.textMuted} value={date} onChangeText={setDate} />
 
         <Text style={styles.section}>Template</Text>
-        <View style={styles.templateButtons}>
-          <TouchableOpacity
-            style={[styles.templateButton, template === 'kids-2h' && styles.templateButtonActive]}
-            onPress={() => handleTemplateChange('kids-2h')}
-          >
-            <Text style={[styles.templateButtonText, template === 'kids-2h' && styles.templateButtonTextActive]}>
-              Kids 2h
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.templateButton, template === 'youth-adult-1h30' && styles.templateButtonActive]}
-            onPress={() => handleTemplateChange('youth-adult-1h30')}
-          >
-            <Text style={[styles.templateButtonText, template === 'youth-adult-1h30' && styles.templateButtonTextActive]}>
-              Youth/Adult 1.5h
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.templateButton, template === 'custom' && styles.templateButtonActive]}
-            onPress={() => handleTemplateChange('custom')}
-          >
-            <Text style={[styles.templateButtonText, template === 'custom' && styles.templateButtonTextActive]}>
-              Custom
-            </Text>
-          </TouchableOpacity>
+        <View style={styles.chipRow}>
+          {TEMPLATE_GROUPS.map(grp => (
+            <TouchableOpacity key={grp.label} style={[styles.chip, openGroup === grp.label && styles.chipActive]} onPress={() => setOpenGroup(g => (g === grp.label ? null : grp.label))}>
+              <Text style={[styles.chipText, openGroup === grp.label && styles.chipTextActive]}>{grp.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
+        {openGroup && (
+          <View style={styles.chipRow}>
+            {TEMPLATE_GROUPS.find(g => g.label === openGroup)!.items.map(it => (
+              <TouchableOpacity key={it.name} style={styles.chip} onPress={() => applyTemplate(it.t, it.ids)}>
+                <Text style={styles.chipText}>{it.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-        <Text style={styles.section}>Übungen ({gameIds.length} · {getTotalMinutes()} min)</Text>
+        <Text style={styles.section}>Übungen ({gameIds.length} · {totalMinutes} min) · {template}</Text>
         {gameIds.map((gid, idx) => {
           const g = state.games.find(x => x.id === gid);
+          const p = phaseOf(gid);
+          const heading = p !== lastPhase ? SESSION_PHASE_LABELS[p] : null;
+          lastPhase = p;
           const border = g?.phase === 'warmup' ? COLORS.warmup : g?.phase === 'cooldown' ? COLORS.cooldown : COLORS.main;
           const last = idx === gameIds.length - 1;
+          const tags = tagLine(gid);
           return (
-            <View key={`${gid}-${idx}`} style={[styles.gameRow, { borderLeftColor: border }]}>
-              <View style={styles.gameRowInfo}>
-                <Text style={styles.gameTitle}>{g?.name || gid}</Text>
-                <Text style={styles.gameMeta}>{g?.phase} · {g?.defaultMinutes} min</Text>
+            <View key={`${gid}-${idx}`}>
+              {heading && <Text style={styles.phaseHeading}>{heading}</Text>}
+              <View style={[styles.gameRow, { borderLeftColor: border }]}>
+                <View style={styles.gameRowInfo}>
+                  <Text style={styles.gameTitle}>{g?.name || gid}</Text>
+                  <Text style={styles.gameMeta}>{g?.defaultMinutes} min</Text>
+                  {!!tags && <Text style={styles.tags}>{tags}</Text>}
+                </View>
+                <TouchableOpacity style={styles.ctrl} onPress={() => moveGame(idx, -1)} disabled={idx === 0}>
+                  <Text style={[styles.ctrlText, idx === 0 && { opacity: 0.25 }]}>▲</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.ctrl} onPress={() => moveGame(idx, 1)} disabled={last}>
+                  <Text style={[styles.ctrlText, last && { opacity: 0.25 }]}>▼</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.ctrl} onPress={() => removeGame(idx)}>
+                  <Text style={styles.removeText}>✕</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.ctrl} onPress={() => moveGame(idx, -1)} disabled={idx === 0}>
-                <Text style={[styles.ctrlText, idx === 0 && { opacity: 0.25 }]}>▲</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.ctrl} onPress={() => moveGame(idx, 1)} disabled={last}>
-                <Text style={[styles.ctrlText, last && { opacity: 0.25 }]}>▼</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.ctrl} onPress={() => removeGame(idx)}>
-                <Text style={styles.removeText}>✕</Text>
-              </TouchableOpacity>
             </View>
           );
         })}
@@ -266,17 +247,32 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
           <Text style={styles.addToggleText}>{showAdd ? 'Close' : '+ Add Übung'}</Text>
         </TouchableOpacity>
         {showAdd && (
-          <View style={[styles.picker, { marginTop: 6 }]}>
-            {(['warmup', 'main', 'cooldown'] as const).map(phase =>
-              state.games
-                .filter(g => g.phase === phase && !gameIds.includes(g.id))
-                .map(g => (
-                  <TouchableOpacity key={g.id} style={styles.addItem} onPress={() => addGame(g.id)}>
-                    <Text style={styles.addItemText}>{g.name}</Text>
-                    <Text style={styles.addItemMeta}>{phase} · {g.defaultMinutes}min</Text>
-                  </TouchableOpacity>
-                ))
-            )}
+          <View style={{ marginTop: 6 }}>
+            <TextInput
+              style={styles.input}
+              placeholder="Filter — e.g. ap-chagi, knee, balance"
+              placeholderTextColor={COLORS.textMuted}
+              value={query}
+              onChangeText={setQuery}
+              autoCapitalize="none"
+            />
+            <View style={styles.picker}>
+              {PHASES.map(phase => {
+                const available = state.games.filter(g => (g.sessionPhase ?? 3) === phase && !gameIds.includes(g.id) && matches(g.id));
+                if (available.length === 0) return null;
+                return (
+                  <View key={phase}>
+                    <Text style={[styles.phaseHeading, { paddingHorizontal: 10 }]}>{SESSION_PHASE_LABELS[phase]}</Text>
+                    {available.map(g => (
+                      <TouchableOpacity key={g.id} style={styles.addItem} onPress={() => addGame(g.id)}>
+                        <Text style={styles.gameTitle}>{g.name} <Text style={styles.gameMeta}>· {g.defaultMinutes}min</Text></Text>
+                        {!!tagLine(g.id) && <Text style={styles.tags}>{tagLine(g.id)}</Text>}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                );
+              })}
+            </View>
           </View>
         )}
 

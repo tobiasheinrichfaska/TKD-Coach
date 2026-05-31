@@ -14,7 +14,8 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { generateSessionSummaryText } from '../../utils/format';
-import type { GameLog } from '../../types';
+import { SESSION_PHASE_LABELS } from '../../types';
+import type { GameLog, SessionPhase } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const beepAsset = require('../../../assets/beep.wav');
@@ -69,6 +70,7 @@ const styles = StyleSheet.create({
   gameCardActive: { borderLeftColor: COLORS.primary, backgroundColor: '#FFF9E6' },
   gameCardOverrun: { borderLeftColor: COLORS.warning, backgroundColor: '#FFF3E0' },
   gameCardInactive: { borderLeftColor: COLORS.border, opacity: 0.5 },
+  phaseHeading: { fontSize: 12, fontWeight: 'bold', color: COLORS.textMuted, marginTop: 12, marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   gameName: { fontSize: 16, fontWeight: '600', color: COLORS.text },
   gameTime: { fontSize: 12, color: COLORS.textMuted, marginTop: 4 },
   timerText: { fontSize: 32, fontWeight: 'bold', color: COLORS.primary, marginTop: 8, textAlign: 'center' },
@@ -125,6 +127,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
 
   const currentGameLog = gameLogs[currentGameIndex];
   const currentGame = state.games.find(g => g.id === currentGameLog?.gameId);
+  const phaseOf = (gid: string): SessionPhase => state.games.find(g => g.id === gid)?.sessionPhase ?? 3;
 
   /**
    * Strong, repeated signal that the planned duration was reached — meant to cut
@@ -306,6 +309,8 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     );
   }
 
+  let lastPhase: SessionPhase | null = null;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -319,18 +324,22 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
         {gameLogs.map((log, idx) => {
           const active = idx === currentGameIndex;
           const overrunHere = active && isOverrun;
+          const p = phaseOf(log.gameId);
+          const heading = p !== lastPhase ? SESSION_PHASE_LABELS[p] : null;
+          lastPhase = p;
           return (
-            <View
-              key={idx}
-              style={[
-                styles.gameCard,
-                overrunHere
-                  ? styles.gameCardOverrun
-                  : active
-                  ? styles.gameCardActive
-                  : styles.gameCardInactive,
-              ]}
-            >
+            <React.Fragment key={idx}>
+              {heading && <Text style={styles.phaseHeading}>{heading}</Text>}
+              <View
+                style={[
+                  styles.gameCard,
+                  overrunHere
+                    ? styles.gameCardOverrun
+                    : active
+                    ? styles.gameCardActive
+                    : styles.gameCardInactive,
+                ]}
+              >
               <Text style={styles.gameName}>
                 {active ? '▶ ' : ''}{state.games.find(g => g.id === log.gameId)?.name}
               </Text>
@@ -365,21 +374,30 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                   </View>
                   {log.status === 'pending' && swapOpen && (
                     <View style={styles.swapList}>
-                      {(['warmup', 'main', 'cooldown'] as const).map(phase =>
-                        state.games
-                          .filter(g => g.phase === phase && g.id !== log.gameId)
-                          .map(g => (
-                            <TouchableOpacity key={g.id} style={styles.swapItem} onPress={() => swapCurrent(g.id)}>
-                              <Text style={styles.swapItemText}>{g.name}</Text>
-                              <Text style={styles.swapItemMeta}>{phase} · {g.defaultMinutes}min · {g.neuroTarget}</Text>
-                            </TouchableOpacity>
-                          ))
-                      )}
+                      {([1, 2, 3, 4, 5] as SessionPhase[]).map(ph => {
+                        const opts = state.games.filter(g => (g.sessionPhase ?? 3) === ph && g.id !== log.gameId);
+                        if (opts.length === 0) return null;
+                        return (
+                          <View key={ph}>
+                            <Text style={[styles.phaseHeading, { paddingHorizontal: 10 }]}>{SESSION_PHASE_LABELS[ph]}</Text>
+                            {opts.map(g => (
+                              <TouchableOpacity key={g.id} style={styles.swapItem} onPress={() => swapCurrent(g.id)}>
+                                <Text style={styles.swapItemText}>{g.name}</Text>
+                                <Text style={styles.swapItemMeta}>
+                                  {g.defaultMinutes}min · {g.neuroTarget}
+                                  {g.bodyParts && g.bodyParts.length ? ` · ${g.bodyParts.join(', ')}` : ''}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        );
+                      })}
                     </View>
                   )}
                 </>
               )}
-            </View>
+              </View>
+            </React.Fragment>
           );
         })}
       </ScrollView>
