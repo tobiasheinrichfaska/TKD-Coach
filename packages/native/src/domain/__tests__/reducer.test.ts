@@ -3,7 +3,7 @@ import { Group, Athlete, SessionLog, Assessment, SessionTemplate, AppData } from
 
 const grp = (id: string, athleteIds: string[] = []): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });
 const ath = (id: string): Athlete => ({
-  id, name: id, belt: 'white',
+  id, name: id, belt: 'kup-10',
   neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
 });
 const assess = (id: string, athleteId: string): Assessment => ({

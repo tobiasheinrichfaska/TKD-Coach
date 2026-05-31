@@ -70,7 +70,7 @@ describe('coverage', () => {
 
 describe('group membership (M:N)', () => {
   const mkAth = (id: string): Athlete => ({
-    id, name: id, belt: 'white',
+    id, name: id, belt: 'kup-10',
     neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
   });
   const mkGrp = (id: string, athleteIds: string[]): Group => ({ id, name: id, ageCategory: 'kids', athleteIds });

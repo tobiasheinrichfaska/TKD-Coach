@@ -1,15 +1,10 @@
-// Belt levels in order
+// Belt grade ids in ascending rank (Kup colour belts → Poom/Dan).
+// Labels/colours live in constants/belts.ts (BELT_INFOS).
 export type Belt =
-  | 'white'
-  | 'yellow-tag'
-  | 'yellow'
-  | 'green-tag'
-  | 'green'
-  | 'blue-tag'
-  | 'blue'
-  | 'red-tag'
-  | 'red'
-  | 'black';
+  | 'kup-10' | 'kup-9' | 'kup-8' | 'kup-7' | 'kup-6'
+  | 'kup-5' | 'kup-4' | 'kup-3' | 'kup-2' | 'kup-1'
+  | 'poom-1' | 'dan-1' | 'poom-2' | 'dan-2' | 'poom-3' | 'dan-3'
+  | 'dan-4' | 'dan-5' | 'dan-6' | 'dan-7' | 'dan-8' | 'dan-9';
 
 // Neuro assessment types
 export type AssessmentMetricType =

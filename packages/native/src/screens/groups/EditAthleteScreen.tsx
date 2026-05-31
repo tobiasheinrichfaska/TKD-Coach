@@ -3,6 +3,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
+import { BELT_INFOS } from '../../constants/belts';
 import type { Belt } from '../../types';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
@@ -13,6 +14,11 @@ const styles = StyleSheet.create({
   button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 16 },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
   section: { fontSize: 14, fontWeight: 'bold', marginTop: 20, marginBottom: 8, color: COLORS.text },
+  beltRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  beltChip: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  beltChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  beltChipText: { color: COLORS.text, fontSize: 13 },
+  beltChipTextActive: { color: COLORS.surface, fontWeight: '600' },
 });
 
 export default function EditAthleteScreen({ route, navigation }: GroupsStackScreenProps<'EditAthlete'>) {
@@ -22,7 +28,7 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
   const athlete = athleteId ? state.athletes.find(a => a.id === athleteId) : null;
 
   const [name, setName] = useState(athlete?.name || '');
-  const [belt, setBelt] = useState<Belt>(athlete?.belt || 'white');
+  const [belt, setBelt] = useState<Belt>(athlete?.belt || 'kup-10');
   const [phone, setPhone] = useState(athlete?.contact?.phone || '');
   const [parentName, setParentName] = useState(athlete?.contact?.parentName || '');
 
@@ -74,8 +80,19 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
           {athleteId ? 'Edit Athlete' : 'Create Athlete'}
         </Text>
         <TextInput style={styles.input} placeholder="Name" placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
-        {/* Free-text belt entry: accepts any string for now; canonical values defined in Belt union (see types). */}
-        <TextInput style={styles.input} placeholder="Belt" placeholderTextColor={COLORS.textMuted} value={belt} onChangeText={(t) => setBelt(t as Belt)} />
+
+        <Text style={styles.section}>Belt</Text>
+        <View style={styles.beltRow}>
+          {BELT_INFOS.map(b => (
+            <TouchableOpacity
+              key={b.value}
+              style={[styles.beltChip, belt === b.value && styles.beltChipActive]}
+              onPress={() => setBelt(b.value)}
+            >
+              <Text style={belt === b.value ? styles.beltChipTextActive : styles.beltChipText}>{b.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         <Text style={styles.section}>Contact</Text>
         <TextInput style={styles.input} placeholder="Phone" placeholderTextColor={COLORS.textMuted} value={phone} onChangeText={setPhone} />

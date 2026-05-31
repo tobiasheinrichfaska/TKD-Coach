@@ -14,10 +14,10 @@
 **Steps:**
 1. **Groups** tab → tap a group → its detail screen ("Athlet" list).
 2. Tap the **+** button.
-3. Enter a Name and a Belt (free text, e.g. `yellow`). Optionally Phone / Parent Name. Tap **Save**.
+3. Enter a Name, then under **Belt** tap a grade chip (e.g. `8. Kup · Gelb`). Optionally Phone / Parent Name. Tap **Save**.
 
-**Expected:** Returns to the group; the athlete appears in the list with belt shown. The group's athlete count increases.
-> Not obvious: belt is free text right now — any string is accepted and stored as-is.
+**Expected:** Returns to the group; the athlete appears with the chosen belt shown. The group's athlete count increases.
+> Not obvious: belt is now picked from the fixed Kup/Poom/Dan ladder (10. Kup → 9. Dan), not typed. Old free-text belts from earlier builds are auto-mapped to the new ladder on load.
 
 ## MT-01-3: Edit an existing athlete (regression — this was previously broken)
 **Preconditions:** A group with an athlete.

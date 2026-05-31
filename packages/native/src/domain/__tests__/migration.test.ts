@@ -1,7 +1,7 @@
 import { migrate } from '../migration';
 import { BUILTIN_GAMES } from '../../constants/games';
 import { BUILTIN_TEMPLATES } from '../templates';
-import { AppData, GameDefinition, SessionTemplate } from '../../types';
+import { AppData, GameDefinition, SessionTemplate, Athlete, Belt } from '../../types';
 
 const base = (games: GameDefinition[]): AppData => ({
   version: 1, games, athletes: [], groups: [], sessionPlans: [], sessionLogs: [], assessments: [],
@@ -63,5 +63,16 @@ describe('migrate', () => {
   it('handles a missing sessionTemplates array', () => {
     const out = migrate({ ...base([]), sessionTemplates: undefined as unknown as SessionTemplate[] });
     expect(out.sessionTemplates.length).toBe(BUILTIN_TEMPLATES.length);
+  });
+
+  it('normalises legacy colour-belt ids to ladder ids', () => {
+    const mk = (belt: string): Athlete => ({
+      id: belt, name: belt, belt: belt as Belt,
+      neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
+    });
+    const out = migrate({ ...base([]), athletes: [mk('white'), mk('black'), mk('dan-3')] });
+    expect(out.athletes[0].belt).toBe('kup-10'); // white -> 10. Kup
+    expect(out.athletes[1].belt).toBe('dan-1');  // black -> 1. Dan
+    expect(out.athletes[2].belt).toBe('dan-3');  // already a ladder id, untouched
   });
 });
