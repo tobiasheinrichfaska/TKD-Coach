@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppData } from '../types';
 import { appReducer, EMPTY_STATE, Action, EMPTY_APP_DATA } from './reducer';
 import { BUILTIN_GAMES } from '../constants/games';
+import { migrate } from '../domain/migration';
 
 const STORAGE_KEY = 'tkd_coach_app_data';
 const DEBOUNCE_MS = 300;
@@ -27,14 +28,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored) {
           const data = JSON.parse(stored) as AppData;
-          // Migration: refresh built-in Übungen from the canonical seed so existing
-          // installs gain new Übungen + the sessionPhase/techniques/bodyParts fields.
-          // Any user-created games (not built-in, unknown id) are preserved.
-          const userGames = (data.games || []).filter(
-            g => !g.isBuiltIn && !BUILTIN_GAMES.some(b => b.id === g.id)
-          );
-          data.games = [...BUILTIN_GAMES, ...userGames];
-          dispatch({ type: 'LOAD_ALL', payload: data });
+          // Migration (pure, unit-tested in domain/migration): refresh built-in Übungen
+          // from the seed, preserving user-created games.
+          dispatch({ type: 'LOAD_ALL', payload: migrate(data) });
         } else {
           // First run: seed with built-in games
           const initialData: AppData = {

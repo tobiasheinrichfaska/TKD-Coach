@@ -6,7 +6,7 @@ import {
   coverageByBodyPart,
   assessmentHistory,
 } from '../selectors';
-import { GameDefinition, SessionLog, SessionPlan, Assessment } from '../types';
+import { GameDefinition, SessionLog, SessionPlan, Assessment } from '../../types';
 
 const game = (id: string, min: number, techniques: string[], bodyParts: string[]): GameDefinition => ({
   id, name: id, shortName: id, phase: 'main', defaultMinutes: min, ageGroup: 'all', isBuiltIn: true,
