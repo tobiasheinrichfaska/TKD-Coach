@@ -26,7 +26,7 @@ export default function SessionsNavigator() {
       <Stack.Screen
         name="RunSession"
         component={RunSessionScreen}
-        options={{ title: 'Running Session', headerBackVisible: false }}
+        options={{ title: 'Running Session' }}
       />
     </Stack.Navigator>
   );

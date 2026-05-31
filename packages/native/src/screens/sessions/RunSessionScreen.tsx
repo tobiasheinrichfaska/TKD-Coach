@@ -14,6 +14,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { generateSessionSummaryText } from '../../utils/format';
+import type { GameLog } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const beepAsset = require('../../../assets/beep.wav');
@@ -22,6 +23,34 @@ const beepAsset = require('../../../assets/beep.wav');
 const fmt = (sec: number): string => {
   const s = Math.max(0, Math.floor(sec));
   return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+};
+
+interface GameLogState {
+  gameId: string;
+  startedAt?: number;
+  endedAt?: number;
+  durationSeconds?: number;
+  status: 'pending' | 'running' | 'completed';
+}
+
+// --- persistence mapping (so a running session survives navigation / app restart) ---
+const fromPersisted = (gl: GameLog): GameLogState => ({
+  gameId: gl.gameId,
+  startedAt: gl.startedAt ? Date.parse(gl.startedAt) : undefined,
+  endedAt: gl.endedAt ? Date.parse(gl.endedAt) : undefined,
+  durationSeconds: gl.durationSeconds,
+  status:
+    gl.durationSeconds != null ? 'completed' : gl.startedAt && !gl.endedAt ? 'running' : 'pending',
+});
+const toPersisted = (gl: GameLogState): GameLog => ({
+  gameId: gl.gameId,
+  startedAt: gl.startedAt ? new Date(gl.startedAt).toISOString() : undefined,
+  endedAt: gl.endedAt ? new Date(gl.endedAt).toISOString() : undefined,
+  durationSeconds: gl.durationSeconds,
+});
+const firstUnfinished = (logs: GameLogState[]): number => {
+  const i = logs.findIndex(l => l.status !== 'completed');
+  return i === -1 ? Math.max(0, logs.length - 1) : i;
 };
 
 const styles = StyleSheet.create({
@@ -58,24 +87,28 @@ const styles = StyleSheet.create({
   cancelButton: { flex: 1, backgroundColor: COLORS.danger, padding: 12, borderRadius: 8, alignItems: 'center' },
 });
 
-interface GameLogState {
-  gameId: string;
-  startedAt?: number;
-  endedAt?: number;
-  durationSeconds?: number;
-  status: 'pending' | 'running' | 'completed';
-}
-
 export default function RunSessionScreen({ route, navigation }: SessionsStackScreenProps<'RunSession'>) {
   const { state, dispatch } = useData();
   const planId = route.params.planId;
   const plan = state.sessionPlans.find(p => p.id === planId);
   const group = plan ? state.groups.find(g => g.id === plan.groupId) : null;
 
-  const [gameLogs, setGameLogs] = useState<GameLogState[]>(
-    plan?.plannedGames.map(gid => ({ gameId: gid, status: 'pending' })) || []
+  // Resume an in-progress run for this plan if one was persisted.
+  const runningLog = plan
+    ? state.sessionLogs.find(l => l.planId === plan.id && l.status === 'running')
+    : undefined;
+
+  const [gameLogs, setGameLogs] = useState<GameLogState[]>(() =>
+    runningLog
+      ? runningLog.gameLogs.map(fromPersisted)
+      : plan?.plannedGames.map(gid => ({ gameId: gid, status: 'pending' as const })) || []
   );
-  const [currentGameIndex, setCurrentGameIndex] = useState(0);
+  const [currentGameIndex, setCurrentGameIndex] = useState(() =>
+    runningLog ? firstUnfinished(runningLog.gameLogs.map(fromPersisted)) : 0
+  );
+  const [runningLogId, setRunningLogId] = useState<string | null>(runningLog?.id ?? null);
+  const sessionStartedAtRef = useRef<string>(runningLog?.startedAt ?? new Date().toISOString());
+
   const [timerDisplay, setTimerDisplay] = useState('0:00');
   const [remainingDisplay, setRemainingDisplay] = useState('');
   const [isOverrun, setIsOverrun] = useState(false);
@@ -90,7 +123,6 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   /**
    * Strong, repeated signal that the planned duration was reached — meant to cut
    * through a noisy dojo. Loud 3-pulse beep + a Warning buzz + 3 heavy taps.
-   * All best-effort (web/silent just skips what it can't do).
    */
   const fireSignal = useCallback(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
@@ -106,9 +138,31 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     }
   }, [beep]);
 
+  /** Persist the in-progress run so it survives navigation away and app restart. */
+  const persistRunning = useCallback(
+    (logs: GameLogState[]) => {
+      if (!plan) return;
+      const id = runningLogId ?? generateId();
+      const payload = {
+        id,
+        planId: plan.id,
+        groupId: plan.groupId,
+        startedAt: sessionStartedAtRef.current,
+        gameLogs: logs.map(toPersisted),
+        status: 'running' as const,
+      };
+      if (!runningLogId) {
+        setRunningLogId(id);
+        dispatch({ type: 'ADD_SESSION_LOG', payload });
+      } else {
+        dispatch({ type: 'UPDATE_SESSION_LOG', payload });
+      }
+    },
+    [plan, runningLogId, dispatch]
+  );
+
   // Timer: counts up; at planned duration fires the signal once and flips to overrun.
-  // Depends on primitives (status/startedAt/index/plannedMinutes), not the whole log object,
-  // so setGameLogs elsewhere doesn't churn the interval.
+  // Primitive deps (not the whole log object) so setGameLogs doesn't churn the interval.
   const status = currentGameLog?.status;
   const startedAt = currentGameLog?.startedAt;
   const plannedMinutes = currentGame?.defaultMinutes ?? 0;
@@ -157,10 +211,11 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       endedAt: undefined,
     };
     setGameLogs(newLogs);
+    persistRunning(newLogs);
   };
 
   const handleStopGame = () => {
-    const now = Date.now(); // capture the real stop time, not the session-complete time
+    const now = Date.now(); // capture the real stop time, not session-complete time
     const newLogs = [...gameLogs];
     const log = newLogs[currentGameIndex];
     if (log.startedAt) {
@@ -171,6 +226,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
         durationSeconds: Math.round((now - log.startedAt) / 1000),
       };
       setGameLogs(newLogs);
+      persistRunning(newLogs);
       setIsOverrun(false);
       if (currentGameIndex < gameLogs.length - 1) {
         setCurrentGameIndex(currentGameIndex + 1);
@@ -181,26 +237,17 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const handleComplete = async () => {
     if (!plan || !group) return;
 
-    // Use the real per-game timestamps captured at STOP; unplayed games carry no timestamps.
-    const convertedGameLogs = gameLogs.map(gl => ({
-      gameId: gl.gameId,
-      startedAt: gl.startedAt ? new Date(gl.startedAt).toISOString() : undefined,
-      endedAt: gl.endedAt ? new Date(gl.endedAt).toISOString() : undefined,
-      durationSeconds: gl.durationSeconds,
-    }));
-
-    dispatch({
-      type: 'ADD_SESSION_LOG',
-      payload: {
-        id: generateId(),
-        planId: plan.id,
-        groupId: plan.groupId,
-        startedAt: new Date().toISOString(),
-        endedAt: new Date().toISOString(),
-        gameLogs: convertedGameLogs,
-        status: 'completed',
-      },
-    });
+    const payload = {
+      id: runningLogId ?? generateId(),
+      planId: plan.id,
+      groupId: plan.groupId,
+      startedAt: sessionStartedAtRef.current,
+      endedAt: new Date().toISOString(),
+      gameLogs: gameLogs.map(toPersisted),
+      status: 'completed' as const,
+    };
+    // Finalize the running log (or create one if nothing was started).
+    dispatch({ type: runningLogId ? 'UPDATE_SESSION_LOG' : 'ADD_SESSION_LOG', payload });
 
     const summaryText = generateSessionSummaryText(
       group.name,
@@ -223,8 +270,15 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
 
   const handleCancel = () => {
     Alert.alert('Cancel Session', 'Are you sure? Progress will not be saved.', [
-      { text: 'Cancel', onPress: () => {} },
-      { text: 'Discard', onPress: () => navigation.goBack(), style: 'destructive' },
+      { text: 'Keep going', onPress: () => {} },
+      {
+        text: 'Discard',
+        style: 'destructive',
+        onPress: () => {
+          if (runningLogId) dispatch({ type: 'DELETE_SESSION_LOG', payload: { id: runningLogId } });
+          navigation.goBack();
+        },
+      },
     ]);
   };
 
