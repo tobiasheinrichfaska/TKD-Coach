@@ -174,6 +174,14 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to add new games and expand the
 
 ---
 
+## App & Building
+
+This repo also contains a React Native / Expo app under [`packages/native/`](packages/native) — the coaching companion (groups, session runner, assessments, and QR data-sync between coaches' phones).
+
+> **Build note (known limitation):** the app depends on `@tobiasheinrichfaska/qr-sync` — the QR data-sync engine, maintained in the separate [`expo-shared`](https://github.com/tobiasheinrichfaska/expo-shared) repo. That package is **not yet published to a registry**; it is currently consumed via a **local path link**. So `npm install` will **not** resolve it on a fresh standalone clone. Until `qr-sync` is published, building the app requires both repos checked out side-by-side under the same parent directory. The Markdown coaching library (games / sessions / assessment) needs no build and is usable as-is.
+
+---
+
 ## License
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
