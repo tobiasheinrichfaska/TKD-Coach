@@ -9,7 +9,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
   text: { fontSize: 16, color: COLORS.text },
   groupItem: { backgroundColor: COLORS.surface, padding: 16, marginBottom: 8, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: COLORS.primary },
-  allRow: { backgroundColor: COLORS.surface, padding: 16, marginBottom: 12, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: COLORS.info, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  allRow: { backgroundColor: COLORS.surface, padding: 16, marginBottom: 8, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: COLORS.info, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  contactsRow: { backgroundColor: COLORS.surface, padding: 16, marginBottom: 12, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: COLORS.success, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   fab: { position: 'absolute', bottom: 24, right: 24, width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
 });
 
@@ -25,6 +26,14 @@ export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'Gro
           <Text style={{ fontSize: 12, color: COLORS.textMuted }}>
             {state.athletes.length} total{ungroupedCount > 0 ? ` · ${ungroupedCount} ungrouped` : ''}
           </Text>
+        </View>
+        <Text style={{ fontSize: 20, color: COLORS.textMuted }}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.contactsRow} onPress={() => navigation.navigate('EmergencyContacts')}>
+        <View>
+          <Text style={styles.text}>Emergency Contacts</Text>
+          <Text style={{ fontSize: 12, color: COLORS.textMuted }}>{state.emergencyContacts.length} contacts</Text>
         </View>
         <Text style={{ fontSize: 20, color: COLORS.textMuted }}>›</Text>
       </TouchableOpacity>

@@ -153,10 +153,12 @@ src/
     │   ├── GroupsNavigator.tsx
     │   ├── GroupsScreen.tsx        ← groups list + "All Athletes" entry (shows ungrouped count)
     │   ├── AllAthletesScreen.tsx   ← full roster; All/Ungrouped filter; create ungrouped athlete
+    │   ├── EmergencyContactsScreen.tsx  ← all contacts; tap to edit; quick "Anrufen"
+    │   ├── EditEmergencyContactScreen.tsx ← name/email/≤5 phones/isGuardian + athlete links
     │   ├── EditGroupScreen.tsx
     │   ├── GroupDetailScreen.tsx
-    │   ├── EditAthleteScreen.tsx
-    │   └── AthleteDetailScreen.tsx ← shows + edits group memberships (M:N chips)
+    │   ├── EditAthleteScreen.tsx   ← name, birth year, graduation (promote/demote), contact
+    │   └── AthleteDetailScreen.tsx ← group chips (M:N) + linked emergency contacts (tappable tel/mailto)
     ├── sessions/
     │   ├── SessionsNavigator.tsx
     │   ├── SessionsScreen.tsx

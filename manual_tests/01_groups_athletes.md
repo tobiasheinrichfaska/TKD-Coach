@@ -78,3 +78,23 @@
 **Steps:** Delete a group that has athletes (if a delete affordance is present).
 **Expected:** Only the group disappears. Its athletes **remain** — visible under **All Athletes**, and still inside any other groups they belong to. An athlete left in no group shows up under **All Athletes → Ungrouped**.
 > Not obvious: this reverses the old cascade. Because an athlete can belong to many groups, removing one group must not delete shared athletes. (Deleting an *athlete*, however, still removes it from every group and deletes its assessments.)
+
+## MT-01-8: Delete an athlete (with safety prompt)
+**Preconditions:** An athlete (ideally with a group + an assessment).
+**Steps:**
+1. Open the athlete → **Delete Athlete** (red), **or** on **All Athletes** tap the 🗑 on its row.
+2. Read the dialog, tap **Delete**.
+
+**Expected:** A confirm appears warning it permanently removes the athlete and *all linked data — group memberships, assessments, attendance (Teilnahme)*. After confirming, the athlete is gone from every list and every group's count drops.
+> Not obvious: the dialog is destructive — there is no undo. Cancelling leaves everything intact.
+
+## MT-01-9: Emergency contacts (guardian flag + tappable phone/email)
+**Preconditions:** At least one athlete.
+**Steps:**
+1. Open an athlete → under **Emergency contacts** tap **+ Kontakt hinzufügen**.
+2. Enter a Name, an Email, one or more **Phone numbers** (tap *+ Add phone*, up to 5), leave **Legal guardian** on, confirm the athlete is selected under **Linked athletes**, tap **Save**.
+3. Back on the athlete, tap the **📞 number** and the **✉ email**.
+4. Also open **Groups** tab → **Emergency Contacts** row to see the global list; tap **Anrufen** on a row.
+
+**Expected:** The contact appears under the athlete with an **Erz.-ber.** tag; tapping a phone opens the dialer (`tel:`), tapping the email opens the mail app (`mailto:`). A guardian-linked athlete no longer shows the ⚠ "Kein Erziehungsberechtigter" warning. One contact can be linked to several athletes (siblings).
+> Not obvious: the ⚠ warning only shows when no guardian is linked **and** the athlete isn't definitely 18+ (from birth year). Phone/email are live device links — on a simulator without a dialer/mail app they may do nothing.

@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
-import { groupsForAthlete } from '../../domain';
+import { groupsForAthlete, contactsForAthlete, guardiansForAthlete } from '../../domain';
+import { callNumber, sendEmail } from '../../utils/linking';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -26,6 +27,12 @@ const styles = StyleSheet.create({
   chipAdd: { backgroundColor: 'transparent', borderColor: COLORS.border, borderStyle: 'dashed' },
   chipAddText: { color: COLORS.text },
   hint: { fontSize: 12, color: COLORS.textMuted, marginBottom: 8 },
+  link: { color: COLORS.info, fontWeight: '500' },
+  contactCard: { backgroundColor: COLORS.surface, padding: 12, marginBottom: 8, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border },
+  contactName: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  guardianTag: { fontSize: 11, color: COLORS.surface, backgroundColor: COLORS.info, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, overflow: 'hidden', marginLeft: 8 },
+  contactLine: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 6 },
+  warnHint: { fontSize: 12, color: COLORS.danger, marginTop: 6, marginBottom: 8 },
 });
 
 export default function AthleteDetailScreen({ route, navigation }: GroupsStackScreenProps<'AthleteDetail'>) {
@@ -37,6 +44,12 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
 
   const memberGroups = groupsForAthlete(state.groups, athlete.id);
   const otherGroups = state.groups.filter(g => !g.athleteIds.includes(athlete.id));
+  const contacts = contactsForAthlete(state.emergencyContacts, athlete.id);
+  const guardians = guardiansForAthlete(state.emergencyContacts, athlete.id);
+  const refYear = new Date().getFullYear();
+  // "optional if 18+": warn about a missing guardian unless the athlete is definitely 18+.
+  const definitely18 = !!athlete.birthYear && refYear - athlete.birthYear - 1 >= 18;
+  const needsGuardian = guardians.length === 0 && !definitely18;
 
   const removeFromGroup = (groupId: string) => {
     const group = state.groups.find(g => g.id === groupId);
@@ -81,15 +94,31 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
         {athlete.contact?.phone && (
           <View style={styles.row}>
             <Text style={styles.rowLabel}>Phone</Text>
-            <Text style={styles.rowValue}>{athlete.contact.phone}</Text>
+            <Text style={[styles.rowValue, styles.link]} onPress={() => callNumber(athlete.contact!.phone!)}>{athlete.contact.phone}</Text>
           </View>
         )}
-        {athlete.contact?.parentName && (
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Parent</Text>
-            <Text style={styles.rowValue}>{athlete.contact.parentName}</Text>
+
+        <Text style={styles.section}>Emergency contacts</Text>
+        {needsGuardian && <Text style={styles.warnHint}>⚠ Kein Erziehungsberechtigter hinterlegt (Athlet evtl. unter 18).</Text>}
+        {contacts.length === 0 && <Text style={styles.hint}>No contacts linked yet.</Text>}
+        {contacts.map(c => (
+          <View key={c.id} style={styles.contactCard}>
+            <TouchableOpacity onPress={() => navigation.navigate('EditEmergencyContact', { contactId: c.id })}>
+              <Text style={styles.contactName}>
+                {c.name}{c.isGuardian ? <Text style={styles.guardianTag}>  Erz.-ber.  </Text> : null}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.contactLine}>
+              {c.phones.map((p, i) => (
+                <Text key={i} style={styles.link} onPress={() => callNumber(p)}>📞 {p}</Text>
+              ))}
+              {c.email ? <Text style={styles.link} onPress={() => sendEmail(c.email!)}>✉ {c.email}</Text> : null}
+            </View>
           </View>
-        )}
+        ))}
+        <TouchableOpacity onPress={() => navigation.navigate('EditEmergencyContact', { athleteId: athlete.id })}>
+          <Text style={[styles.link, { marginTop: 4 }]}>+ Kontakt hinzufügen</Text>
+        </TouchableOpacity>
 
         <Text style={styles.section}>Groups</Text>
         {memberGroups.length === 0 && <Text style={styles.hint}>Not in any group yet — tap one below to add.</Text>}
