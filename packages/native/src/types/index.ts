@@ -60,15 +60,32 @@ export interface Group {
   athleteIds: string[];
 }
 
+/** Session phase headings (per the mobility/stretching protocol). */
+export type SessionPhase = 1 | 2 | 3 | 4 | 5;
+export const SESSION_PHASE_LABELS: Record<SessionPhase, string> = {
+  1: 'Phase 1 · Warm-Up (Mobility)',
+  2: 'Phase 2 · Warm-Up (Dynamic)',
+  3: 'Phase 3 · Main',
+  4: 'Phase 4 · Cool-Down (Static)',
+  5: 'Phase 5 · Meditation',
+};
+
 export interface GameDefinition {
   id: string;
   name: string;
   shortName: string;
+  /** Coarse training phase (kept for back-compat / colour coding). */
   phase: 'warmup' | 'main' | 'cooldown';
+  /** Protocol session phase 1–5 (drives the session headings + add-by-phase). */
+  sessionPhase?: SessionPhase;
   neuroTarget: string;
   defaultMinutes: number;
   ageGroup: 'all' | 'youth-adults';
   logMetricType?: AssessmentMetricType;
+  /** Techniques this Übung trains (kebab ids, e.g. "ap-chagi"). */
+  techniques?: string[];
+  /** Joints/muscles this Übung loads (kebab ids, e.g. "knee"). */
+  bodyParts?: string[];
   isBuiltIn: boolean;
   description?: string;
 }

@@ -27,6 +27,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored) {
           const data = JSON.parse(stored) as AppData;
+          // Migration: refresh built-in Übungen from the canonical seed so existing
+          // installs gain new Übungen + the sessionPhase/techniques/bodyParts fields.
+          // Any user-created games (not built-in, unknown id) are preserved.
+          const userGames = (data.games || []).filter(
+            g => !g.isBuiltIn && !BUILTIN_GAMES.some(b => b.id === g.id)
+          );
+          data.games = [...BUILTIN_GAMES, ...userGames];
           dispatch({ type: 'LOAD_ALL', payload: data });
         } else {
           // First run: seed with built-in games
