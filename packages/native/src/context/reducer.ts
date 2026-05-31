@@ -7,6 +7,7 @@ import {
   SessionLog,
   Assessment,
   SessionTemplate,
+  EmergencyContact,
   AppData,
 } from '../types';
 
@@ -32,7 +33,10 @@ export type Action =
   | { type: 'DELETE_ASSESSMENT'; payload: { id: string } }
   | { type: 'ADD_SESSION_TEMPLATE'; payload: SessionTemplate }
   | { type: 'UPDATE_SESSION_TEMPLATE'; payload: SessionTemplate }
-  | { type: 'DELETE_SESSION_TEMPLATE'; payload: { id: string } };
+  | { type: 'DELETE_SESSION_TEMPLATE'; payload: { id: string } }
+  | { type: 'ADD_CONTACT'; payload: EmergencyContact }
+  | { type: 'UPDATE_CONTACT'; payload: EmergencyContact }
+  | { type: 'DELETE_CONTACT'; payload: { id: string } };
 
 export const EMPTY_APP_DATA: AppData = {
   version: 1,
@@ -43,6 +47,7 @@ export const EMPTY_APP_DATA: AppData = {
   sessionLogs: [],
   assessments: [],
   sessionTemplates: [],
+  emergencyContacts: [],
 };
 
 export const EMPTY_STATE: AppState = {
@@ -104,6 +109,10 @@ export function appReducer(state: AppState, action: Action): AppState {
         groups: state.groups.map(g => ({
           ...g,
           athleteIds: g.athleteIds.filter(id => id !== athleteId),
+        })),
+        emergencyContacts: state.emergencyContacts.map(c => ({
+          ...c,
+          athleteIds: c.athleteIds.filter(id => id !== athleteId),
         })),
         assessments: state.assessments.filter(a => a.athleteId !== athleteId),
       };
@@ -197,6 +206,25 @@ export function appReducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         sessionTemplates: state.sessionTemplates.filter(t => t.id !== action.payload.id),
+      };
+
+    // Emergency contacts
+    case 'ADD_CONTACT':
+      return {
+        ...state,
+        emergencyContacts: [...state.emergencyContacts, action.payload],
+      };
+
+    case 'UPDATE_CONTACT':
+      return {
+        ...state,
+        emergencyContacts: state.emergencyContacts.map(c => (c.id === action.payload.id ? action.payload : c)),
+      };
+
+    case 'DELETE_CONTACT':
+      return {
+        ...state,
+        emergencyContacts: state.emergencyContacts.filter(c => c.id !== action.payload.id),
       };
 
     default:

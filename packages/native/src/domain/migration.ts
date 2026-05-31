@@ -27,5 +27,6 @@ export function migrate(data: AppData): AppData {
     athletes,
     games: [...BUILTIN_GAMES, ...userGames],
     sessionTemplates: [...BUILTIN_TEMPLATES, ...userTemplates],
+    emergencyContacts: data.emergencyContacts || [],
   };
 }

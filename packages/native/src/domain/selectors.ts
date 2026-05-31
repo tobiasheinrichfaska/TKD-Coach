@@ -1,4 +1,23 @@
-import { SessionLog, SessionPlan, GameDefinition, Assessment, Athlete, Group } from '../types';
+import { SessionLog, SessionPlan, GameDefinition, Assessment, Athlete, Group, EmergencyContact } from '../types';
+
+// ===== Emergency contacts (many-to-many via EmergencyContact.athleteIds) =====
+
+/** All emergency contacts linked to an athlete. */
+export function contactsForAthlete(contacts: EmergencyContact[], athleteId: string): EmergencyContact[] {
+  return contacts.filter(c => c.athleteIds.includes(athleteId));
+}
+
+/** The subset of an athlete's contacts that are legal guardians. */
+export function guardiansForAthlete(contacts: EmergencyContact[], athleteId: string): EmergencyContact[] {
+  return contactsForAthlete(contacts, athleteId).filter(c => c.isGuardian);
+}
+
+/** Athletes linked to a contact, in stored order. */
+export function athletesForContact(athletes: Athlete[], contact: EmergencyContact | undefined): Athlete[] {
+  if (!contact) return [];
+  const byId = new Map(athletes.map(a => [a.id, a]));
+  return contact.athleteIds.map(id => byId.get(id)).filter((a): a is Athlete => a !== undefined);
+}
 
 // ===== Group membership (many-to-many; the link lives only on Group.athleteIds) =====
 

@@ -58,6 +58,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           sessionLogs: state.sessionLogs,
           assessments: state.assessments,
           sessionTemplates: state.sessionTemplates,
+          emergencyContacts: state.emergencyContacts,
         };
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
       } catch (e) {
@@ -87,6 +88,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         sessionLogs: state.sessionLogs,
         assessments: state.assessments,
         sessionTemplates: state.sessionTemplates,
+        emergencyContacts: state.emergencyContacts,
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
     } catch (e) {

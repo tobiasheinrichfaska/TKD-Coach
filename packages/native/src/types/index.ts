@@ -57,6 +57,22 @@ export interface Group {
   athleteIds: string[];
 }
 
+/**
+ * An emergency contact, optionally a legal guardian (isGuardian). Linked to athletes
+ * many-to-many via athleteIds — a contact can cover several athletes (siblings),
+ * an athlete can have several contacts (e.g. both parents). Phones/emails are surfaced
+ * as tappable tel:/mailto: links in the UI.
+ */
+export interface EmergencyContact {
+  id: string;
+  name: string;
+  email?: string;
+  /** Up to 5 phone numbers. */
+  phones: string[];
+  isGuardian: boolean;
+  athleteIds: string[];
+}
+
 /** Session phase headings (per the mobility/stretching protocol). */
 export type SessionPhase = 1 | 2 | 3 | 4 | 5;
 export const SESSION_PHASE_LABELS: Record<SessionPhase, string> = {
@@ -151,6 +167,7 @@ export interface AppData {
   sessionLogs: SessionLog[];
   assessments: Assessment[];
   sessionTemplates: SessionTemplate[];
+  emergencyContacts: EmergencyContact[];
   exportedAt?: string;
 }
 

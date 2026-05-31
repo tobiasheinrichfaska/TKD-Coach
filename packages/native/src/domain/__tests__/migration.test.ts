@@ -5,7 +5,7 @@ import { AppData, GameDefinition, SessionTemplate, Athlete, Belt } from '../../t
 
 const base = (games: GameDefinition[]): AppData => ({
   version: 1, games, athletes: [], groups: [], sessionPlans: [], sessionLogs: [], assessments: [],
-  sessionTemplates: [],
+  sessionTemplates: [], emergencyContacts: [],
 });
 
 describe('migrate', () => {

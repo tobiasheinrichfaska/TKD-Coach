@@ -8,8 +8,11 @@ import {
   athletesInGroup,
   groupsForAthlete,
   ungroupedAthletes,
+  contactsForAthlete,
+  guardiansForAthlete,
+  athletesForContact,
 } from '../selectors';
-import { GameDefinition, SessionLog, SessionPlan, Assessment, Athlete, Group } from '../../types';
+import { GameDefinition, SessionLog, SessionPlan, Assessment, Athlete, Group, EmergencyContact } from '../../types';
 
 const game = (id: string, min: number, techniques: string[], bodyParts: string[]): GameDefinition => ({
   id, name: id, shortName: id, phase: 'main', defaultMinutes: min, ageGroup: 'all', isBuiltIn: true,
@@ -91,6 +94,32 @@ describe('group membership (M:N)', () => {
   it('ungroupedAthletes finds athletes in no group', () => {
     expect(ungroupedAthletes(athletes, groups).map(a => a.id)).toEqual(['a3']);
     expect(ungroupedAthletes(athletes, []).map(a => a.id)).toEqual(['a1', 'a2', 'a3']);
+  });
+});
+
+describe('emergency contacts (M:N)', () => {
+  const mkAth = (id: string): Athlete => ({
+    id, name: id, belt: 'kup-10',
+    neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [],
+  });
+  const athletes = [mkAth('a1'), mkAth('a2')];
+  const contacts: EmergencyContact[] = [
+    { id: 'c1', name: 'Mum', phones: ['1'], isGuardian: true, athleteIds: ['a1', 'a2'] },
+    { id: 'c2', name: 'Neighbour', phones: ['2'], isGuardian: false, athleteIds: ['a1'] },
+  ];
+
+  it('contactsForAthlete returns all linked contacts', () => {
+    expect(contactsForAthlete(contacts, 'a1').map(c => c.id)).toEqual(['c1', 'c2']);
+    expect(contactsForAthlete(contacts, 'a2').map(c => c.id)).toEqual(['c1']);
+  });
+
+  it('guardiansForAthlete returns only guardians', () => {
+    expect(guardiansForAthlete(contacts, 'a1').map(c => c.id)).toEqual(['c1']);
+  });
+
+  it('athletesForContact returns linked athletes in order', () => {
+    expect(athletesForContact(athletes, contacts[0]).map(a => a.id)).toEqual(['a1', 'a2']);
+    expect(athletesForContact(athletes, undefined)).toEqual([]);
   });
 });
 
