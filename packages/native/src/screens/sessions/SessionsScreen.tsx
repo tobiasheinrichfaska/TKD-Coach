@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 });
 
 export default function SessionsScreen({ navigation }: SessionsStackScreenProps<'SessionsList'>) {
-  const { state } = useData();
+  const { state, dispatch } = useData();
 
   // A plan with a completed session is history (shown under Completed below), not an
   // active plan. Plans with only a running log stay active so they can be resumed.
@@ -34,9 +34,10 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
     .filter(p => !completedPlanIds.has(p.id))
     .sort((a, b) => new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime());
   const completedLogs = state.sessionLogs
-    .filter(l => l.status === 'completed')
+    .filter(l => l.status === 'completed' && !l.archived)
     .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
     .slice(0, 10);
+  const archivedCount = state.sessionLogs.filter(l => l.archived).length;
 
   const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || 'Unknown';
   const getGameCount = (gameIds: string[]) => gameIds.length;
@@ -88,6 +89,11 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
 
         {/* Recent Sessions */}
         <Text style={styles.section}>✓ Completed Sessions</Text>
+        {archivedCount > 0 && (
+          <TouchableOpacity onPress={() => navigation.navigate('SessionArchive')}>
+            <Text style={[styles.cardMeta, { color: COLORS.info, marginBottom: 6 }]}>📦 Archive ({archivedCount}) →</Text>
+          </TouchableOpacity>
+        )}
         {completedLogs.length > 0 ? (
           <FlatList
             scrollEnabled={false}
@@ -105,17 +111,25 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                   {item.gameLogs.length} games ·{' '}
                   {item.gameLogs.reduce((sum, g) => sum + (g.durationSeconds || 0), 0)} sec
                 </Text>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonEdit, { marginTop: 8 }]}
-                  onPress={() =>
-                    navigation.navigate('PlanSession', {
-                      fromGroupId: item.groupId,
-                      fromGameIds: item.gameLogs.map(g => g.gameId),
-                    })
-                  }
-                >
-                  <Text style={styles.buttonText}>Use as template → plan again</Text>
-                </TouchableOpacity>
+                <View style={styles.buttons}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonEdit]}
+                    onPress={() =>
+                      navigation.navigate('PlanSession', {
+                        fromGroupId: item.groupId,
+                        fromGameIds: item.gameLogs.map(g => g.gameId),
+                      })
+                    }
+                  >
+                    <Text style={styles.buttonText}>Plan again</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, { backgroundColor: COLORS.textMuted }]}
+                    onPress={() => dispatch({ type: 'UPDATE_SESSION_LOG', payload: { ...item, archived: true } })}
+                  >
+                    <Text style={styles.buttonText}>Archive</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           />

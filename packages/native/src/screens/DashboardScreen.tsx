@@ -37,7 +37,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
   // Copy before sort: Array.prototype.sort mutates in place — sorting state.sessionLogs
   // directly would corrupt the reducer's source of truth and silently break reference equality.
   const recentLogs = [...state.sessionLogs]
-    .filter(l => l.status === 'completed')
+    .filter(l => l.status === 'completed' && !l.archived)
     .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
     .slice(0, 5);
 

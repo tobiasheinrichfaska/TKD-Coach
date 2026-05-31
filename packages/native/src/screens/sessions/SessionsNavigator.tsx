@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SessionsScreen from './SessionsScreen';
 import PlanSessionScreen from './PlanSessionScreen';
 import RunSessionScreen from './RunSessionScreen';
+import SessionArchiveScreen from './SessionArchiveScreen';
 import type { SessionsStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
 
@@ -28,6 +29,7 @@ export default function SessionsNavigator() {
         component={RunSessionScreen}
         options={{ title: 'Running Session' }}
       />
+      <Stack.Screen name="SessionArchive" component={SessionArchiveScreen} options={{ title: 'Archive' }} />
     </Stack.Navigator>
   );
 }

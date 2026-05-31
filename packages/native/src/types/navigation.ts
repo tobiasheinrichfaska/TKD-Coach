@@ -25,6 +25,7 @@ export type SessionsStackParamList = {
   SessionsList: undefined;
   PlanSession: { planId?: string; fromGroupId?: string; fromGameIds?: string[] } | undefined;
   RunSession: { planId: string };
+  SessionArchive: undefined;
 };
 
 export type AssessmentStackParamList = {

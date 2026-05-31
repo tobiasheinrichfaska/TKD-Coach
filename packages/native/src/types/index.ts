@@ -117,6 +117,8 @@ export interface SessionLog {
   gameLogs: GameLog[];
   notes?: string;
   status: 'running' | 'completed' | 'cancelled';
+  /** Archived completed sessions move to the Archive page (out of Recent/Completed). */
+  archived?: boolean;
 }
 
 export interface Assessment {
