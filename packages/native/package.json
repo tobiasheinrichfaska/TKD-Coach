@@ -10,6 +10,7 @@
     "ios": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --ios",
     "web": "cross-env NODE_OPTIONS=--no-experimental-strip-types expo start --web",
     "eject": "expo eject",
+    "test": "jest",
     "build": "eas build --platform ios --profile production && eas build --platform android --profile production"
   },
   "dependencies": {
@@ -35,8 +36,11 @@
     "react-native-svg": "15.12.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/react": "^19.2.15",
     "cross-env": "^10.1.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.11",
     "typescript": "~5.9.2"
   }
 }
