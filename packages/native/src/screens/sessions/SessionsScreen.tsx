@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { formatDateShort } from '../../utils/format';
+import { formatDateShort, toLocalDateISO } from '../../utils/format';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -10,6 +10,9 @@ const styles = StyleSheet.create({
   content: { padding: 16 },
   section: { fontSize: 14, fontWeight: 'bold', marginTop: 16, marginBottom: 8, color: COLORS.text },
   card: { backgroundColor: COLORS.surface, padding: 12, borderRadius: 8, marginBottom: 8 },
+  cardToday: { borderLeftWidth: 4, borderLeftColor: COLORS.primary, backgroundColor: '#FFF3F3' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  todayBadge: { fontSize: 10, fontWeight: '700', color: COLORS.surface, backgroundColor: COLORS.primary, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, overflow: 'hidden' },
   cardTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text },
   cardMeta: { fontSize: 12, color: COLORS.textMuted, marginTop: 4 },
   buttons: { flexDirection: 'row', gap: 8, marginTop: 8 },
@@ -39,6 +42,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
     .slice(0, 10);
   const archivedCount = state.sessionLogs.filter(l => l.archived).length;
 
+  const todayISO = toLocalDateISO();
   const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || 'Unknown';
   const getGameCount = (gameIds: string[]) => gameIds.length;
   const getTotalMinutes = (gameIds: string[]) =>
@@ -50,16 +54,21 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
-        {/* Upcoming Plans */}
-        <Text style={styles.section}>📋 Session Plans</Text>
+        {/* Planned sessions */}
+        <Text style={styles.section}>📋 Planned sessions</Text>
         {upcomingPlans.length > 0 ? (
           <FlatList
             scrollEnabled={false}
             data={upcomingPlans}
             keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>{item.name}</Text>
+            renderItem={({ item }) => {
+              const isToday = item.plannedDate === todayISO;
+              return (
+              <View style={[styles.card, isToday && styles.cardToday]}>
+                <View style={styles.titleRow}>
+                  <Text style={styles.cardTitle}>{item.name}</Text>
+                  {isToday && <Text style={styles.todayBadge}>HEUTE</Text>}
+                </View>
                 <Text style={styles.cardMeta}>
                   {getGroupName(item.groupId)} · {formatDateShort(item.plannedDate)}
                 </Text>
@@ -81,14 +90,15 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                   </TouchableOpacity>
                 </View>
               </View>
-            )}
+              );
+            }}
           />
         ) : (
-          <Text style={styles.empty}>No session plans yet. Tap + to create one.</Text>
+          <Text style={styles.empty}>No planned sessions. Tap + to create one.</Text>
         )}
 
-        {/* Recent Sessions */}
-        <Text style={styles.section}>✓ Completed Sessions</Text>
+        {/* Recent sessions */}
+        <Text style={styles.section}>🕒 Recent sessions</Text>
         {archivedCount > 0 && (
           <TouchableOpacity onPress={() => navigation.navigate('SessionArchive')}>
             <Text style={[styles.cardMeta, { color: COLORS.info, marginBottom: 6 }]}>📦 Archive ({archivedCount}) →</Text>
@@ -99,13 +109,18 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
             scrollEnabled={false}
             data={completedLogs}
             keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>
-                  {[state.sessionPlans.find(p => p.id === item.planId)?.name, getGroupName(item.groupId)]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </Text>
+            renderItem={({ item }) => {
+              const isToday = toLocalDateISO(new Date(item.endedAt || item.startedAt)) === todayISO;
+              return (
+              <View style={[styles.card, isToday && styles.cardToday]}>
+                <View style={styles.titleRow}>
+                  <Text style={styles.cardTitle}>
+                    {[state.sessionPlans.find(p => p.id === item.planId)?.name, getGroupName(item.groupId)]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
+                  {isToday && <Text style={styles.todayBadge}>HEUTE</Text>}
+                </View>
                 <Text style={styles.cardMeta}>{formatDateShort(item.startedAt)}</Text>
                 <Text style={styles.cardMeta}>
                   {item.gameLogs.length} games ·{' '}
@@ -131,10 +146,11 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                   </TouchableOpacity>
                 </View>
               </View>
-            )}
+              );
+            }}
           />
         ) : (
-          <Text style={styles.empty}>No completed sessions yet</Text>
+          <Text style={styles.empty}>No recent sessions yet</Text>
         )}
       </ScrollView>
 
