@@ -1,6 +1,7 @@
-// Belt grade ids in ascending rank (Kup colour belts → Poom/Dan).
-// Labels/colours live in constants/belts.ts (BELT_INFOS).
+// Belt grade ids in ascending rank ("none" → Kup colour belts → Poom/Dan).
+// Labels/colours live in constants/belts.ts (BELT_INFOS); promote/demote rules in domain/graduation.ts.
 export type Belt =
+  | 'none'
   | 'kup-10' | 'kup-9' | 'kup-8' | 'kup-7' | 'kup-6'
   | 'kup-5' | 'kup-4' | 'kup-3' | 'kup-2' | 'kup-1'
   | 'poom-1' | 'dan-1' | 'poom-2' | 'dan-2' | 'poom-3' | 'dan-3'

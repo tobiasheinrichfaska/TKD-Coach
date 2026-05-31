@@ -87,6 +87,7 @@
   <a href="#selectors">Selectors</a>
   <a href="#templates-fn">Template functions</a>
   <a href="#catalog-fn">Catalog lookups</a>
+  <a href="#graduation">Graduation rules</a>
   <a href="#migration">Migration &amp; seeding</a>
   <a href="#sync">Sync (QR)</a>
   <a href="#testing">Testing</a>
@@ -480,8 +481,9 @@ improvement direction so the progress UI colours a drop in errors as <span class
 and every <code>itemIds</code> id in a built-in template, must resolve to a catalog/library entry.</div>
 
 <p>A third reference catalog, <strong>Belt</strong> (<code>constants/belts.ts → BELT_INFOS</code>), is the fixed grade ladder
-(10→1 Kup, then Poom/Dan, 22 entries) that <code>Athlete.belt</code> points at. It is pickable but not user-editable;
-legacy colour ids are normalised to ladder ids by <a href="#migration">migration</a>.</p>
+(<em>keine Graduierung</em>, 10→1 Kup, then Poom/Dan — 23 entries) that <code>Athlete.belt</code> points at. It is not user-editable;
+legacy colour ids are normalised to ladder ids by <a href="#migration">migration</a>, and movement along it is governed by the
+age-aware <a href="#graduation">graduation rules</a>.</p>
 
 <!-- ================= DATA MANIPULATION ================= -->
 <h2 id="reducer">Data manipulation 1 — Reducer actions</h2>
@@ -557,7 +559,31 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 </tbody>
 </table>
 
-<h2 id="migration">Data manipulation 6 — Migration &amp; seeding <span class="src">domain/migration.ts</span></h2>
+<h2 id="graduation">Data manipulation 6 — Graduation rules <span class="src">domain/graduation.ts</span></h2>
+<p>Belt movement is computed, not free-set. Because only the birth <em>year</em> is known, age is a 1-year range, so the
+rules use "definitely" bounds (<code>refYear</code> = current year):</p>
+<table>
+<thead><tr><th>Helper</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>definitelyUnder15</code></td><td>max age (<code>refYear − birthYear</code>) ≤ 14</td></tr>
+<tr><td><code>definitely14OrAbove</code></td><td>min age (<code>refYear − birthYear − 1</code>) ≥ 14</td></tr>
+<tr><td><code>definitely15OrAbove</code></td><td>min age ≥ 15</td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>Function</th><th>Signature</th><th>Rule</th></tr></thead>
+<tbody>
+<tr><td><code>ageFacts</code></td><td>(birthYear?, refYear) → {3 bounds}</td><td>Unknown birth year ⇒ nothing is "definite".</td></tr>
+<tr><td><code>promote</code></td><td>(belt, birthYear?, refYear) → Belt | null</td><td>Walks none→Kup; <code>1.Kup</code>→<code>Dan</code> only when <code>definitely15OrAbove</code>, else →<code>Poom</code>; Poom→Poom (never Dan) and not at all once 15+; Dan up to 9. <code>null</code> = no promotion available.</td></tr>
+<tr><td><code>demote</code></td><td>(belt) → Belt | null</td><td>Reverse along the spine; <code>1.Poom</code>/<code>1.Dan</code>→<code>1.Kup</code>; <code>none</code>→null.</td></tr>
+<tr><td><code>canConvertToDan</code></td><td>(belt, birthYear?, refYear) → boolean</td><td>True only for a Poom once <code>definitely14OrAbove</code>.</td></tr>
+<tr><td><code>convertToDan</code></td><td>(belt) → Belt | null</td><td><code>poom-N</code> → <code>dan-N</code>.</td></tr>
+</tbody>
+</table>
+<p class="legend">The athlete editor shows only the stored grade plus <em>Graduieren</em> / <em>Zurückstufen</em> (and <em>Zu Dan umwandeln</em>
+when eligible); each button is enabled purely by these functions — the UI embeds none of the rules. 17 unit tests lock the age boundaries.</p>
+
+<h2 id="migration">Data manipulation 7 — Migration &amp; seeding <span class="src">domain/migration.ts</span></h2>
 <p><code>migrate(data: AppData) → AppData</code> is pure and runs on every load (and as the fresh-install seed). It:</p>
 <ul class="tight">
   <li>refreshes <strong>built-in</strong> Übungen from <code>BUILTIN_GAMES</code> (new drills + new fields) while <strong>preserving user games</strong>;</li>
@@ -569,7 +595,7 @@ dispatch({ type: 'LOAD_ALL', payload: migrate(data) });   // one path for both i
 <p>Persistence: <code>DataContext</code> writes the whole <code>AppData</code> to <code>AsyncStorage</code> under
 <code>tkd_coach_app_data</code>, debounced 300&nbsp;ms after any state change.</p>
 
-<h2 id="sync">Data manipulation 7 — Sync (QR transfer) <span class="src">utils/qrChunks.ts</span></h2>
+<h2 id="sync">Data manipulation 8 — Sync (QR transfer) <span class="src">utils/qrChunks.ts</span></h2>
 <p>The QR engine (<code>@tobiasheinrichfaska/qr-sync</code>) operates over named id-keyed collections. TKD-Coach configures:</p>
 <p>
 <span class="pill">games*</span><span class="pill">groups</span><span class="pill">athletes</span>
@@ -584,12 +610,14 @@ The flat, id-referenced model is what makes change-detection and merge work: <co
 <h2 id="testing">Testing</h2>
 <p>The domain layer is exhaustively unit-tested with <strong>ts-jest</strong> (no UI/Expo runtime needed) — per the workspace
 "intensive unit testing is mandatory" rule. Run from <code>packages/native</code>:</p>
-<pre>npx jest        # 42 tests across 6 suites</pre>
+<pre>npx jest        # 67 tests across 8 suites</pre>
 <table>
 <thead><tr><th>Suite</th><th>Guards</th></tr></thead>
 <tbody>
 <tr><td><code>metrics.test.ts</code></td><td>schema completeness, <code>buildMetric</code> validation/rounding, <code>fieldDelta</code> direction.</td></tr>
 <tr><td><code>catalogs.test.ts</code></td><td>catalog integrity — every Übung tag resolves.</td></tr>
+<tr><td><code>belts.test.ts</code></td><td>belt ladder integrity (23 ordered ids), label fallback, legacy map.</td></tr>
+<tr><td><code>graduation.test.ts</code></td><td>age bounds + promote/demote/convert at every boundary.</td></tr>
 <tr><td><code>selectors.test.ts</code></td><td>status, totals, today filter, coverage, history ordering.</td></tr>
 <tr><td><code>templates.test.ts</code></td><td>template item integrity + helpers.</td></tr>
 <tr><td><code>migration.test.ts</code></td><td>seed/refresh built-ins, preserve user data, backfill.</td></tr>

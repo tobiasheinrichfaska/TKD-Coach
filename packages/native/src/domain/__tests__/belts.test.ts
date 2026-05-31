@@ -1,15 +1,15 @@
 import { BELT_INFOS, getBeltLabel, getBeltInfo, LEGACY_BELT_MAP } from '../../constants/belts';
 
 describe('belt ladder', () => {
-  it('has 22 unique ids in ascending order', () => {
-    expect(BELT_INFOS).toHaveLength(22);
+  it('has 23 unique ids in ascending order', () => {
+    expect(BELT_INFOS).toHaveLength(23);
     const ids = BELT_INFOS.map(b => b.value);
-    expect(new Set(ids).size).toBe(22);
+    expect(new Set(ids).size).toBe(23);
     BELT_INFOS.forEach((b, i) => expect(b.order).toBe(i));
   });
 
-  it('runs 10. Kup → 9. Dan', () => {
-    expect(BELT_INFOS[0].value).toBe('kup-10');
+  it('runs "keine Graduierung" → 9. Dan', () => {
+    expect(BELT_INFOS[0].value).toBe('none');
     expect(BELT_INFOS[BELT_INFOS.length - 1].value).toBe('dan-9');
   });
 

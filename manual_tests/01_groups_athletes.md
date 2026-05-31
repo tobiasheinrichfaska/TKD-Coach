@@ -14,10 +14,23 @@
 **Steps:**
 1. **Groups** tab → tap a group → its detail screen ("Athlet" list).
 2. Tap the **+** button.
-3. Enter a Name, then under **Belt** tap a grade chip (e.g. `8. Kup · Gelb`). Optionally Phone / Parent Name. Tap **Save**.
+3. Enter a Name and a **Birth year** (e.g. `2014`). New athletes start at **Keine Graduierung**; tap **↑ Graduieren** to step up (Keine Graduierung → 10. Kup → …). Optionally Phone / Parent Name. Tap **Save**.
 
-**Expected:** Returns to the group; the athlete appears with the chosen belt shown. The group's athlete count increases.
-> Not obvious: belt is now picked from the fixed Kup/Poom/Dan ladder (10. Kup → 9. Dan), not typed. Old free-text belts from earlier builds are auto-mapped to the new ladder on load.
+**Expected:** Returns to the group; the athlete appears with the chosen grade. The group's athlete count increases.
+> Not obvious: the grade is no longer free text or a flat list — you only see the current grade plus **Graduieren** / **Zurückstufen**. Old free-text/colour belts from earlier builds auto-map to the new ladder on load.
+
+## MT-01-2b: Age-aware graduation (Poom vs Dan)
+**Preconditions:** Edit an athlete (or create one).
+**Steps:**
+1. Set **Birth year** so the athlete is clearly a child (e.g. `2016`), promote up to **1. Kup**, then tap **Graduieren** once more.
+2. Change **Birth year** to an adult (e.g. `2000`) and promote from **1. Kup** again on another athlete.
+3. On a youth athlete sitting at a **Poom** grade, change the birth year to make them ≥14 (e.g. `2011`).
+
+**Expected:**
+- Child (≤14): **1. Kup → 1. Poom** (never Dan). A Poom shows no Dan promotion.
+- Adult (≥15): **1. Kup → 1. Dan** directly; no Poom offered.
+- Once an athlete is **definitely 14+** and holds a Poom, a **Zu Dan umwandeln** button appears and converts e.g. 2. Poom → 2. Dan.
+> Not obvious: age is judged from the birth *year* only, so the rules use "definitely" bounds — a 14/15 boundary athlete is treated conservatively. With no birth year, Dan promotion from 1. Kup is blocked (defaults to Poom).
 
 ## MT-01-3: Edit an existing athlete (regression — this was previously broken)
 **Preconditions:** A group with an athlete.

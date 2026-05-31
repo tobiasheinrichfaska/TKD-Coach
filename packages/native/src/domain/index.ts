@@ -4,4 +4,5 @@ export * from './bodyparts';
 export * from './techniques';
 export * from './selectors';
 export * from './templates';
+export * from './graduation';
 export * from './migration';
