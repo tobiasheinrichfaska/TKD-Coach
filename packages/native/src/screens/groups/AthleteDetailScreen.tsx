@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { formatBelt } from '../../utils/format';
+import { formatBelt, formatDateShort, formatTime, formatDuration } from '../../utils/format';
 import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson, otherRolesBesidesAthlete, athleteAttendanceStats } from '../../domain';
 import { callNumber, sendEmail } from '../../utils/linking';
 import { useT } from '../../i18n';
@@ -131,6 +131,32 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
               </Text>
             </View>
           );
+        })()}
+
+        <Text style={styles.section}>{t('Sessions')}</Text>
+        {(() => {
+          const attended = state.sessionLogs
+            .filter(l => l.attendance?.some(a => a.athleteId === athlete.id))
+            .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+          if (attended.length === 0) return <Text style={styles.hint}>{t('No sessions yet')}</Text>;
+          return attended.map(l => {
+            const present = l.attendance?.find(a => a.athleteId === athlete.id)?.present;
+            const gameSec = l.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
+            const totalSec = gameSec || (l.endedAt ? Math.round((Date.parse(l.endedAt) - Date.parse(l.startedAt)) / 1000) : 0);
+            return (
+              <TouchableOpacity
+                key={l.id}
+                style={styles.contactCard}
+                onPress={() => navigation.navigate('Sessions', { screen: 'SessionDetail', params: { logId: l.id } })}
+              >
+                <Text style={styles.contactName}>
+                  {formatDateShort(l.startedAt)} · {formatTime(l.startedAt)}
+                  {present === false ? `  · ${t('absent')}` : ''}
+                </Text>
+                <Text style={[styles.rowLabel, { marginTop: 4 }]}>{formatDuration(totalSec)} · {l.gameLogs.filter(g => g.durationSeconds != null).length} {t('Exercises')}</Text>
+              </TouchableOpacity>
+            );
+          });
         })()}
 
         <Text style={styles.section}>{t('Emergency contacts')}</Text>

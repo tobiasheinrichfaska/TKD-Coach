@@ -125,7 +125,10 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const [currentGameIndex, setCurrentGameIndex] = useState(() =>
     runningLog ? firstUnfinished(runningLog.gameLogs.map(fromPersisted)) : 0
   );
-  const [runningLogId, setRunningLogId] = useState<string | null>(runningLog?.id ?? null);
+  // Ref (not state) is the source of truth for the running log id: persistRunning may be
+  // called several times in the same tick (e.g. rapid attendance check-ins) before a state
+  // update commits — a ref keeps them all writing to ONE log instead of creating duplicates.
+  const runningLogIdRef = useRef<string | null>(runningLog?.id ?? null);
   const sessionStartedAtRef = useRef<string>(runningLog?.startedAt ?? new Date().toISOString());
 
   // Attendance: roster snapshot (all present by default), preserving marks when resuming.
@@ -174,28 +177,22 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   }, [beep]);
 
   /** Persist the in-progress run so it survives navigation away and app restart. */
-  const persistRunning = useCallback(
-    (logs: GameLogState[], att: AttendanceEntry[] = attendance) => {
-      if (!plan) return;
-      const id = runningLogId ?? generateId();
-      const payload = {
-        id,
-        planId: plan.id,
-        groupId: plan.groupId,
-        startedAt: sessionStartedAtRef.current,
-        gameLogs: logs.map(toPersisted),
-        attendance: att,
-        status: 'running' as const,
-      };
-      if (!runningLogId) {
-        setRunningLogId(id);
-        dispatch({ type: 'ADD_SESSION_LOG', payload });
-      } else {
-        dispatch({ type: 'UPDATE_SESSION_LOG', payload });
-      }
-    },
-    [plan, runningLogId, dispatch, attendance]
-  );
+  const persistRunning = (logs: GameLogState[], att: AttendanceEntry[] = attendance) => {
+    if (!plan) return;
+    const existing = runningLogIdRef.current;
+    const id = existing ?? generateId();
+    if (!existing) runningLogIdRef.current = id; // claim the id synchronously (no duplicates)
+    const payload = {
+      id,
+      planId: plan.id,
+      groupId: plan.groupId,
+      startedAt: sessionStartedAtRef.current,
+      gameLogs: logs.map(toPersisted),
+      attendance: att,
+      status: 'running' as const,
+    };
+    dispatch({ type: existing ? 'UPDATE_SESSION_LOG' : 'ADD_SESSION_LOG', payload });
+  };
 
   // Toggle one athlete present/absent and persist immediately. This creates the running
   // SessionLog if none exists yet, so check-ins are saved even before the first game is
@@ -292,11 +289,13 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     }
   };
 
-  const handleComplete = async () => {
+  const handleComplete = () => {
     if (!plan || !group) return;
 
+    const existing = runningLogIdRef.current;
+    const id = existing ?? generateId();
     const payload = {
-      id: runningLogId ?? generateId(),
+      id,
       planId: plan.id,
       groupId: plan.groupId,
       startedAt: sessionStartedAtRef.current,
@@ -305,8 +304,12 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       attendance,
       status: 'completed' as const,
     };
-    // Finalize the running log (or create one if nothing was started).
-    dispatch({ type: runningLogId ? 'UPDATE_SESSION_LOG' : 'ADD_SESSION_LOG', payload });
+    // Finalize this run (or create one if nothing was started)...
+    dispatch({ type: existing ? 'UPDATE_SESSION_LOG' : 'ADD_SESSION_LOG', payload });
+    // ...and clear any other running logs for this plan (dedupe stray starts).
+    state.sessionLogs
+      .filter(l => l.planId === plan.id && l.status === 'running' && l.id !== id)
+      .forEach(l => dispatch({ type: 'DELETE_SESSION_LOG', payload: { id: l.id } }));
 
     const summaryText = generateSessionSummaryText(
       group.name,
@@ -318,12 +321,8 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       }))
     );
 
-    try {
-      await Share.share({ message: summaryText, title: 'TKD Coach - Session Summary' });
-    } catch (e) {
-      console.log('Share cancelled or error:', e);
-    }
-
+    // Best-effort share — must NOT block closing the screen (the share sheet can hang).
+    Share.share({ message: summaryText, title: 'TKD Coach - Session Summary' }).catch(() => {});
     navigation.goBack();
   };
 
@@ -334,11 +333,14 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
         text: t('Discard'),
         style: 'destructive',
         onPress: () => {
-          // Delete ANY running log for this plan (not just the one in local state) so an
+          // Delete EVERY running log for this plan (handles stray duplicates) so an
           // accidentally-started session reliably returns to the Planned list.
-          const running = plan ? state.sessionLogs.find(l => l.planId === plan.id && l.status === 'running') : undefined;
-          const idToDelete = runningLogId ?? running?.id;
-          if (idToDelete) dispatch({ type: 'DELETE_SESSION_LOG', payload: { id: idToDelete } });
+          const ids = new Set(
+            plan ? state.sessionLogs.filter(l => l.planId === plan.id && l.status === 'running').map(l => l.id) : []
+          );
+          if (runningLogIdRef.current) ids.add(runningLogIdRef.current);
+          ids.forEach(id => dispatch({ type: 'DELETE_SESSION_LOG', payload: { id } }));
+          runningLogIdRef.current = null;
           navigation.goBack();
         },
       },
