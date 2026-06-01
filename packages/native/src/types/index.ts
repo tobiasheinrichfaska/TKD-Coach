@@ -198,13 +198,15 @@ export interface TransferSelection {
 // ===== Catalogs (data-driven technique / anatomy vocabulary) =====
 
 export type BodyRegion =
-  | 'lower-leg' | 'upper-leg' | 'hips' | 'core' | 'spine' | 'shoulders' | 'arms' | 'neck' | 'full-body';
+  | 'lower-leg' | 'upper-leg' | 'hips' | 'core' | 'spine' | 'shoulders' | 'arms' | 'neck' | 'full-body'
+  | 'neuro';
 
 export interface BodyPart {
   id: string;
   name: string;
   region: BodyRegion;
-  kind: 'joint' | 'muscle' | 'region';
+  /** 'neuro' = a neuro-athletic ability (vestibular, visual, …) — tagged like a body part. */
+  kind: 'joint' | 'muscle' | 'region' | 'neuro';
 }
 
 export type TechniqueCategory = 'kick' | 'block' | 'stance' | 'strike' | 'poomsae' | 'footwork';

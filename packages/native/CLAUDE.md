@@ -162,7 +162,9 @@ src/
     │   └── AthleteDetailScreen.tsx ← group chips (M:N) + linked emergency contacts (tappable tel/mailto)
     ├── sessions/
     │   ├── SessionsNavigator.tsx
-    │   ├── SessionsScreen.tsx
+    │   ├── SessionsScreen.tsx        ← Planned vs Recent (today highlighted); "Alle →" to RecentSessions
+    │   ├── RecentSessionsScreen.tsx  ← full list of completed (non-archived) sessions
+    │   ├── SessionArchiveScreen.tsx  ← archived sessions (unarchive)
     │   ├── PlanSessionScreen.tsx
     │   └── RunSessionScreen.tsx
     ├── assessment/

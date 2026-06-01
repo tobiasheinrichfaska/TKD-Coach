@@ -500,8 +500,8 @@ improvement direction so the progress UI colours a drop in errors as <span class
 <tbody>
 <tr><td><code class="req">id</code></td><td>string (e.g. <code>knee</code>)</td></tr>
 <tr><td><code class="req">name</code></td><td>string</td></tr>
-<tr><td><code class="req">region</code></td><td>BodyRegion</td></tr>
-<tr><td><code class="req">kind</code></td><td>'joint' | 'muscle' | 'region'</td></tr>
+<tr><td><code class="req">region</code></td><td>BodyRegion (incl. <code>'neuro'</code>)</td></tr>
+<tr><td><code class="req">kind</code></td><td>'joint' | 'muscle' | 'region' | 'neuro'</td></tr>
 </tbody>
 </table>
 <table>
@@ -518,6 +518,12 @@ improvement direction so the progress UI colours a drop in errors as <span class
 </div>
 <div class="note good">Integrity is unit-tested: every <code>techniques</code>/<code>bodyParts</code> id used by a built-in Übung,
 and every <code>itemIds</code> id in a built-in template, must resolve to a catalog/library entry.</div>
+
+<p><strong>Neuro-athletic abilities</strong> (vestibular, visual, proprioception, reaction, coordination, balance, working-memory,
+attention, gaze-stability, recovery) live in the <em>same</em> BodyPart catalog with <code>kind:'neuro'</code> (region <code>'neuro'</code>),
+so a game tags them in the ordinary <code>bodyParts</code> field and one coverage dimension spans anatomy + neuro. They replace the
+retired <code>neuroTarget</code>; the core three (vestibular/visual/proprioception) align with <code>Athlete.neuroProfile</code>.
+<code>NEURO_ABILITIES</code> exposes just the neuro subset.</p>
 
 <p>A third reference catalog, <strong>Belt</strong> (<code>constants/belts.ts → BELT_INFOS</code>), is the fixed grade ladder
 (<em>keine Graduierung</em>, 10→1 Kup, then Poom/Dan — 23 entries) that <code>Athlete.belt</code> points at. It is not user-editable;

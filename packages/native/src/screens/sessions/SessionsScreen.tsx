@@ -9,6 +9,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { padding: 16 },
   section: { fontSize: 14, fontWeight: 'bold', marginTop: 16, marginBottom: 8, color: COLORS.text },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  seeAll: { fontSize: 13, color: COLORS.info, fontWeight: '600' },
   card: { backgroundColor: COLORS.surface, padding: 12, borderRadius: 8, marginBottom: 8 },
   cardToday: { borderLeftWidth: 4, borderLeftColor: COLORS.primary, backgroundColor: '#FFF3F3' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -98,7 +100,10 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
         )}
 
         {/* Recent sessions */}
-        <Text style={styles.section}>🕒 Recent sessions</Text>
+        <TouchableOpacity style={styles.sectionRow} onPress={() => navigation.navigate('RecentSessions')}>
+          <Text style={styles.section}>🕒 Recent sessions</Text>
+          <Text style={styles.seeAll}>Alle →</Text>
+        </TouchableOpacity>
         {archivedCount > 0 && (
           <TouchableOpacity onPress={() => navigation.navigate('SessionArchive')}>
             <Text style={[styles.cardMeta, { color: COLORS.info, marginBottom: 6 }]}>📦 Archive ({archivedCount}) →</Text>

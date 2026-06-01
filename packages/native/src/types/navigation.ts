@@ -29,6 +29,7 @@ export type SessionsStackParamList = {
   SessionsList: undefined;
   PlanSession: { planId?: string; fromGroupId?: string; fromGameIds?: string[] } | undefined;
   RunSession: { planId: string };
+  RecentSessions: undefined;
   SessionArchive: undefined;
 };
 
