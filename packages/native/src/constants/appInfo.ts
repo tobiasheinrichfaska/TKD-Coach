@@ -7,6 +7,6 @@ import appJson from '../../app.json';
 export const APP_INFO = {
   name: 'TKD-Coach',
   version: appJson.expo.version,
-  tagline: 'Neuroathletik-Trainingsbegleiter',
+  tagline: 'Trainingsbegleiter',
   author: 'Tobias Heinrich',
 } as const;

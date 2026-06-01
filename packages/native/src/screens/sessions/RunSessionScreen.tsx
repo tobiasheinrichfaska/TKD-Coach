@@ -134,7 +134,8 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
 
   const currentGameLog = gameLogs[currentGameIndex];
   const currentGame = state.games.find(g => g.id === currentGameLog?.gameId);
-  const phaseOf = (gid: string): SessionPhase => primaryPhase(state.games.find(g => g.id === gid));
+  const phaseOf = (gid: string): SessionPhase =>
+    plan?.gamePhases?.[gid] ?? primaryPhase(state.games.find(g => g.id === gid));
 
   /**
    * Strong, repeated signal that the planned duration was reached — meant to cut

@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-export default function SessionArchiveScreen(_props: SessionsStackScreenProps<'SessionArchive'>) {
+export default function SessionArchiveScreen({ navigation }: SessionsStackScreenProps<'SessionArchive'>) {
   const { state, dispatch } = useData();
 
   const archived = [...state.sessionLogs]
@@ -36,7 +36,7 @@ export default function SessionArchiveScreen(_props: SessionsStackScreenProps<'S
           const played = item.gameLogs.filter(g => g.durationSeconds != null);
           const totalSec = item.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
           return (
-            <View style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SessionDetail', { logId: item.id })}>
               <Text style={styles.title}>{[planName(item.planId), groupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
               <Text style={styles.meta}>{formatDateShort(item.startedAt)} · {played.length} Übungen · {Math.round(totalSec / 60)} min</Text>
               <Text style={styles.games}>{gameNames(played.map(g => g.gameId))}</Text>
@@ -46,7 +46,7 @@ export default function SessionArchiveScreen(_props: SessionsStackScreenProps<'S
               >
                 <Text style={styles.buttonText}>Unarchive</Text>
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           );
         }}
         ListEmptyComponent={<Text style={styles.empty}>No archived sessions.</Text>}

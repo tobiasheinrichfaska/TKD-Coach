@@ -5,6 +5,7 @@ import { COLORS } from '../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../utils/format';
 import { slotsOnDay, formatSlot } from '../domain';
 import { APP_INFO } from '../constants/appInfo';
+import { useT } from '../i18n';
 import type { RootTabScreenProps } from '../types/navigation';
 
 const styles = StyleSheet.create({
@@ -29,6 +30,7 @@ const styles = StyleSheet.create({
 
 export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dashboard'>) {
   const { state } = useData();
+  const { t } = useT();
 
   const todayISO = toLocalDateISO();
 
@@ -59,11 +61,11 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         {/* Today's Sessions — tap a card to start / resume it */}
-        <Text style={styles.section}>🗓 Today's Sessions</Text>
+        <Text style={styles.section}>🗓 {t('Today\'s Sessions')}</Text>
         {todaysOpen.length > 0 ? (
           todaysOpen.map(plan => {
             const running = runningPlanIds.has(plan.id);
-            const status = running ? '▶ Resume' : '○ Start';
+            const status = running ? `▶ ${t('Resume')}` : `○ ${t('Start')}`;
             const totalMin = plan.plannedGames.reduce((s, gid) => s + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
             return (
               <TouchableOpacity
@@ -78,11 +80,11 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
             );
           })
         ) : (
-          <Text style={styles.empty}>No open sessions for today</Text>
+          <Text style={styles.empty}>{t('No open sessions for today')}</Text>
         )}
 
         {/* Recent Sessions */}
-        <Text style={styles.section}>📊 Recent Sessions</Text>
+        <Text style={styles.section}>📊 {t('Recent Sessions')}</Text>
         {recentLogs.length > 0 ? (
           <FlatList
             scrollEnabled={false}
@@ -93,22 +95,25 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
               const played = item.gameLogs.filter(g => g.durationSeconds != null);
               const totalSec = item.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
               return (
-                <View style={styles.sessionCard}>
+                <TouchableOpacity
+                  style={styles.sessionCard}
+                  onPress={() => navigation.navigate('Sessions', { screen: 'SessionDetail', params: { logId: item.id } })}
+                >
                   <Text style={styles.sessionTitle}>{[planName, getGroupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
-                  <Text style={styles.sessionMeta}>{formatDateShort(item.startedAt)} · {played.length} Übungen · {Math.round(totalSec / 60)} min</Text>
+                  <Text style={styles.sessionMeta}>{formatDateShort(item.startedAt)} · {played.length} {t('Übungen')} · {Math.round(totalSec / 60)} min</Text>
                   <Text style={styles.gameList}>{getGameNames(played.map(g => g.gameId))}</Text>
-                </View>
+                </TouchableOpacity>
               );
             }}
           />
         ) : (
-          <Text style={styles.empty}>No sessions recorded yet</Text>
+          <Text style={styles.empty}>{t('No sessions recorded yet')}</Text>
         )}
 
         {/* Trains today */}
         {trainingToday.length > 0 && (
           <>
-            <Text style={styles.section}>🕒 Training heute</Text>
+            <Text style={styles.section}>🕒 {t('Training today')}</Text>
             {trainingToday.map(({ group, slots }) => (
               <View key={group.id} style={[styles.sessionCard, { borderLeftColor: COLORS.info }]}>
                 <Text style={styles.sessionTitle}>{group.name}</Text>
@@ -119,20 +124,20 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
         )}
 
         {/* Quick Stats */}
-        <Text style={styles.section}>📈 Quick Stats</Text>
+        <Text style={styles.section}>📈 {t('Quick Stats')}</Text>
         <View style={styles.sessionCard}>
-          <Text style={styles.sessionMeta}>Total Groups: {state.groups.length}</Text>
-          <Text style={styles.sessionMeta}>Total Athletes: {state.persons.filter(p => p.athlete).length}</Text>
-          <Text style={styles.sessionMeta}>Sessions Completed: {state.sessionLogs.filter(l => l.status === 'completed').length}</Text>
-          <Text style={styles.sessionMeta}>Assessments Logged: {state.assessments.length}</Text>
+          <Text style={styles.sessionMeta}>{t('Groups')}: {state.groups.length}</Text>
+          <Text style={styles.sessionMeta}>{t('Athletes')}: {state.persons.filter(p => p.athlete).length}</Text>
+          <Text style={styles.sessionMeta}>{t('Sessions completed')}: {state.sessionLogs.filter(l => l.status === 'completed').length}</Text>
+          <Text style={styles.sessionMeta}>{t('Assessments logged')}: {state.assessments.length}</Text>
         </View>
 
         {/* About */}
-        <Text style={styles.section}>ℹ️ About</Text>
+        <Text style={styles.section}>ℹ️ {t('About')}</Text>
         <View style={styles.sessionCard}>
           <Text style={styles.sessionTitle}>{APP_INFO.name} v{APP_INFO.version}</Text>
           <Text style={styles.sessionMeta}>{APP_INFO.tagline}</Text>
-          <Text style={styles.sessionMeta}>von {APP_INFO.author}</Text>
+          <Text style={styles.sessionMeta}>{t('by')} {APP_INFO.author}</Text>
         </View>
       </View>
     </ScrollView>

@@ -145,6 +145,10 @@ export interface SessionPlan {
   /** Id of the SessionTemplate this plan was seeded from (built-in or user). */
   templateId?: string;
   plannedGames: string[];
+  /** Per-game phase placement override. When an Übung is eligible for several phases,
+   *  this records which phase section the coach added it under. Missing entries fall
+   *  back to the Übung's lowest phase (`primaryPhase`). Keyed by game id. */
+  gamePhases?: Record<string, SessionPhase>;
   createdAt: string;
 }
 

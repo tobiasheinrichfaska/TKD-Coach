@@ -42,7 +42,10 @@ export default function RecentSessionsScreen({ navigation }: SessionsStackScreen
           const played = item.gameLogs.filter(g => g.durationSeconds != null);
           const totalSec = item.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
           return (
-            <View style={[styles.card, isToday && styles.cardToday]}>
+            <TouchableOpacity
+              style={[styles.card, isToday && styles.cardToday]}
+              onPress={() => navigation.navigate('SessionDetail', { logId: item.id })}
+            >
               <View style={styles.titleRow}>
                 <Text style={styles.title}>{[planName(item.planId), groupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
                 {isToday && <Text style={styles.todayBadge}>HEUTE</Text>}
@@ -63,7 +66,7 @@ export default function RecentSessionsScreen({ navigation }: SessionsStackScreen
                   <Text style={styles.buttonText}>Archive</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         }}
         ListEmptyComponent={<Text style={styles.empty}>No recent sessions yet.</Text>}

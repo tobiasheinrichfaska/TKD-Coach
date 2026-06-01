@@ -5,6 +5,7 @@ import PlanSessionScreen from './PlanSessionScreen';
 import RunSessionScreen from './RunSessionScreen';
 import RecentSessionsScreen from './RecentSessionsScreen';
 import SessionArchiveScreen from './SessionArchiveScreen';
+import SessionDetailScreen from './SessionDetailScreen';
 import type { SessionsStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
 import { useT } from '../../i18n';
@@ -26,6 +27,7 @@ export default function SessionsNavigator() {
       <Stack.Screen name="RunSession" component={RunSessionScreen} options={{ title: t('Running Session') }} />
       <Stack.Screen name="RecentSessions" component={RecentSessionsScreen} options={{ title: t('Recent Sessions') }} />
       <Stack.Screen name="SessionArchive" component={SessionArchiveScreen} options={{ title: t('Archive') }} />
+      <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: t('Session') }} />
     </Stack.Navigator>
   );
 }

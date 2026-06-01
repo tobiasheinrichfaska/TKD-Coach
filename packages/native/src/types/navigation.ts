@@ -49,6 +49,7 @@ export type SessionsStackParamList = {
   RunSession: { planId: string };
   RecentSessions: undefined;
   SessionArchive: undefined;
+  SessionDetail: { logId: string };
 };
 
 export type AssessmentStackParamList = {

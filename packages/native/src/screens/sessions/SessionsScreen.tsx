@@ -119,7 +119,10 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
             renderItem={({ item }) => {
               const isToday = toLocalDateISO(new Date(item.endedAt || item.startedAt)) === todayISO;
               return (
-              <View style={[styles.card, isToday && styles.cardToday]}>
+              <TouchableOpacity
+                style={[styles.card, isToday && styles.cardToday]}
+                onPress={() => navigation.navigate('SessionDetail', { logId: item.id })}
+              >
                 <View style={styles.titleRow}>
                   <Text style={styles.cardTitle}>
                     {[state.sessionPlans.find(p => p.id === item.planId)?.name, getGroupName(item.groupId)]
@@ -152,7 +155,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                     <Text style={styles.buttonText}>{t('Archive')}</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </TouchableOpacity>
               );
             }}
           />

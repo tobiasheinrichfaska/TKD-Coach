@@ -60,4 +60,31 @@ export const de: Record<string, string> = {
   'Body part': 'Körperteil',
   'Template': 'Vorlage',
   'Metric schema': 'Metrik-Schema',
+
+  // Dashboard
+  "Today's Sessions": 'Sessions heute',
+  'Resume': 'Fortsetzen',
+  'No open sessions for today': 'Keine offenen Sessions heute',
+  'No sessions recorded yet': 'Noch keine Sessions erfasst',
+  'Training today': 'Training heute',
+  'Quick Stats': 'Schnellübersicht',
+  'Sessions completed': 'Sessions abgeschlossen',
+  'Assessments logged': 'Bewertungen erfasst',
+  'About': 'Über',
+  'by': 'von',
+  'Übungen': 'Übungen',
+
+  // Session detail
+  'Session': 'Session',
+  'This session no longer exists.': 'Diese Session existiert nicht mehr.',
+  'Unknown group': 'Unbekannte Gruppe',
+  'Completed': 'Abgeschlossen',
+  'Running': 'Läuft',
+  'Cancelled': 'Abgebrochen',
+  'planned': 'geplant',
+  'not played': 'nicht gespielt',
+  'of': 'von',
+  'total': 'gesamt',
+  'Notes': 'Notizen',
+  'Unarchive': 'Wiederherstellen',
 };
