@@ -5,6 +5,9 @@ import {
   coverageByTechnique,
   coverageByBodyPart,
   assessmentHistory,
+  partitionPlans,
+  runningLogForPlan,
+  recentCompletedLogs,
 } from '../selectors';
 import { GameDefinition, SessionLog, SessionPlan, Assessment } from '../../types';
 
@@ -27,6 +30,47 @@ describe('planStatus', () => {
     expect(planStatus('p-done', logs)).toBe('done');
     expect(planStatus('p-run', logs)).toBe('running');
     expect(planStatus('p-new', logs)).toBe('to-start');
+  });
+});
+
+describe('partitionPlans / runningLogForPlan / recentCompletedLogs', () => {
+  const mkPlan = (id: string, plannedDate: string): SessionPlan => ({
+    id, groupId: 'g', name: id, plannedDate, template: 'custom', plannedGames: [], createdAt: plannedDate,
+  });
+  const mkLog = (id: string, planId: string, status: SessionLog['status'], startedAt = '2026-06-01T10:00:00.000Z'): SessionLog => ({
+    id, planId, groupId: 'g', startedAt, gameLogs: [], status,
+  });
+  const plans = [mkPlan('p1', '2026-06-03'), mkPlan('p2', '2026-06-01'), mkPlan('p3', '2026-06-02')];
+
+  it('running → in-progress, completed → excluded, else planned (date-sorted)', () => {
+    const logs = [mkLog('l1', 'p1', 'running'), mkLog('l2', 'p2', 'completed')];
+    const { inProgress, planned } = partitionPlans(plans, logs);
+    expect(inProgress.map(p => p.id)).toEqual(['p1']);
+    expect(planned.map(p => p.id)).toEqual(['p3']);
+  });
+
+  it('completed wins over a stray running log for the same plan', () => {
+    const logs = [mkLog('r', 'p1', 'running'), mkLog('c', 'p1', 'completed')];
+    const { inProgress, planned } = partitionPlans(plans, logs);
+    expect(inProgress).toHaveLength(0);
+    expect(planned.map(p => p.id)).not.toContain('p1');
+  });
+
+  it('runningLogForPlan finds the running log only', () => {
+    const logs = [mkLog('l1', 'p1', 'running'), mkLog('l2', 'p2', 'completed')];
+    expect(runningLogForPlan(logs, 'p1')?.id).toBe('l1');
+    expect(runningLogForPlan(logs, 'p2')).toBeUndefined();
+  });
+
+  it('recentCompletedLogs: completed + non-archived, newest first, capped', () => {
+    const logs: SessionLog[] = [
+      mkLog('a', 'p1', 'completed', '2026-06-01T10:00:00.000Z'),
+      mkLog('b', 'p2', 'completed', '2026-06-03T10:00:00.000Z'),
+      { ...mkLog('c', 'p3', 'completed', '2026-06-02T10:00:00.000Z'), archived: true },
+      mkLog('d', 'p1', 'running'),
+    ];
+    expect(recentCompletedLogs(logs).map(l => l.id)).toEqual(['b', 'a']);
+    expect(recentCompletedLogs(logs, 1).map(l => l.id)).toEqual(['b']);
   });
 });
 

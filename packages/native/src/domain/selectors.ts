@@ -9,6 +9,44 @@ export function planStatus(planId: string, logs: SessionLog[]): PlanStatus {
   return 'to-start';
 }
 
+/** The running log for a plan, if any (there should be at most one). */
+export function runningLogForPlan(logs: SessionLog[], planId: string): SessionLog | undefined {
+  return logs.find(l => l.planId === planId && l.status === 'running');
+}
+
+export interface PartitionedPlans {
+  /** Plans with a running log (and not yet completed) — resume or discard. */
+  inProgress: SessionPlan[];
+  /** Plans not started and not completed — start or edit. */
+  planned: SessionPlan[];
+}
+
+/**
+ * Split plans by their live status into in-progress vs planned (completed plans are
+ * excluded — they live in the recent/completed list). Both lists are sorted by date.
+ * Pure: the screen renders straight from this, embedding no status rules of its own.
+ */
+export function partitionPlans(plans: SessionPlan[], logs: SessionLog[]): PartitionedPlans {
+  const inProgress: SessionPlan[] = [];
+  const planned: SessionPlan[] = [];
+  for (const p of plans) {
+    const st = planStatus(p.id, logs);
+    if (st === 'done') continue;
+    (st === 'running' ? inProgress : planned).push(p);
+  }
+  const byDate = (a: SessionPlan, b: SessionPlan) =>
+    new Date(a.plannedDate).getTime() - new Date(b.plannedDate).getTime();
+  return { inProgress: [...inProgress].sort(byDate), planned: [...planned].sort(byDate) };
+}
+
+/** Completed, non-archived logs, newest first, capped to `limit`. */
+export function recentCompletedLogs(logs: SessionLog[], limit = 10): SessionLog[] {
+  return logs
+    .filter(l => l.status === 'completed' && !l.archived)
+    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
+    .slice(0, limit);
+}
+
 export interface SessionTotals {
   plannedSec: number;
   actualSec: number;

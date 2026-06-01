@@ -33,7 +33,9 @@ function RootNavigator() {
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Dashboard" component={DashboardScreen} options={{ title: t('Dashboard') }} />
-        <Tab.Screen name="Sessions" component={SessionsNavigator} options={{ title: t('Sessions') }} />
+        {/* popToTopOnBlur: leaving the Sessions tab returns it to the list (not the last
+            run/detail). The running session is persisted, so Resume re-opens it. */}
+        <Tab.Screen name="Sessions" component={SessionsNavigator} options={{ title: t('Sessions'), popToTopOnBlur: true }} />
         <Tab.Screen name="Humans" component={HumansNavigator} options={{ title: t('Humans') }} />
         <Tab.Screen name="OtherData" component={OtherDataNavigator} options={{ title: t('Other Data') }} />
         <Tab.Screen name="Settings" component={SettingsNavigator} options={{ title: t('Settings') }} />
