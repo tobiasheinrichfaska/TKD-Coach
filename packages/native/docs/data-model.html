@@ -71,6 +71,7 @@
   <h2>Overview</h2>
   <a href="#arch">Architecture</a>
   <a href="#flow">Data lifecycle</a>
+  <a href="#factory">Werkseinstellungen</a>
   <h2>Data Model</h2>
   <a href="#root">AppData (root)</a>
   <a href="#er">Relationship map</a>
@@ -153,6 +154,38 @@ This satisfies the workspace rule: <em>the logic layer must run and be fully tes
 </div>
 <div class="note">A fresh install and an existing install take the <strong>same path</strong>: <code>migrate(EMPTY_APP_DATA)</code>
 seeds the built-in games + templates, so there is one seeding code path, not several.</div>
+
+<!-- ============ FACTORY DEFAULTS ============ -->
+<h2 id="factory">Werkseinstellungen (factory defaults)</h2>
+<p>The app ships with two kinds of built-in data. They behave differently — know which is which:</p>
+
+<h3>Editable seed-once stores</h3>
+<p>These live in <code>AppData</code> (persisted + synced). <code>migrate()</code> seeds them <strong>only when empty</strong>
+(fresh install) and <strong>never auto-overwrites</strong> afterwards, so user edits stick. <code>isBuiltIn</code> flags the
+factory rows.</p>
+<table>
+<thead><tr><th>Factory data</th><th>What</th><th>Seeded</th><th>Editable?</th></tr></thead>
+<tbody>
+<tr><td><code>BUILTIN_GAMES</code> (29 Übungen)</td><td>The drill library — neuro games (W/M/C) + the mobility/stretch protocol (K/D).</td><td>Once, on fresh install.</td><td>Yes — edits persist. A "reset to factory" is planned (Phase 4).</td></tr>
+<tr><td><code>BUILTIN_TEMPLATES</code> (4)</td><td><span class="pill">kids-2h</span><span class="pill">youth-adult-1h30</span><span class="pill">mobility-warmup</span><span class="pill">static-block</span></td><td>Once, on fresh install.</td><td>Yes — edits persist.</td></tr>
+</tbody>
+</table>
+<div class="note warn">Consequence: re-tagging a built-in (e.g. adding neuro abilities to a game) reaches <strong>fresh installs only</strong>;
+existing devices keep their seeded copy until they edit it or use the planned factory reset.</div>
+
+<h3>Fixed compiled-in reference catalogs</h3>
+<p>These are constants in the code — <strong>not</strong> in <code>AppData</code>, not stored or synced. They are identical for
+every install, always present, and (currently) not user-editable.</p>
+<table>
+<thead><tr><th>Catalog</th><th>What</th><th>Editable?</th></tr></thead>
+<tbody>
+<tr><td><code>BELT_INFOS</code> (23)</td><td>The Kup/Poom/Dan grade ladder (incl. "keine Graduierung").</td><td>No (fixed).</td></tr>
+<tr><td><code>BODY_PARTS</code> (32)</td><td>22 anatomical + 10 neuro-athletic abilities.</td><td>No today; Phase 4 may make catalogs editable.</td></tr>
+<tr><td><code>TECHNIQUES</code> (47)</td><td>Kicks/stances/blocks/strikes/footwork + Taegeuk &amp; Yudanja poomsae.</td><td>No today; Phase 4 candidate.</td></tr>
+<tr><td><code>METRIC_SCHEMAS</code> (6)</td><td>Assessment metric definitions (fields/units/primary).</td><td>No (drives the generic form).</td></tr>
+</tbody>
+</table>
+<p class="legend">Belt normalisation on load maps legacy colour ids to the ladder; otherwise the fixed catalogs are read straight from code.</p>
 
 <!-- ============ ROOT ============ -->
 <h2 id="root">AppData — the persisted root</h2>
