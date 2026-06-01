@@ -4,6 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { metricTypes } from '../../domain';
+import { useT } from '../../i18n';
 import type {
   BodyPart, BodyRegion, Technique, TechniqueCategory, SessionTemplate, GameDefinition, MetricTypeDef, MetricFieldDef, SessionPhase,
 } from '../../types';
@@ -63,6 +64,7 @@ const PHASES: SessionPhase[] = [1, 2, 3, 4, 5];
 // ===== Body part =====
 export function EditBodyPartScreen({ route, navigation }: OtherDataStackScreenProps<'EditBodyPart'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const existing = route.params?.id ? state.bodyParts.find(b => b.id === route.params!.id) : null;
   const [id] = useState(existing?.id ?? generateId());
   const [name, setName] = useState(existing?.name ?? '');
@@ -77,10 +79,10 @@ export function EditBodyPartScreen({ route, navigation }: OtherDataStackScreenPr
   };
   return (
     <ScrollView style={s.c} contentContainerStyle={s.pad}>
-      <Field label="Name" value={name} onChange={setName} />
-      <Chips label="Region" options={REGIONS} selected={[region]} onToggle={setRegion} />
-      <Chips label="Kind" options={KINDS} selected={[kind]} onToggle={setKind} />
-      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>Speichern</Text></TouchableOpacity>
+      <Field label={t('Name')} value={name} onChange={setName} />
+      <Chips label={t('Region')} options={REGIONS} selected={[region]} onToggle={setRegion} />
+      <Chips label={t('Kind')} options={KINDS} selected={[kind]} onToggle={setKind} />
+      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>{t('Save')}</Text></TouchableOpacity>
       {existing && <DeleteButton onPress={() => { dispatch({ type: 'DELETE_BODY_PART', payload: { id } }); navigation.goBack(); }} name={existing.name} />}
     </ScrollView>
   );
@@ -89,7 +91,8 @@ export function EditBodyPartScreen({ route, navigation }: OtherDataStackScreenPr
 // ===== Technique =====
 export function EditTechniqueScreen({ route, navigation }: OtherDataStackScreenProps<'EditTechnique'>) {
   const { state, dispatch } = useData();
-  const existing = route.params?.id ? state.techniques.find(t => t.id === route.params!.id) : null;
+  const { t } = useT();
+  const existing = route.params?.id ? state.techniques.find(x => x.id === route.params!.id) : null;
   const [id] = useState(existing?.id ?? generateId());
   const [name, setName] = useState(existing?.name ?? '');
   const [korean, setKorean] = useState(existing?.koreanName ?? '');
@@ -104,12 +107,12 @@ export function EditTechniqueScreen({ route, navigation }: OtherDataStackScreenP
   };
   return (
     <ScrollView style={s.c} contentContainerStyle={s.pad}>
-      <Field label="Name" value={name} onChange={setName} />
-      <Field label="Korean (한글)" value={korean} onChange={setKorean} placeholder="optional" />
-      <Chips label="Category" options={CATEGORIES} selected={[category]} onToggle={setCategory} />
-      <Chips label="Body parts / neuro" options={state.bodyParts.map(b => b.id)} selected={bodyPartIds}
+      <Field label={t('Name')} value={name} onChange={setName} />
+      <Field label={t('Korean (한글)')} value={korean} onChange={setKorean} placeholder={t('optional')} />
+      <Chips label={t('Category')} options={CATEGORIES} selected={[category]} onToggle={setCategory} />
+      <Chips label={t('Body parts / neuro')} options={state.bodyParts.map(b => b.id)} selected={bodyPartIds}
         onToggle={v => setBodyPartIds(p => toggle(p, v))} labelOf={bid => state.bodyParts.find(b => b.id === bid)?.name ?? bid} />
-      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>Speichern</Text></TouchableOpacity>
+      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>{t('Save')}</Text></TouchableOpacity>
       {existing && <DeleteButton onPress={() => { dispatch({ type: 'DELETE_TECHNIQUE', payload: { id } }); navigation.goBack(); }} name={existing.name} />}
     </ScrollView>
   );
@@ -118,7 +121,8 @@ export function EditTechniqueScreen({ route, navigation }: OtherDataStackScreenP
 // ===== Session template =====
 export function EditTemplateScreen({ route, navigation }: OtherDataStackScreenProps<'EditTemplate'>) {
   const { state, dispatch } = useData();
-  const existing = route.params?.id ? state.sessionTemplates.find(t => t.id === route.params!.id) : null;
+  const { t } = useT();
+  const existing = route.params?.id ? state.sessionTemplates.find(x => x.id === route.params!.id) : null;
   const [id] = useState(existing?.id ?? generateId());
   const [name, setName] = useState(existing?.name ?? '');
   const [ageGroup, setAgeGroup] = useState<SessionTemplate['ageGroup']>(existing?.ageGroup ?? 'all');
@@ -132,20 +136,21 @@ export function EditTemplateScreen({ route, navigation }: OtherDataStackScreenPr
   };
   return (
     <ScrollView style={s.c} contentContainerStyle={s.pad}>
-      <Field label="Name" value={name} onChange={setName} />
-      <Chips label="Age group" options={['kids', 'youth-adults', 'all'] as const} selected={[ageGroup]} onToggle={setAgeGroup} />
-      <Chips label="Übungen (tap to add/remove, order = tap order)" options={state.games.map(g => g.id)} selected={itemIds}
+      <Field label={t('Name')} value={name} onChange={setName} />
+      <Chips label={t('Age group')} options={['kids', 'youth-adults', 'all'] as const} selected={[ageGroup]} onToggle={setAgeGroup} />
+      <Chips label={t('Exercises (tap to add/remove, order = tap order)')} options={state.games.map(g => g.id)} selected={itemIds}
         onToggle={v => setItemIds(p => toggle(p, v))} labelOf={gid => state.games.find(g => g.id === gid)?.shortName ?? gid} />
-      <Text style={s.hint}>{itemIds.length} Übungen</Text>
-      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>Speichern</Text></TouchableOpacity>
+      <Text style={s.hint}>{itemIds.length} {t('exercises')}</Text>
+      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>{t('Save')}</Text></TouchableOpacity>
       {existing && <DeleteButton onPress={() => { dispatch({ type: 'DELETE_SESSION_TEMPLATE', payload: { id } }); navigation.goBack(); }} name={existing.name} />}
     </ScrollView>
   );
 }
 
-// ===== Game (Übung) =====
+// ===== Exercise =====
 export function EditGameScreen({ route, navigation }: OtherDataStackScreenProps<'EditGame'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const existing = route.params?.id ? state.games.find(g => g.id === route.params!.id) : null;
   const [id] = useState(existing?.id ?? generateId());
   const [name, setName] = useState(existing?.name ?? '');
@@ -159,7 +164,7 @@ export function EditGameScreen({ route, navigation }: OtherDataStackScreenProps<
   const [description, setDescription] = useState(existing?.description ?? '');
 
   const save = () => {
-    if (!name.trim() || phases.length === 0) { Alert.alert('Pflichtfelder', 'Name und mindestens eine Phase erforderlich.'); return; }
+    if (!name.trim() || phases.length === 0) { Alert.alert(t('Required fields'), t('Name and at least one phase required.')); return; }
     const payload: GameDefinition = {
       id, name: name.trim(), shortName: shortName.trim() || name.trim().slice(0, 8),
       sessionPhases: phases, defaultMinutes: Number(minutes) || 0, ageGroup,
@@ -171,20 +176,20 @@ export function EditGameScreen({ route, navigation }: OtherDataStackScreenProps<
   };
   return (
     <ScrollView style={s.c} contentContainerStyle={s.pad}>
-      <Field label="Name" value={name} onChange={setName} />
-      <Field label="Short name" value={shortName} onChange={setShortName} placeholder="abbr." />
-      <Field label="Minutes" value={minutes} onChange={setMinutes} keyboardType="number-pad" />
-      <Chips label="Phases (1–5)" options={PHASES} selected={phases} onToggle={v => setPhases(p => toggle(p, v))} />
-      <Chips label="Age group" options={['all', 'youth-adults'] as const} selected={[ageGroup]} onToggle={setAgeGroup} />
-      <Chips label="Log metric (optional)" options={['', ...metricTypes(state.metricSchemas)]} selected={[metric]}
-        onToggle={v => setMetric(m => (m === v ? '' : v))} labelOf={t => (t === '' ? '— none —' : state.metricSchemas.find(x => x.type === t)?.label ?? t)} />
-      <Chips label="Techniques" options={state.techniques.map(t => t.id)} selected={techniques}
-        onToggle={v => setTechniques(p => toggle(p, v))} labelOf={tid => state.techniques.find(t => t.id === tid)?.name ?? tid} />
-      <Chips label="Body parts / neuro" options={state.bodyParts.map(b => b.id)} selected={bodyParts}
+      <Field label={t('Name')} value={name} onChange={setName} />
+      <Field label={t('Short name')} value={shortName} onChange={setShortName} placeholder={t('abbr.')} />
+      <Field label={t('Minutes')} value={minutes} onChange={setMinutes} keyboardType="number-pad" />
+      <Chips label={t('Phases (1–5)')} options={PHASES} selected={phases} onToggle={v => setPhases(p => toggle(p, v))} />
+      <Chips label={t('Age group')} options={['all', 'youth-adults'] as const} selected={[ageGroup]} onToggle={setAgeGroup} />
+      <Chips label={t('Log metric (optional)')} options={['', ...metricTypes(state.metricSchemas)]} selected={[metric]}
+        onToggle={v => setMetric(m => (m === v ? '' : v))} labelOf={mt => (mt === '' ? t('— none —') : state.metricSchemas.find(x => x.type === mt)?.label ?? mt)} />
+      <Chips label={t('Techniques')} options={state.techniques.map(x => x.id)} selected={techniques}
+        onToggle={v => setTechniques(p => toggle(p, v))} labelOf={tid => state.techniques.find(x => x.id === tid)?.name ?? tid} />
+      <Chips label={t('Body parts / neuro')} options={state.bodyParts.map(b => b.id)} selected={bodyParts}
         onToggle={v => setBodyParts(p => toggle(p, v))} labelOf={bid => state.bodyParts.find(b => b.id === bid)?.name ?? bid} />
-      <Text style={s.label}>Description</Text>
+      <Text style={s.label}>{t('Description')}</Text>
       <TextInput style={[s.input, { minHeight: 70 }]} value={description} onChangeText={setDescription} multiline placeholderTextColor={COLORS.textMuted} />
-      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>Speichern</Text></TouchableOpacity>
+      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>{t('Save')}</Text></TouchableOpacity>
       {existing && <DeleteButton onPress={() => { dispatch({ type: 'DELETE_GAME', payload: { id } }); navigation.goBack(); }} name={existing.name} />}
     </ScrollView>
   );
@@ -193,6 +198,7 @@ export function EditGameScreen({ route, navigation }: OtherDataStackScreenProps<
 // ===== Metric schema =====
 export function EditMetricSchemaScreen({ route, navigation }: OtherDataStackScreenProps<'EditMetricSchema'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const existing = route.params?.type ? state.metricSchemas.find(m => m.type === route.params!.type) : null;
   const [type, setType] = useState(existing?.type ?? '');
   const [label, setLabel] = useState(existing?.label ?? '');
@@ -201,43 +207,44 @@ export function EditMetricSchemaScreen({ route, navigation }: OtherDataStackScre
 
   const setField = (i: number, patch: Partial<MetricFieldDef>) => setFields(f => f.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
   const save = () => {
-    if (!type.trim() || !label.trim() || fields.length === 0) { Alert.alert('Pflichtfelder', 'Typ, Label und ein Feld erforderlich.'); return; }
+    if (!type.trim() || !label.trim() || fields.length === 0) { Alert.alert(t('Required fields'), t('Type, label and one field required.')); return; }
     const payload: MetricTypeDef = { type: type.trim(), label: label.trim(), primaryField, fields };
     dispatch({ type: existing ? 'UPDATE_METRIC_SCHEMA' : 'ADD_METRIC_SCHEMA', payload });
     navigation.goBack();
   };
   return (
     <ScrollView style={s.c} contentContainerStyle={s.pad}>
-      <Field label="Type (id)" value={type} onChange={setType} placeholder="e.g. balance_hold" />
-      <Field label="Label" value={label} onChange={setLabel} />
-      <Text style={s.label}>Fields</Text>
+      <Field label={t('Type (id)')} value={type} onChange={setType} placeholder="e.g. balance_hold" />
+      <Field label={t('Label')} value={label} onChange={setLabel} />
+      <Text style={s.label}>{t('Fields')}</Text>
       {fields.map((f, i) => (
         <View key={i} style={s.fieldCard}>
-          <Field label="Key" value={f.key} onChange={t => setField(i, { key: t })} />
-          <Field label="Field label" value={f.label} onChange={t => setField(i, { label: t })} />
-          <Field label="Unit (optional)" value={f.unit ?? ''} onChange={t => setField(i, { unit: t || undefined })} />
+          <Field label={t('Key')} value={f.key} onChange={v => setField(i, { key: v })} />
+          <Field label={t('Field label')} value={f.label} onChange={v => setField(i, { label: v })} />
+          <Field label={t('Unit (optional)')} value={f.unit ?? ''} onChange={v => setField(i, { unit: v || undefined })} />
           <View style={s.chips}>
-            <TouchableOpacity style={[s.chip, f.integer && s.chipOn]} onPress={() => setField(i, { integer: !f.integer })}><Text style={f.integer ? s.chipTxtOn : s.chipTxt}>integer</Text></TouchableOpacity>
-            <TouchableOpacity style={[s.chip, f.lowerIsBetter && s.chipOn]} onPress={() => setField(i, { lowerIsBetter: !f.lowerIsBetter })}><Text style={f.lowerIsBetter ? s.chipTxtOn : s.chipTxt}>lower is better</Text></TouchableOpacity>
-            {fields.length > 1 && <TouchableOpacity style={s.chip} onPress={() => setFields(arr => arr.filter((_, idx) => idx !== i))}><Text style={[s.chipTxt, { color: COLORS.danger }]}>remove</Text></TouchableOpacity>}
+            <TouchableOpacity style={[s.chip, f.integer && s.chipOn]} onPress={() => setField(i, { integer: !f.integer })}><Text style={f.integer ? s.chipTxtOn : s.chipTxt}>{t('integer')}</Text></TouchableOpacity>
+            <TouchableOpacity style={[s.chip, f.lowerIsBetter && s.chipOn]} onPress={() => setField(i, { lowerIsBetter: !f.lowerIsBetter })}><Text style={f.lowerIsBetter ? s.chipTxtOn : s.chipTxt}>{t('lower is better')}</Text></TouchableOpacity>
+            {fields.length > 1 && <TouchableOpacity style={s.chip} onPress={() => setFields(arr => arr.filter((_, idx) => idx !== i))}><Text style={[s.chipTxt, { color: COLORS.danger }]}>{t('remove')}</Text></TouchableOpacity>}
           </View>
         </View>
       ))}
-      <TouchableOpacity onPress={() => setFields(f => [...f, { key: `f${f.length + 1}`, label: '' }])}><Text style={[s.hint, { color: COLORS.info }]}>+ add field</Text></TouchableOpacity>
-      <Chips label="Primary field (headline delta)" options={fields.map(f => f.key)} selected={[primaryField]} onToggle={setPrimaryField} />
-      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>Speichern</Text></TouchableOpacity>
+      <TouchableOpacity onPress={() => setFields(f => [...f, { key: `f${f.length + 1}`, label: '' }])}><Text style={[s.hint, { color: COLORS.info }]}>{t('+ add field')}</Text></TouchableOpacity>
+      <Chips label={t('Primary field (headline delta)')} options={fields.map(f => f.key)} selected={[primaryField]} onToggle={setPrimaryField} />
+      <TouchableOpacity style={s.save} onPress={save}><Text style={s.btnTxt}>{t('Save')}</Text></TouchableOpacity>
       {existing && <DeleteButton onPress={() => { dispatch({ type: 'DELETE_METRIC_SCHEMA', payload: { type: existing.type } }); navigation.goBack(); }} name={existing.label} />}
     </ScrollView>
   );
 }
 
 function DeleteButton({ onPress, name }: { onPress: () => void; name: string }) {
+  const { t } = useT();
   return (
     <TouchableOpacity
       style={s.del}
-      onPress={() => Alert.alert('Löschen?', `"${name}" löschen?`, [{ text: 'Abbrechen', style: 'cancel' }, { text: 'Löschen', style: 'destructive', onPress }])}
+      onPress={() => Alert.alert(t('Delete?'), `${t('Delete')} "${name}"?`, [{ text: t('Cancel'), style: 'cancel' }, { text: t('Delete'), style: 'destructive', onPress }])}
     >
-      <Text style={s.btnTxt}>Löschen</Text>
+      <Text style={s.btnTxt}>{t('Delete')}</Text>
     </TouchableOpacity>
   );
 }

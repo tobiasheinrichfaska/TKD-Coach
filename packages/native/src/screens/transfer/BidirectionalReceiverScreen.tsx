@@ -5,6 +5,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { assembleFromChunks, detectChanges, applyChanges } from '../../utils/qrChunks';
 import type { QRChunk, ChangeDetection } from '../../utils/qrChunks';
+import { useT } from '../../i18n';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -39,6 +40,7 @@ interface HandshakeData {
 
 export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { onComplete: () => void; onCancel: () => void }) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const [permission, requestPermission] = useCameraPermissions();
   const [receiverState, setReceiverState] = useState<ReceiverState>('scanning-handshake');
   const [handshake, setHandshake] = useState<HandshakeData | null>(null);
@@ -108,7 +110,7 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
       setChanges(detected);
       setReceiverState('review');
     } catch (e) {
-      Alert.alert('Processing Failed', e instanceof Error ? e.message : 'Unknown error');
+      Alert.alert(t('Processing failed'), e instanceof Error ? e.message : t('Unknown error'));
       setReceiverState('scanning-chunks');
     }
   };
@@ -135,9 +137,9 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
   if (!permission.granted) {
     return (
       <View style={styles.noCamera}>
-        <Text style={styles.noCameraText}>Camera permission required</Text>
+        <Text style={styles.noCameraText}>{t('Camera permission required')}</Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant Permission</Text>
+          <Text style={styles.buttonText}>{t('Grant permission')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -147,7 +149,7 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={[styles.overlayText, { marginTop: 16 }]}>Processing transfer...</Text>
+        <Text style={[styles.overlayText, { marginTop: 16 }]}>{t('Processing transfer...')}</Text>
       </View>
     );
   }
@@ -160,45 +162,45 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>Review Transfer</Text>
+          <Text style={styles.headerText}>{t('Review transfer')}</Text>
         </View>
         <ScrollView>
           {totalNew > 0 && (
             <View style={styles.changeSection}>
-              <Text style={[styles.changeTitle, { color: COLORS.success }]}>New Data ({totalNew})</Text>
-              {changes.new.groups.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.groups.length} groups</Text>}
-              {changes.new.persons.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.persons.length} people</Text>}
-              {changes.new.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionPlans.length} session plans</Text>}
-              {changes.new.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionLogs.length} session logs</Text>}
-              {changes.new.assessments.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.assessments.length} assessments</Text>}
+              <Text style={[styles.changeTitle, { color: COLORS.success }]}>{t('New data')} ({totalNew})</Text>
+              {changes.new.groups.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.groups.length} {t('groups')}</Text>}
+              {changes.new.persons.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.persons.length} {t('people')}</Text>}
+              {changes.new.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionPlans.length} {t('session plans')}</Text>}
+              {changes.new.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionLogs.length} {t('session logs')}</Text>}
+              {changes.new.assessments.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.assessments.length} {t('assessments')}</Text>}
             </View>
           )}
 
           {totalChanged > 0 && (
             <View style={styles.changeSection}>
-              <Text style={[styles.changeTitle, { color: COLORS.warning }]}>Updated Data ({totalChanged})</Text>
-              {changes.changed.groups.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.groups.length} groups</Text>}
-              {changes.changed.persons.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.persons.length} people</Text>}
-              {changes.changed.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionPlans.length} session plans</Text>}
-              {changes.changed.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionLogs.length} session logs</Text>}
-              {changes.changed.assessments.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.assessments.length} assessments</Text>}
+              <Text style={[styles.changeTitle, { color: COLORS.warning }]}>{t('Updated data')} ({totalChanged})</Text>
+              {changes.changed.groups.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.groups.length} {t('groups')}</Text>}
+              {changes.changed.persons.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.persons.length} {t('people')}</Text>}
+              {changes.changed.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionPlans.length} {t('session plans')}</Text>}
+              {changes.changed.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionLogs.length} {t('session logs')}</Text>}
+              {changes.changed.assessments.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.assessments.length} {t('assessments')}</Text>}
             </View>
           )}
 
           {totalUnchanged > 0 && (
             <View style={styles.changeSection}>
-              <Text style={[styles.changeTitle, { color: COLORS.textMuted }]}>Unchanged ({totalUnchanged})</Text>
-              <Text style={[styles.changeItem, styles.unchangedItem]}>= {totalUnchanged} items match your data</Text>
+              <Text style={[styles.changeTitle, { color: COLORS.textMuted }]}>{t('Unchanged')} ({totalUnchanged})</Text>
+              <Text style={[styles.changeItem, styles.unchangedItem]}>= {totalUnchanged} {t('items match your data')}</Text>
             </View>
           )}
         </ScrollView>
 
         <View style={{ padding: 16, gap: 8 }}>
           <TouchableOpacity style={styles.button} onPress={handleAccept}>
-            <Text style={styles.buttonText}>Accept & Merge</Text>
+            <Text style={styles.buttonText}>{t('Accept & merge')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={() => { setReceiverState('scanning-chunks'); setChunks(new Map()); scannedIdsRef.current.clear(); }}>
-            <Text style={styles.buttonText}>Reject</Text>
+            <Text style={styles.buttonText}>{t('Reject')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -208,10 +210,10 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
   if (receiverState === 'complete') {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <Text style={{ fontSize: 24, color: COLORS.success, marginBottom: 16 }}>✓ Import Complete</Text>
-        <Text style={{ color: COLORS.text, marginBottom: 24, textAlign: 'center' }}>Data has been merged into your database</Text>
+        <Text style={{ fontSize: 24, color: COLORS.success, marginBottom: 16 }}>✓ {t('Import complete')}</Text>
+        <Text style={{ color: COLORS.text, marginBottom: 24, textAlign: 'center' }}>{t('Data has been merged into your database')}</Text>
         <TouchableOpacity style={styles.button} onPress={onComplete}>
-          <Text style={styles.buttonText}>Finish</Text>
+          <Text style={styles.buttonText}>{t('Finish')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -221,7 +223,7 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>
-          {receiverState === 'scanning-handshake' ? 'Waiting for Sender' : 'Receiving Data'}
+          {receiverState === 'scanning-handshake' ? t('Waiting for sender') : t('Receiving data')}
         </Text>
       </View>
 
@@ -234,16 +236,16 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
       <View style={styles.overlay}>
         {handshake && receivedCount > 0 && (
           <Text style={styles.progress}>
-            Received: {receivedCount}/{totalCount} chunks
+            {t('Received')}: {receivedCount}/{totalCount} {t('chunks')}
           </Text>
         )}
         <Text style={styles.overlayText}>
           {receiverState === 'scanning-handshake'
-            ? 'Point camera at sender QR code'
-            : `Scan chunk ${receivedCount + 1} of ${totalCount}`}
+            ? t('Point camera at sender QR code')
+            : `${t('Scan chunk')} ${receivedCount + 1} ${t('of')} ${totalCount}`}
         </Text>
         <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={onCancel}>
-          <Text style={styles.buttonText}>Stop</Text>
+          <Text style={styles.buttonText}>{t('Stop')}</Text>
         </TouchableOpacity>
       </View>
     </View>

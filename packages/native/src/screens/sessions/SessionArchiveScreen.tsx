@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort } from '../../utils/format';
+import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -18,6 +19,7 @@ const styles = StyleSheet.create({
 
 export default function SessionArchiveScreen({ navigation }: SessionsStackScreenProps<'SessionArchive'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
 
   const archived = [...state.sessionLogs]
     .filter(l => l.archived)
@@ -38,18 +40,18 @@ export default function SessionArchiveScreen({ navigation }: SessionsStackScreen
           return (
             <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SessionDetail', { logId: item.id })}>
               <Text style={styles.title}>{[planName(item.planId), groupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
-              <Text style={styles.meta}>{formatDateShort(item.startedAt)} · {played.length} Übungen · {Math.round(totalSec / 60)} min</Text>
+              <Text style={styles.meta}>{formatDateShort(item.startedAt)} · {played.length} {t('Exercises')} · {Math.round(totalSec / 60)} min</Text>
               <Text style={styles.games}>{gameNames(played.map(g => g.gameId))}</Text>
               <TouchableOpacity
                 style={styles.button}
                 onPress={() => dispatch({ type: 'UPDATE_SESSION_LOG', payload: { ...item, archived: false } })}
               >
-                <Text style={styles.buttonText}>Unarchive</Text>
+                <Text style={styles.buttonText}>{t('Unarchive')}</Text>
               </TouchableOpacity>
             </TouchableOpacity>
           );
         }}
-        ListEmptyComponent={<Text style={styles.empty}>No archived sessions.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{t('No archived sessions.')}</Text>}
       />
     </View>
   );

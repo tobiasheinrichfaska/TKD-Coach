@@ -23,10 +23,10 @@ export default function HumansHubScreen({ navigation }: GroupsStackScreenProps<'
   const contactCount = new Set(state.contactLinks.map(l => l.contactId)).size;
 
   const rows: { title: string; meta: string; color: string; go: () => void }[] = [
-    { title: 'Athletes', meta: `${athleteCount} athlete${athleteCount === 1 ? '' : 's'}`, color: COLORS.primary, go: () => navigation.navigate('AllAthletes') },
-    { title: 'Groups', meta: `${state.groups.length} group${state.groups.length === 1 ? '' : 's'}`, color: COLORS.info, go: () => navigation.navigate('GroupsList') },
-    { title: 'Emergency contacts & guardians', meta: `${contactCount} contact${contactCount === 1 ? '' : 's'} · ${guardianCount} guardian${guardianCount === 1 ? '' : 's'}`, color: COLORS.success, go: () => navigation.navigate('EmergencyContacts') },
-    { title: 'Assessment & progress', meta: `${coachCount} coach${coachCount === 1 ? '' : 'es'} · log + track metrics`, color: COLORS.warning, go: () => navigation.navigate('Assessment', { screen: 'AssessmentList' }) },
+    { title: 'Athletes', meta: `${athleteCount} ${athleteCount === 1 ? t('athlete') : t('athletes')}`, color: COLORS.primary, go: () => navigation.navigate('AllAthletes') },
+    { title: 'Groups', meta: `${state.groups.length} ${state.groups.length === 1 ? t('group') : t('groups')}`, color: COLORS.info, go: () => navigation.navigate('GroupsList') },
+    { title: 'Emergency contacts & guardians', meta: `${contactCount} ${contactCount === 1 ? t('contact') : t('contacts')} · ${guardianCount} ${guardianCount === 1 ? t('guardian') : t('guardians')}`, color: COLORS.success, go: () => navigation.navigate('EmergencyContacts') },
+    { title: 'Assessment & progress', meta: `${coachCount} ${coachCount === 1 ? t('coach') : t('coaches')} · ${t('log + track metrics')}`, color: COLORS.warning, go: () => navigation.navigate('Assessment', { screen: 'AssessmentList' }) },
   ];
 
   return (

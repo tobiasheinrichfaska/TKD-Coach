@@ -13,6 +13,7 @@ import { COLORS } from '../../constants/colors';
 import { AssessmentMetric } from '../../types';
 import { athletesInGroup } from '../../domain';
 import { generateId } from '../../utils/ids';
+import { useT } from '../../i18n';
 import type { AssessmentStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -59,6 +60,7 @@ type MetricDraft = {
 
 export default function AssessmentScreen(_props: AssessmentStackScreenProps<'AssessmentList'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const [step, setStep] = useState<'group' | 'athlete' | 'game' | 'metric'>('group');
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedAthleteId, setSelectedAthleteId] = useState('');
@@ -105,7 +107,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
     return (
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.section}>Select Group</Text>
+          <Text style={styles.section}>{t('Select group')}</Text>
           {state.groups.length > 0 ? (
             <View style={styles.picker}>
               <FlatList
@@ -128,7 +130,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
               />
             </View>
           ) : (
-            <Text style={styles.empty}>No groups yet</Text>
+            <Text style={styles.empty}>{t('No groups yet')}</Text>
           )}
         </View>
       </ScrollView>
@@ -139,9 +141,9 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
     return (
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.section}>Select Athlete</Text>
+          <Text style={styles.section}>{t('Select athlete')}</Text>
           <TouchableOpacity onPress={() => setStep('group')} style={{ marginBottom: 12 }}>
-            <Text style={{ color: COLORS.primary, fontWeight: '500' }}>← Back to Groups</Text>
+            <Text style={{ color: COLORS.primary, fontWeight: '500' }}>← {t('Back to groups')}</Text>
           </TouchableOpacity>
           {groupAthletes.length > 0 ? (
             <View style={styles.picker}>
@@ -165,7 +167,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
               />
             </View>
           ) : (
-            <Text style={styles.empty}>No athletes in this group</Text>
+            <Text style={styles.empty}>{t('No athletes in this group')}</Text>
           )}
         </View>
       </ScrollView>
@@ -177,9 +179,9 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
     return (
       <ScrollView style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.section}>Select Game</Text>
+          <Text style={styles.section}>{t('Select exercise')}</Text>
           <TouchableOpacity onPress={() => setStep('athlete')} style={{ marginBottom: 12 }}>
-            <Text style={{ color: COLORS.primary, fontWeight: '500' }}>← Back to Athletes</Text>
+            <Text style={{ color: COLORS.primary, fontWeight: '500' }}>← {t('Back to athletes')}</Text>
           </TouchableOpacity>
           {gamesWithMetrics.length > 0 ? (
             <View style={styles.picker}>
@@ -200,7 +202,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
               />
             </View>
           ) : (
-            <Text style={styles.empty}>No trackable games</Text>
+            <Text style={styles.empty}>{t('No trackable exercises')}</Text>
           )}
         </View>
       </ScrollView>
@@ -215,7 +217,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
           <>
             <TextInput
               style={styles.input}
-              placeholder="Dominant leg (seconds)"
+              placeholder={t('Dominant leg (seconds)')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
               onChangeText={text =>
@@ -224,7 +226,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
             />
             <TextInput
               style={styles.input}
-              placeholder="Non-dominant leg (seconds)"
+              placeholder={t('Non-dominant leg (seconds)')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
               onChangeText={text =>
@@ -237,7 +239,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
         return (
           <TextInput
             style={styles.input}
-            placeholder="Errors per 10 cues"
+            placeholder={t('Errors per 10 cues')}
             placeholderTextColor={COLORS.textMuted}
             keyboardType="decimal-pad"
             onChangeText={text => setMetric({ type: 'reaction_errors', errorsPerTen: parseFloat(text) || 0 })}
@@ -248,14 +250,14 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
           <>
             <TextInput
               style={styles.input}
-              placeholder="Correct combos"
+              placeholder={t('Correct combos')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
               onChangeText={text => setMetric({ ...metric, correct: parseInt(text) || 0 })}
             />
             <TextInput
               style={styles.input}
-              placeholder="Total attempts"
+              placeholder={t('Total attempts')}
               placeholderTextColor={COLORS.textMuted}
               keyboardType="decimal-pad"
               onChangeText={text => setMetric({ type: 'combo_accuracy', correct: metric.correct || 0, total: parseInt(text) || 0 })}
@@ -263,25 +265,25 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
           </>
         );
       default:
-        return <Text style={styles.empty}>No metric form for this game</Text>;
+        return <Text style={styles.empty}>{t('No metric form for this exercise')}</Text>;
     }
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.section}>{selectedGame?.name || 'Log Metric'}</Text>
+        <Text style={styles.section}>{selectedGame?.name || t('Log metric')}</Text>
         <TouchableOpacity onPress={() => setStep('game')} style={{ marginBottom: 12 }}>
-          <Text style={{ color: COLORS.primary, fontWeight: '500' }}>← Back to Games</Text>
+          <Text style={{ color: COLORS.primary, fontWeight: '500' }}>← {t('Back to exercises')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.section}>Metric Value</Text>
+        <Text style={styles.section}>{t('Metric value')}</Text>
         {renderMetricForm()}
 
-        <Text style={styles.section}>Notes (optional)</Text>
+        <Text style={styles.section}>{t('Notes (optional)')}</Text>
         <TextInput
           style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-          placeholder="Any observations..."
+          placeholder={t('Any observations...')}
           placeholderTextColor={COLORS.textMuted}
           multiline
           value={notes}
@@ -289,7 +291,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
         />
 
         <TouchableOpacity style={styles.button} onPress={handleSaveMetric}>
-          <Text style={styles.buttonText}>Save Assessment</Text>
+          <Text style={styles.buttonText}>{t('Save assessment')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

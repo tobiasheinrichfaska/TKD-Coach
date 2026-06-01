@@ -4,6 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { athletesInGroup, sortedSlots, formatSlot } from '../../domain';
 import { getBeltLabel } from '../../constants/belts';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -19,22 +20,23 @@ const styles = StyleSheet.create({
 
 export default function GroupDetailScreen({ route, navigation }: GroupsStackScreenProps<'GroupDetail'>) {
   const { state } = useData();
+  const { t } = useT();
   const groupId = route.params.groupId;
   const group = state.groups.find(g => g.id === groupId);
   const athletes = athletesInGroup(state.persons, group);
 
-  if (!group) return <View style={styles.container}><Text>Group not found</Text></View>;
+  if (!group) return <View style={styles.container}><Text>{t('Group not found')}</Text></View>;
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.groupName}>{group.name}</Text>
         <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate('EditGroup', { groupId: group.id })}>
-          <Text style={styles.editText}>✎ Bearbeiten</Text>
+          <Text style={styles.editText}>✎ {t('Edit')}</Text>
         </TouchableOpacity>
       </View>
       <Text style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 16 }}>
-        {group.trainingTimes.length > 0 ? sortedSlots(group).map(formatSlot).join('   ·   ') : 'No training times set'}
+        {group.trainingTimes.length > 0 ? sortedSlots(group).map(formatSlot).join('   ·   ') : t('No training times set')}
       </Text>
       <FlatList
         data={athletes}
@@ -45,7 +47,7 @@ export default function GroupDetailScreen({ route, navigation }: GroupsStackScre
             <Text style={{ fontSize: 12, color: COLORS.textMuted }}>{getBeltLabel(item.belt)}</Text>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.text}>No athletes in this group</Text>}
+        ListEmptyComponent={<Text style={styles.text}>{t('No athletes in this group')}</Text>}
       />
       <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('EditAthlete', { groupId: group.id })}>
         <Text style={{ fontSize: 32, color: COLORS.surface }}>+</Text>

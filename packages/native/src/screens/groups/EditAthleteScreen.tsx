@@ -6,6 +6,7 @@ import { generateId } from '../../utils/ids';
 import { getBeltLabel } from '../../constants/belts';
 import { promote, demote, canConvertToDan, convertToDan, getPerson, contactsForAthlete } from '../../domain';
 import { callNumber } from '../../utils/linking';
+import { useT } from '../../i18n';
 import type { Belt, Person } from '../../types';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
@@ -33,6 +34,7 @@ const styles = StyleSheet.create({
 
 export default function EditAthleteScreen({ route, navigation }: GroupsStackScreenProps<'EditAthlete'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const athleteId = route.params?.athleteId;
   const groupId = route.params?.groupId;
   const existing = athleteId ? getPerson(state.persons, athleteId) : null;
@@ -90,7 +92,7 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
 
   const handleAddContact = () => {
     if (!persist()) {
-      Alert.alert('Name required', 'Enter the athlete’s name first — the athlete is saved before a contact is linked.');
+      Alert.alert(t('Name required'), t('Enter the athlete name first — the athlete is saved before a contact is linked.'));
       return;
     }
     navigation.navigate('AddContact', { athleteId: personId });
@@ -102,12 +104,12 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16, color: COLORS.text }}>
-          {athleteId ? 'Edit Athlete' : 'Create Athlete'}
+          {athleteId ? t('Edit athlete') : t('Create athlete')}
         </Text>
-        <TextInput style={styles.input} placeholder="Name" placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
+        <TextInput style={styles.input} placeholder={t('Name')} placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
         <TextInput
           style={styles.input}
-          placeholder="Birth year (e.g. 2014)"
+          placeholder={t('Birth year (e.g. 2014)')}
           placeholderTextColor={COLORS.textMuted}
           value={birthYear}
           onChangeText={setBirthYear}
@@ -115,7 +117,7 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
           maxLength={4}
         />
 
-        <Text style={styles.section}>Graduierung</Text>
+        <Text style={styles.section}>{t('Grade')}</Text>
         <View style={styles.gradeBox}>
           <Text style={styles.gradeLabel}>{getBeltLabel(belt)}</Text>
           <View style={styles.gradeBtnRow}>
@@ -124,52 +126,52 @@ export default function EditAthleteScreen({ route, navigation }: GroupsStackScre
               disabled={!nextDown}
               onPress={() => nextDown && setBelt(nextDown)}
             >
-              <Text style={styles.gradeBtnText}>↓ Zurückstufen</Text>
+              <Text style={styles.gradeBtnText}>↓ {t('Demote')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.gradeBtn, !nextUp && styles.gradeBtnDisabled]}
               disabled={!nextUp}
               onPress={() => nextUp && setBelt(nextUp)}
             >
-              <Text style={styles.gradeBtnText}>↑ Graduieren</Text>
+              <Text style={styles.gradeBtnText}>↑ {t('Promote')}</Text>
             </TouchableOpacity>
           </View>
           {showConvert && (
             <TouchableOpacity style={styles.convertBtn} onPress={() => { const d = convertToDan(belt); if (d) setBelt(d); }}>
-              <Text style={styles.buttonText}>Zu Dan umwandeln</Text>
+              <Text style={styles.buttonText}>{t('Convert to Dan')}</Text>
             </TouchableOpacity>
           )}
           {!nextUp && !showConvert && belt !== 'dan-9' && (
             <Text style={styles.hint}>
               {belt.startsWith('poom-')
-                ? 'Höhere Graduierung erst ab nachweislich 14 J. (zu Dan umwandeln) bzw. 15 J.'
-                : 'Höchste verfügbare Stufe für dieses Alter.'}
+                ? t('Higher grade only from age 14 (convert to Dan) resp. 15.')
+                : t('Highest available level for this age.')}
             </Text>
           )}
         </View>
 
-        <Text style={styles.section}>Contact (own)</Text>
-        <TextInput style={styles.input} placeholder="Phone (own)" placeholderTextColor={COLORS.textMuted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <Text style={styles.section}>{t('Contact (own)')}</Text>
+        <TextInput style={styles.input} placeholder={t('Phone (own)')} placeholderTextColor={COLORS.textMuted} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
 
-        <Text style={styles.section}>Emergency contacts</Text>
+        <Text style={styles.section}>{t('Emergency contacts')}</Text>
         {contacts.map(c => (
           <View key={c.link.id} style={styles.contactCard}>
-            <Text style={styles.contactName}>{c.person.name}{c.guardian ? '  · Erz.-ber.' : ''}</Text>
+            <Text style={styles.contactName}>{c.person.name}{c.guardian ? `  · ${t('Guardian')}` : ''}</Text>
             <View style={styles.contactLine}>
               {c.person.phones.map((p, i) => (
                 <Text key={i} style={styles.link} onPress={() => callNumber(p)}>📞 {p}</Text>
               ))}
-              <Text style={styles.remove} onPress={() => removeContact(c.link.id)}>Entfernen</Text>
+              <Text style={styles.remove} onPress={() => removeContact(c.link.id)}>{t('Remove')}</Text>
             </View>
           </View>
         ))}
-        {!personNow && <Text style={[styles.hint, { textAlign: 'left' }]}>Adding a contact saves the athlete first.</Text>}
+        {!personNow && <Text style={[styles.hint, { textAlign: 'left' }]}>{t('Adding a contact saves the athlete first.')}</Text>}
         <TouchableOpacity onPress={handleAddContact}>
-          <Text style={[styles.link, { marginTop: 4 }]}>+ Kontakt hinzufügen / auswählen</Text>
+          <Text style={[styles.link, { marginTop: 4 }]}>+ {t('Add / select contact')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Save</Text>
+          <Text style={styles.buttonText}>{t('Save')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

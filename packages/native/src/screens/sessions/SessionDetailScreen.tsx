@@ -110,7 +110,7 @@ export default function SessionDetailScreen({ route, navigation }: SessionsStack
 
         <View style={styles.totals}>
           <Text style={styles.totalsText}>
-            {played.length} {t('of')} {log.gameLogs.length} {t('Übungen')} · {formatDuration(totalSec)} {t('total')}
+            {played.length} {t('of')} {log.gameLogs.length} {t('Exercises')} · {formatDuration(totalSec)} {t('total')}
           </Text>
         </View>
 

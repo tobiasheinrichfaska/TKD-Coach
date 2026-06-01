@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
+import { useT } from '../../i18n';
 import type { TransferSelection } from '../../types';
 
 const styles = StyleSheet.create({
@@ -32,6 +33,7 @@ interface SelectDataScreenProps {
 
 export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScreenProps) {
   const { state } = useData();
+  const { t } = useT();
   const [selection, setSelection] = useState<TransferSelection>({
     groups: true,
     persons: true,
@@ -75,11 +77,11 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Select Data to Sync</Text>
+        <Text style={styles.headerText}>{t('Select data to sync')}</Text>
       </View>
 
       <ScrollView style={styles.content}>
-        <Text style={styles.section}>What to include in transfer:</Text>
+        <Text style={styles.section}>{t('What to include in transfer:')}</Text>
 
         <TouchableOpacity
           style={[styles.checkbox, selection.groups && styles.checkboxChecked]}
@@ -89,8 +91,8 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
             {selection.groups && <Text style={styles.checkmark}>✓</Text>}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Groups</Text>
-            <Text style={styles.count}>{state.groups.length} items</Text>
+            <Text style={styles.label}>{t('Groups')}</Text>
+            <Text style={styles.count}>{state.groups.length} {t('items')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -102,8 +104,8 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
             {selection.persons && <Text style={styles.checkmark}>✓</Text>}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>People (athletes &amp; contacts)</Text>
-            <Text style={styles.count}>{state.persons.length} items</Text>
+            <Text style={styles.label}>{t('People (athletes & contacts)')}</Text>
+            <Text style={styles.count}>{state.persons.length} {t('items')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -115,8 +117,8 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
             {selection.sessionPlans && <Text style={styles.checkmark}>✓</Text>}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Session Plans</Text>
-            <Text style={styles.count}>{state.sessionPlans.length} items</Text>
+            <Text style={styles.label}>{t('Session plans')}</Text>
+            <Text style={styles.count}>{state.sessionPlans.length} {t('items')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -128,8 +130,8 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
             {selection.sessionLogs && <Text style={styles.checkmark}>✓</Text>}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Session Logs</Text>
-            <Text style={styles.count}>{state.sessionLogs.length} items</Text>
+            <Text style={styles.label}>{t('Session logs')}</Text>
+            <Text style={styles.count}>{state.sessionLogs.length} {t('items')}</Text>
           </View>
         </TouchableOpacity>
 
@@ -141,36 +143,36 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
             {selection.assessments && <Text style={styles.checkmark}>✓</Text>}
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.label}>Assessments</Text>
-            <Text style={styles.count}>{state.assessments.length} items</Text>
+            <Text style={styles.label}>{t('Assessments')}</Text>
+            <Text style={styles.count}>{state.assessments.length} {t('items')}</Text>
           </View>
         </TouchableOpacity>
 
-        <Text style={[styles.section, { marginTop: 24 }]}>Quick select:</Text>
+        <Text style={[styles.section, { marginTop: 24 }]}>{t('Quick select:')}</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={selectAll}>
-            <Text style={styles.buttonText}>All</Text>
+            <Text style={styles.buttonText}>{t('All')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={selectNone}>
-            <Text style={styles.buttonText}>None</Text>
+            <Text style={styles.buttonText}>{t('None')}</Text>
           </TouchableOpacity>
         </View>
 
         <Text style={[styles.section, { marginTop: 24 }]}>
-          Total: {totalItems} items will be transferred
+          {t('Total')}: {totalItems} {t('items will be transferred')}
         </Text>
       </ScrollView>
 
       <View style={styles.controls}>
         <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={onCancel}>
-          <Text style={styles.buttonText}>Cancel</Text>
+          <Text style={styles.buttonText}>{t('Cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.buttonPrimary, !hasSelection && styles.buttonDisabled]}
           onPress={() => onConfirm(selection)}
           disabled={!hasSelection}
         >
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={styles.buttonText}>{t('Continue')}</Text>
         </TouchableOpacity>
       </View>
     </View>

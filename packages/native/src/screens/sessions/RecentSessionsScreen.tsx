@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../../utils/format';
+import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -22,6 +23,7 @@ const styles = StyleSheet.create({
 
 export default function RecentSessionsScreen({ navigation }: SessionsStackScreenProps<'RecentSessions'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const todayISO = toLocalDateISO();
 
   const recent = [...state.sessionLogs]
@@ -50,26 +52,26 @@ export default function RecentSessionsScreen({ navigation }: SessionsStackScreen
                 <Text style={styles.title}>{[planName(item.planId), groupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
                 {isToday && <Text style={styles.todayBadge}>HEUTE</Text>}
               </View>
-              <Text style={styles.meta}>{formatDateShort(item.startedAt)} · {played.length} Übungen · {Math.round(totalSec / 60)} min</Text>
+              <Text style={styles.meta}>{formatDateShort(item.startedAt)} · {played.length} {t('Exercises')} · {Math.round(totalSec / 60)} min</Text>
               <Text style={styles.games}>{gameNames(played.map(g => g.gameId))}</Text>
               <View style={styles.buttons}>
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: COLORS.info }]}
                   onPress={() => navigation.navigate('PlanSession', { fromGroupId: item.groupId, fromGameIds: item.gameLogs.map(g => g.gameId) })}
                 >
-                  <Text style={styles.buttonText}>Plan again</Text>
+                  <Text style={styles.buttonText}>{t('Plan again')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: COLORS.textMuted }]}
                   onPress={() => dispatch({ type: 'UPDATE_SESSION_LOG', payload: { ...item, archived: true } })}
                 >
-                  <Text style={styles.buttonText}>Archive</Text>
+                  <Text style={styles.buttonText}>{t('Archive')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
           );
         }}
-        ListEmptyComponent={<Text style={styles.empty}>No recent sessions yet.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{t('No recent sessions yet')}</Text>}
       />
     </View>
   );

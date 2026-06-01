@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { callNumber } from '../../utils/linking';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -18,6 +19,7 @@ const styles = StyleSheet.create({
 
 export default function EmergencyContactsScreen({ navigation }: GroupsStackScreenProps<'EmergencyContacts'>) {
   const { state } = useData();
+  const { t } = useT();
   // A "contact" is any person referenced as a contact in ≥1 link.
   const contactIds = [...new Set(state.contactLinks.map(l => l.contactId))];
   const contacts = contactIds
@@ -40,22 +42,22 @@ export default function EmergencyContactsScreen({ navigation }: GroupsStackScree
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Text style={styles.text}>{item.person.name}</Text>
-                {item.anyGuardian && <Text style={styles.badge}>Erz.-berechtigt</Text>}
+                {item.anyGuardian && <Text style={styles.badge}>{t('Guardian')}</Text>}
               </View>
               <Text style={styles.muted}>
-                {item.count} athlete{item.count === 1 ? '' : 's'}
+                {item.count} {item.count === 1 ? t('athlete') : t('athletes')}
                 {item.person.phones[0] ? ` · ${item.person.phones[0]}` : ''}
                 {item.person.email ? ` · ${item.person.email}` : ''}
               </Text>
             </View>
             {item.person.phones[0] && (
               <TouchableOpacity style={styles.call} onPress={() => callNumber(item.person.phones[0])}>
-                <Text style={styles.callText}>Anrufen</Text>
+                <Text style={styles.callText}>{t('Call')}</Text>
               </TouchableOpacity>
             )}
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.text}>No contacts yet. Tap + to add one.</Text>}
+        ListEmptyComponent={<Text style={styles.text}>{t('No contacts yet. Tap + to add one.')}</Text>}
       />
       <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('EditEmergencyContact', {})}>
         <Text style={{ fontSize: 32, color: COLORS.surface }}>+</Text>

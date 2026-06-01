@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { SESSION_PHASE_LABELS } from '../../types';
+import { useT } from '../../i18n';
 import type { OtherDataStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -27,17 +28,18 @@ const Fab = ({ onPress }: { onPress: () => void }) => (
 
 export function GamesListScreen({ navigation }: OtherDataStackScreenProps<'GamesList'>) {
   const { state } = useData();
+  const { t } = useT();
   const data = [...state.games].sort((a, b) => a.name.localeCompare(b.name));
   return (
     <View style={styles.container}>
       <FlatList data={data} keyExtractor={g => g.id}
         renderItem={({ item }) => (
           <Row onPress={() => navigation.navigate('EditGame', { id: item.id })}
-            title={`${item.name}${item.isBuiltIn ? '' : ' · custom'}`}
-            meta={`${item.defaultMinutes} min · Phasen ${item.sessionPhases.map(p => SESSION_PHASE_LABELS[p].split(' ')[1]).join('/')}` +
-              `${item.techniques?.length ? ` · ${item.techniques.length} Techniken` : ''}${item.bodyParts?.length ? ` · ${item.bodyParts.length} Körper/Neuro` : ''}`} />
+            title={`${item.name}${item.isBuiltIn ? '' : ` · ${t('custom')}`}`}
+            meta={`${item.defaultMinutes} min · ${t('Phases')} ${item.sessionPhases.map(p => SESSION_PHASE_LABELS[p].split(' ')[1]).join('/')}` +
+              `${item.techniques?.length ? ` · ${item.techniques.length} ${t('techniques')}` : ''}${item.bodyParts?.length ? ` · ${item.bodyParts.length} ${t('body/neuro')}` : ''}`} />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Keine Übungen.</Text>} />
+        ListEmptyComponent={<Text style={styles.empty}>{t('No exercises.')}</Text>} />
       <Fab onPress={() => navigation.navigate('EditGame', {})} />
     </View>
   );
@@ -45,15 +47,16 @@ export function GamesListScreen({ navigation }: OtherDataStackScreenProps<'Games
 
 export function TechniquesListScreen({ navigation }: OtherDataStackScreenProps<'TechniquesList'>) {
   const { state } = useData();
+  const { t } = useT();
   const data = [...state.techniques].sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
   return (
     <View style={styles.container}>
-      <FlatList data={data} keyExtractor={t => t.id}
+      <FlatList data={data} keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <Row onPress={() => navigation.navigate('EditTechnique', { id: item.id })}
             title={`${item.name}${item.koreanName ? `  ${item.koreanName}` : ''}`} meta={`${item.category} · ${item.bodyPartIds.join(', ')}`} />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Keine Techniken.</Text>} />
+        ListEmptyComponent={<Text style={styles.empty}>{t('No techniques.')}</Text>} />
       <Fab onPress={() => navigation.navigate('EditTechnique', {})} />
     </View>
   );
@@ -61,11 +64,12 @@ export function TechniquesListScreen({ navigation }: OtherDataStackScreenProps<'
 
 export function BodyPartsListScreen({ navigation }: OtherDataStackScreenProps<'BodyPartsList'>) {
   const { state } = useData();
+  const { t } = useT();
   return (
     <View style={styles.container}>
       <FlatList data={state.bodyParts} keyExtractor={b => b.id}
         renderItem={({ item }) => <Row onPress={() => navigation.navigate('EditBodyPart', { id: item.id })} title={item.name} meta={`${item.region} · ${item.kind}`} />}
-        ListEmptyComponent={<Text style={styles.empty}>Keine Körperteile.</Text>} />
+        ListEmptyComponent={<Text style={styles.empty}>{t('No body parts.')}</Text>} />
       <Fab onPress={() => navigation.navigate('EditBodyPart', {})} />
     </View>
   );
@@ -73,11 +77,12 @@ export function BodyPartsListScreen({ navigation }: OtherDataStackScreenProps<'B
 
 export function TemplatesListScreen({ navigation }: OtherDataStackScreenProps<'TemplatesList'>) {
   const { state } = useData();
+  const { t } = useT();
   return (
     <View style={styles.container}>
-      <FlatList data={state.sessionTemplates} keyExtractor={t => t.id}
-        renderItem={({ item }) => <Row onPress={() => navigation.navigate('EditTemplate', { id: item.id })} title={item.name} meta={`${item.ageGroup} · ${item.itemIds.length} Übungen`} />}
-        ListEmptyComponent={<Text style={styles.empty}>Keine Vorlagen.</Text>} />
+      <FlatList data={state.sessionTemplates} keyExtractor={item => item.id}
+        renderItem={({ item }) => <Row onPress={() => navigation.navigate('EditTemplate', { id: item.id })} title={item.name} meta={`${item.ageGroup} · ${item.itemIds.length} ${t('exercises')}`} />}
+        ListEmptyComponent={<Text style={styles.empty}>{t('No templates.')}</Text>} />
       <Fab onPress={() => navigation.navigate('EditTemplate', {})} />
     </View>
   );
@@ -85,11 +90,12 @@ export function TemplatesListScreen({ navigation }: OtherDataStackScreenProps<'T
 
 export function MetricSchemasListScreen({ navigation }: OtherDataStackScreenProps<'MetricSchemasList'>) {
   const { state } = useData();
+  const { t } = useT();
   return (
     <View style={styles.container}>
       <FlatList data={state.metricSchemas} keyExtractor={m => m.type}
         renderItem={({ item }) => <Row onPress={() => navigation.navigate('EditMetricSchema', { type: item.type })} title={item.label} meta={`${item.type} · ${item.fields.map(f => f.label).join(', ')}`} />}
-        ListEmptyComponent={<Text style={styles.empty}>Keine Metrik-Schemata.</Text>} />
+        ListEmptyComponent={<Text style={styles.empty}>{t('No metric schemas.')}</Text>} />
       <Fab onPress={() => navigation.navigate('EditMetricSchema', {})} />
     </View>
   );

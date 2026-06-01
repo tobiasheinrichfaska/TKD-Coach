@@ -20,12 +20,12 @@ export default function OtherDataNavigator() {
       }}
     >
       <Stack.Screen name="OtherDataHub" component={OtherDataHubScreen} options={{ title: t('Other Data') }} />
-      <Stack.Screen name="GamesList" component={GamesListScreen} options={{ title: t('Games') }} />
+      <Stack.Screen name="GamesList" component={GamesListScreen} options={{ title: t('Exercises') }} />
       <Stack.Screen name="TechniquesList" component={TechniquesListScreen} options={{ title: t('Techniques') }} />
       <Stack.Screen name="BodyPartsList" component={BodyPartsListScreen} options={{ title: t('Body parts & neuro') }} />
       <Stack.Screen name="TemplatesList" component={TemplatesListScreen} options={{ title: t('Session templates') }} />
       <Stack.Screen name="MetricSchemasList" component={MetricSchemasListScreen} options={{ title: t('Metric schemas') }} />
-      <Stack.Screen name="EditGame" component={EditGameScreen} options={{ title: t('Game') }} />
+      <Stack.Screen name="EditGame" component={EditGameScreen} options={{ title: t('Exercise') }} />
       <Stack.Screen name="EditTechnique" component={EditTechniqueScreen} options={{ title: t('Technique') }} />
       <Stack.Screen name="EditBodyPart" component={EditBodyPartScreen} options={{ title: t('Body part') }} />
       <Stack.Screen name="EditTemplate" component={EditTemplateScreen} options={{ title: t('Template') }} />

@@ -4,10 +4,12 @@ import AssessmentScreen from './AssessmentScreen';
 import ProgressScreen from './ProgressScreen';
 import type { AssessmentStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
+import { useT } from '../../i18n';
 
 const Stack = createNativeStackNavigator<AssessmentStackParamList>();
 
 export default function AssessmentNavigator() {
+  const { t } = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -16,8 +18,8 @@ export default function AssessmentNavigator() {
         headerTintColor: COLORS.primary,
       }}
     >
-      <Stack.Screen name="AssessmentList" component={AssessmentScreen} options={{ title: 'Log Assessment' }} />
-      <Stack.Screen name="Progress" component={ProgressScreen} options={{ title: 'Progress' }} />
+      <Stack.Screen name="AssessmentList" component={AssessmentScreen} options={{ title: t('Log assessment') }} />
+      <Stack.Screen name="Progress" component={ProgressScreen} options={{ title: t('Progress') }} />
     </Stack.Navigator>
   );
 }

@@ -5,6 +5,7 @@ import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
 import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson, otherRolesBesidesAthlete } from '../../domain';
 import { callNumber, sendEmail } from '../../utils/linking';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -37,11 +38,12 @@ const styles = StyleSheet.create({
 
 export default function AthleteDetailScreen({ route, navigation }: GroupsStackScreenProps<'AthleteDetail'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const athleteId = route.params.athleteId;
   const personRecord = getPerson(state.persons, athleteId);
   const athlete = toAthleteView(personRecord);
 
-  if (!athlete || !personRecord) return <View style={styles.container}><Text style={styles.rowValue}>Athlete not found</Text></View>;
+  if (!athlete || !personRecord) return <View style={styles.container}><Text style={styles.rowValue}>{t('Athlete not found')}</Text></View>;
 
   const memberGroups = groupsForAthlete(state.groups, athlete.id);
   const otherGroups = state.groups.filter(g => !g.athleteIds.includes(athlete.id));
@@ -67,16 +69,16 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
     if (others.length > 0) {
       // Person also has other roles → don't nuke the whole human; offer role-only removal.
       Alert.alert(
-        `${athlete.name} has other roles`,
-        `${athlete.name} is also ${others.join(' & ')} for others. Remove only the athlete role (keep the person), or delete the entire person?`,
+        `${athlete.name} ${t('has other roles')}`,
+        `${athlete.name} ${t('is also')} ${others.join(' & ')} ${t('for others. Remove only the athlete role (keep the person), or delete the entire person?')}`,
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('Cancel'), style: 'cancel' },
           {
-            text: 'Remove athlete role',
+            text: t('Remove athlete role'),
             onPress: () => { dispatch({ type: 'REMOVE_ATHLETE_ROLE', payload: { id: athlete.id } }); navigation.goBack(); },
           },
           {
-            text: 'Delete person',
+            text: t('Delete person'),
             style: 'destructive',
             onPress: () => { dispatch({ type: 'DELETE_PERSON', payload: { id: athlete.id } }); navigation.goBack(); },
           },
@@ -85,12 +87,12 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
       return;
     }
     Alert.alert(
-      `Delete ${athlete.name}?`,
-      `This permanently deletes ${athlete.name} and everything linked to them — group memberships, all assessments, and attendance records (Teilnahme). This cannot be undone.`,
+      `${t('Delete')} ${athlete.name}?`,
+      t('This permanently deletes the person and everything linked to them — group memberships and all assessments. This cannot be undone.'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('Delete'),
           style: 'destructive',
           onPress: () => {
             dispatch({ type: 'DELETE_PERSON', payload: { id: athlete.id } });
@@ -106,28 +108,28 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
       <View style={styles.content}>
         <Text style={styles.header}>{athlete.name}</Text>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Belt</Text>
+          <Text style={styles.rowLabel}>{t('Belt')}</Text>
           <Text style={styles.rowValue}>{formatBelt(athlete.belt)}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Birth Year</Text>
+          <Text style={styles.rowLabel}>{t('Birth year')}</Text>
           <Text style={styles.rowValue}>{athlete.birthYear || 'N/A'}</Text>
         </View>
         {athlete.phones[0] && (
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Phone</Text>
+            <Text style={styles.rowLabel}>{t('Phone')}</Text>
             <Text style={[styles.rowValue, styles.link]} onPress={() => callNumber(athlete.phones[0])}>{athlete.phones[0]}</Text>
           </View>
         )}
 
-        <Text style={styles.section}>Emergency contacts</Text>
-        {needsGuardian && <Text style={styles.warnHint}>⚠ Kein Erziehungsberechtigter hinterlegt (Athlet evtl. unter 18).</Text>}
-        {contacts.length === 0 && <Text style={styles.hint}>No contacts linked yet.</Text>}
+        <Text style={styles.section}>{t('Emergency contacts')}</Text>
+        {needsGuardian && <Text style={styles.warnHint}>⚠ {t('No guardian on file (athlete may be under 18).')}</Text>}
+        {contacts.length === 0 && <Text style={styles.hint}>{t('No contacts linked yet.')}</Text>}
         {contacts.map(c => (
           <View key={c.link.id} style={styles.contactCard}>
             <TouchableOpacity onPress={() => navigation.navigate('EditEmergencyContact', { contactId: c.person.id })}>
               <Text style={styles.contactName}>
-                {c.person.name}{c.guardian ? <Text style={styles.guardianTag}>  Erz.-ber.  </Text> : null}
+                {c.person.name}{c.guardian ? <Text style={styles.guardianTag}>  {t('Guardian')}  </Text> : null}
               </Text>
             </TouchableOpacity>
             <View style={styles.contactLine}>
@@ -139,11 +141,11 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
           </View>
         ))}
         <TouchableOpacity onPress={() => navigation.navigate('AddContact', { athleteId: athlete.id })}>
-          <Text style={[styles.link, { marginTop: 4 }]}>+ Kontakt hinzufügen</Text>
+          <Text style={[styles.link, { marginTop: 4 }]}>+ {t('Add contact')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.section}>Groups</Text>
-        {memberGroups.length === 0 && <Text style={styles.hint}>Not in any group yet — tap one below to add.</Text>}
+        <Text style={styles.section}>{t('Groups')}</Text>
+        {memberGroups.length === 0 && <Text style={styles.hint}>{t('Not in any group yet — tap one below to add.')}</Text>}
         <View style={styles.chipRow}>
           {memberGroups.map(g => (
             <TouchableOpacity key={g.id} style={[styles.chip, styles.chipMember]} onPress={() => removeFromGroup(g.id)}>
@@ -153,7 +155,7 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
         </View>
         {otherGroups.length > 0 && (
           <>
-            <Text style={[styles.hint, { marginTop: 12 }]}>Add to:</Text>
+            <Text style={[styles.hint, { marginTop: 12 }]}>{t('Add to:')}</Text>
             <View style={styles.chipRow}>
               {otherGroups.map(g => (
                 <TouchableOpacity key={g.id} style={[styles.chip, styles.chipAdd]} onPress={() => addToGroup(g.id)}>
@@ -166,14 +168,14 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
 
         <View style={styles.buttonGroup}>
           <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditAthlete', { athleteId: athlete.id })}>
-            <Text style={styles.buttonText}>Edit</Text>
+            <Text style={styles.buttonText}>{t('Edit')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={() => navigation.navigate('Assessment', { screen: 'Progress', params: { athleteId: athlete.id } })}>
-            <Text style={styles.buttonText}>Progress</Text>
+            <Text style={styles.buttonText}>{t('Progress')}</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={confirmDelete}>
-          <Text style={styles.buttonText}>Delete Athlete</Text>
+          <Text style={styles.buttonText}>{t('Delete athlete')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

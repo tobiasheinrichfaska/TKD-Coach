@@ -16,6 +16,7 @@ import { generateId } from '../../utils/ids';
 import { toLocalDateISO } from '../../utils/format';
 import { nextSession, slotsOnDay, formatSlot, primaryPhase, gameInPhase, phaseBand } from '../../domain';
 import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
+import { useT } from '../../i18n';
 import type { Group } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
@@ -72,6 +73,7 @@ const styles = StyleSheet.create({
 
 export default function PlanSessionScreen({ route, navigation }: SessionsStackScreenProps<'PlanSession'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const planId = route.params?.planId;
   const plan = planId ? state.sessionPlans.find(p => p.id === planId) : null;
   const fromGroupId = route.params?.fromGroupId;
@@ -146,20 +148,20 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
 
   const handleSave = () => {
     if (!name.trim()) {
-      Alert.alert('Name benötigt', 'Gib einen Session-Namen ein.');
+      Alert.alert(t('Name required'), t('Enter a session name.'));
       return;
     }
     if (!groupId) {
       Alert.alert(
-        'Gruppe benötigt',
+        t('Group required'),
         state.groups.length === 0
-          ? 'Du hast noch keine Gruppen. Lege zuerst eine im Personen-Tab an und plane dann eine Session.'
-          : 'Tippe oben auf eine Gruppe, um sie zu wählen.'
+          ? t('You have no groups yet. Create one in the Humans tab first, then plan a session for it.')
+          : t('Tap a group above to select it.')
       );
       return;
     }
     if (gameIds.length === 0) {
-      Alert.alert('Keine Übungen', 'Dieser Plan hat keine Übungen. Wähle eine Vorlage oder füge welche hinzu.');
+      Alert.alert(t('No exercises'), t('This plan has no exercises. Pick a template or add some.'));
       return;
     }
     // Persist in phase order so the run follows the phases; record placement for all games.
@@ -201,7 +203,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     <View style={{ marginBottom: 8 }}>
       <TextInput
         style={styles.input}
-        placeholder="Filtern — z.B. ap-chagi, Knie, Balance"
+        placeholder={t('Filter — e.g. ap-chagi, knee, balance')}
         placeholderTextColor={COLORS.textMuted}
         value={query}
         onChangeText={setQuery}
@@ -225,7 +227,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
         })}
         {(scope === 'all' ? PHASES : [scope]).every(
           phase => state.games.filter(g => gameInPhase(g, phase) && !gameIds.includes(g.id) && matches(g.id)).length === 0
-        ) && <Text style={[styles.pickerItem, styles.pickerItemText, { color: COLORS.textMuted }]}>Keine passenden Übungen.</Text>}
+        ) && <Text style={[styles.pickerItem, styles.pickerItemText, { color: COLORS.textMuted }]}>{t('No matching exercises.')}</Text>}
       </View>
     </View>
   );
@@ -233,10 +235,10 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.section}>Session-Name</Text>
-        <TextInput style={styles.input} placeholder="z.B. Dienstagstraining" placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
+        <Text style={styles.section}>{t('Session name')}</Text>
+        <TextInput style={styles.input} placeholder={t('e.g. Tuesday training')} placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
 
-        <Text style={styles.section}>Gruppe</Text>
+        <Text style={styles.section}>{t('Group')}</Text>
         <View style={styles.picker}>
           <FlatList
             scrollEnabled={false}
@@ -247,21 +249,21 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
                 <Text style={[styles.pickerItemText, groupId === item.id && { color: COLORS.surface }]}>{item.name}</Text>
               </TouchableOpacity>
             )}
-            ListEmptyComponent={<Text style={[styles.pickerItem, styles.pickerItemText, { color: COLORS.textMuted }]}>Noch keine Gruppen — lege zuerst eine im Personen-Tab an.</Text>}
+            ListEmptyComponent={<Text style={[styles.pickerItem, styles.pickerItemText, { color: COLORS.textMuted }]}>{t('No groups yet — create one in the Humans tab first.')}</Text>}
           />
         </View>
 
-        <Text style={styles.section}>Datum</Text>
-        <TextInput style={styles.input} placeholder="JJJJ-MM-TT" placeholderTextColor={COLORS.textMuted} value={date} onChangeText={setDate} />
+        <Text style={styles.section}>{t('Date')}</Text>
+        <TextInput style={styles.input} placeholder="YYYY-MM-DD" placeholderTextColor={COLORS.textMuted} value={date} onChangeText={setDate} />
         {selectedGroup && (
           <Text style={{ fontSize: 12, color: COLORS.textMuted, marginTop: -6, marginBottom: 8 }}>
             {targetSlot
-              ? `Training: ${formatSlot(targetSlot)}  ·  geplant ${totalMinutes}/${targetSlot.durationMin} min`
-              : `${selectedGroup.name} trainiert an diesem Tag nicht.`}
+              ? `${t('Training')}: ${formatSlot(targetSlot)}  ·  ${t('planned')} ${totalMinutes}/${targetSlot.durationMin} min`
+              : `${selectedGroup.name} ${t('does not train on this day.')}`}
           </Text>
         )}
 
-        <Text style={styles.section}>Vorlage</Text>
+        <Text style={styles.section}>{t('Template')}</Text>
         <View style={styles.chipRow}>
           {TEMPLATE_GROUPS.map(grp => {
             // Single-item groups (Empty/Warm-up/Cool-down) apply in one tap; multi-item groups open.
@@ -289,7 +291,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
           </View>
         )}
 
-        <Text style={styles.section}>Übungen ({gameIds.length} · {totalMinutes} min)</Text>
+        <Text style={styles.section}>{t('Exercises')} ({gameIds.length} · {totalMinutes} min)</Text>
         {/* All phases always shown, even when empty, each with its own add button. */}
         {PHASES.map(phase => {
           const inPhase = gameIds.filter(g => phaseOf(g) === phase);
@@ -322,9 +324,9 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
                   </View>
                 );
               })}
-              {inPhase.length === 0 && <Text style={styles.phaseEmpty}>— keine Übung —</Text>}
+              {inPhase.length === 0 && <Text style={styles.phaseEmpty}>{t('— no exercise —')}</Text>}
               <TouchableOpacity style={styles.addPhase} onPress={() => { setOpenAdd(a => (a === phase ? null : phase)); setQuery(''); }}>
-                <Text style={styles.addPhaseText}>{openAdd === phase ? 'Schließen' : '+ Übung in diese Phase'}</Text>
+                <Text style={styles.addPhaseText}>{openAdd === phase ? t('Close') : t('+ Exercise in this phase')}</Text>
               </TouchableOpacity>
               {openAdd === phase && renderAddList(phase)}
             </View>
@@ -333,12 +335,12 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
 
         {/* Central add — choose from every phase at once. */}
         <TouchableOpacity style={styles.addToggle} onPress={() => { setOpenAdd(a => (a === 'all' ? null : 'all')); setQuery(''); }}>
-          <Text style={styles.addToggleText}>{openAdd === 'all' ? 'Schließen' : '+ Übung (alle Phasen)'}</Text>
+          <Text style={styles.addToggleText}>{openAdd === 'all' ? t('Close') : t('+ Exercise (all phases)')}</Text>
         </TouchableOpacity>
         {openAdd === 'all' && renderAddList('all')}
 
         <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>{planId ? 'Session-Plan aktualisieren' : 'Session-Plan erstellen'}</Text>
+          <Text style={styles.buttonText}>{planId ? t('Update session plan') : t('Create session plan')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

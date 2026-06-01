@@ -23,7 +23,7 @@ export default function OtherDataHubScreen({ navigation }: OtherDataStackScreenP
   const { t } = useT();
 
   const rows: { title: string; meta: string; route: keyof OtherDataStackParamList }[] = [
-    { title: 'Übungen (Games)', meta: `${state.games.length}`, route: 'GamesList' },
+    { title: 'Exercises', meta: `${state.games.length}`, route: 'GamesList' },
     { title: 'Techniques', meta: `${state.techniques.length}`, route: 'TechniquesList' },
     { title: 'Body parts & neuro', meta: `${state.bodyParts.length}`, route: 'BodyPartsList' },
     { title: 'Session templates', meta: `${state.sessionTemplates.length}`, route: 'TemplatesList' },
@@ -32,13 +32,12 @@ export default function OtherDataHubScreen({ navigation }: OtherDataStackScreenP
 
   const resetFactory = () => {
     Alert.alert(
-      'Werkseinstellung',
-      'Setzt Übungen, Templates, Körperteile/Neuro, Techniken und Metrik-Schemata auf die Werksdaten zurück. ' +
-        'Eigene Änderungen an diesen Katalogen gehen verloren. Athleten, Gruppen, Sessions und Kontakte bleiben erhalten.',
+      t('Factory reset'),
+      t('Resets exercises, templates, body parts/neuro, techniques and metric schemas to the factory data. Your own changes to these catalogs are lost. Athletes, groups, sessions and contacts are kept.'),
       [
-        { text: 'Abbrechen', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: 'Zurücksetzen',
+          text: t('Reset'),
           style: 'destructive',
           onPress: () => dispatch({
             type: 'LOAD_ALL',
@@ -69,9 +68,9 @@ export default function OtherDataHubScreen({ navigation }: OtherDataStackScreenP
       ))}
 
       <TouchableOpacity style={styles.resetBtn} onPress={resetFactory}>
-        <Text style={styles.resetText}>↺ {t('Werkseinstellung')} (Kataloge zurücksetzen)</Text>
+        <Text style={styles.resetText}>↺ {t('Factory reset (reset catalogs)')}</Text>
       </TouchableOpacity>
-      <Text style={styles.hint}>Catalogs are editable seed-once stores. This re-applies the factory data, keeping your people / groups / sessions.</Text>
+      <Text style={styles.hint}>{t('Catalogs are editable seed-once stores. This re-applies the factory data, keeping your people / groups / sessions.')}</Text>
     </ScrollView>
   );
 }

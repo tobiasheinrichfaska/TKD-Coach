@@ -5,6 +5,7 @@ import { COLORS } from '../../constants/colors';
 import { MetricRow } from '../../components/MetricRow';
 import { formatBelt, generateProgressSummaryText } from '../../utils/format';
 import { toAthleteView, getPerson } from '../../domain';
+import { useT } from '../../i18n';
 import type { AssessmentStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -21,6 +22,7 @@ const styles = StyleSheet.create({
 
 export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Progress'>) {
   const { state } = useData();
+  const { t } = useT();
   const athleteId = route.params?.athleteId;
   const athlete = toAthleteView(getPerson(state.persons, athleteId ?? ''));
   // .filter() returns a new array, so the subsequent .sort() is safe (does not mutate state).
@@ -31,7 +33,7 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
   if (!athlete) {
     return (
       <View style={styles.container}>
-        <Text style={{ padding: 16, color: COLORS.text }}>Athlete not found</Text>
+        <Text style={{ padding: 16, color: COLORS.text }}>{t('Athlete not found')}</Text>
       </View>
     );
   }
@@ -112,11 +114,11 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
             </View>
           ))
         ) : (
-          <Text style={styles.empty}>No assessments logged yet</Text>
+          <Text style={styles.empty}>{t('No assessments logged yet')}</Text>
         )}
 
         <TouchableOpacity style={styles.button} onPress={handleShare}>
-          <Text style={styles.buttonText}>Share Progress</Text>
+          <Text style={styles.buttonText}>{t('Share progress')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

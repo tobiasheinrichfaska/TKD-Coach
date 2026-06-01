@@ -6,6 +6,7 @@ import { COLORS } from '../../constants/colors';
 import { encodeToChunks, exportSelected } from '../../utils/qrChunks';
 import { TransferSelection } from '../../types';
 import { generateId } from '../../utils/ids';
+import { useT } from '../../i18n';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, padding: 16 },
@@ -33,6 +34,7 @@ type TransferState = 'handshake' | 'transferring' | 'complete';
 
 export default function BidirectionalSenderScreen({ selection, onComplete, onCancel }: BidirectionalSenderScreenProps) {
   const { state } = useData();
+  const { t } = useT();
   const [transferState, setTransferState] = useState<TransferState>('handshake');
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0);
   const [transferId] = useState(generateId());
@@ -71,7 +73,7 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
 
   const handleStartTransfer = () => {
     if (chunks.length === 0) {
-      Alert.alert('No Data', 'No data selected to transfer');
+      Alert.alert(t('No data'), t('No data selected to transfer'));
       return;
     }
     setTransferState('transferring');
@@ -94,10 +96,10 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
   if (error) {
     return (
       <View style={styles.container}>
-        <Text style={styles.header}>Transfer Error</Text>
+        <Text style={styles.header}>{t('Transfer error')}</Text>
         <Text style={{ color: COLORS.danger, marginVertical: 16 }}>{error}</Text>
         <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={onCancel}>
-          <Text style={styles.buttonText}>Go Back</Text>
+          <Text style={styles.buttonText}>{t('Back')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -107,7 +109,7 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
     return (
       <View style={[styles.container, styles.loading]}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={[styles.status, { marginTop: 16 }]}>Preparing data...</Text>
+        <Text style={[styles.status, { marginTop: 16 }]}>{t('Preparing data...')}</Text>
       </View>
     );
   }
@@ -115,34 +117,33 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>
-        {transferState === 'handshake' ? 'Ready to Send' : transferState === 'transferring' ? 'Sending Data' : 'Transfer Complete'}
+        {transferState === 'handshake' ? t('Ready to send') : transferState === 'transferring' ? t('Sending data') : t('Transfer complete')}
       </Text>
 
       {transferState === 'handshake' && (
         <>
-          <Text style={styles.subheader}>Have receiver scan this QR code</Text>
+          <Text style={styles.subheader}>{t('Have the receiver scan this QR code')}</Text>
           <View style={styles.qrContainer}>
             <QRCode value={handshakeQr} size={250} ecl="H" />
           </View>
           <Text style={styles.instruction}>
-            This QR announces you as sender with {chunks.length} chunks to transfer. Once receiver confirms, you'll send the data.
+            {t('This QR announces you as sender with')} {chunks.length} {t('chunks to transfer. Once the receiver confirms, you send the data.')}
           </Text>
           <TouchableOpacity style={styles.button} onPress={handleStartTransfer}>
-            <Text style={styles.buttonText}>Receiver Scanned → Start Transfer</Text>
+            <Text style={styles.buttonText}>{t('Receiver scanned → start transfer')}</Text>
           </TouchableOpacity>
         </>
       )}
 
       {transferState === 'transferring' && (
         <>
-          <Text style={styles.status}>Chunk {currentChunkIndex + 1} of {chunks.length}</Text>
+          <Text style={styles.status}>{t('Chunk')} {currentChunkIndex + 1} {t('of')} {chunks.length}</Text>
           <View style={styles.qrContainer}>
             <QRCode value={currentChunkQr} size={250} ecl="H" />
           </View>
 
           <Text style={styles.instruction}>
-            Hold each code in front of the receiver's camera until it scans, then tap Next.
-            The receiver assembles automatically once it has all {chunks.length} chunks.
+            {t('Hold each code in front of the receiver camera until it scans, then tap Next. The receiver assembles automatically once it has all chunks.')}
           </Text>
 
           <View style={styles.controls}>
@@ -151,10 +152,10 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
               onPress={handlePrev}
               disabled={currentChunkIndex === 0}
             >
-              <Text style={styles.buttonText}>Previous</Text>
+              <Text style={styles.buttonText}>{t('Previous')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={handleNext}>
-              <Text style={styles.buttonText}>{isLastChunk ? 'Finish' : 'Next'}</Text>
+              <Text style={styles.buttonText}>{isLastChunk ? t('Finish') : t('Next')}</Text>
             </TouchableOpacity>
           </View>
         </>
@@ -163,13 +164,13 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
       {transferState === 'complete' && (
         <>
           <Text style={[styles.status, { color: COLORS.success, fontSize: 16 }]}>
-            ✓ Transfer Complete
+            ✓ {t('Transfer complete')}
           </Text>
           <Text style={styles.instruction}>
-            All {chunks.length} chunks transmitted successfully. Receiver will merge data into their local database.
+            {t('All chunks transmitted successfully. The receiver will merge the data into their local database.')}
           </Text>
           <TouchableOpacity style={styles.button} onPress={onComplete}>
-            <Text style={styles.buttonText}>Finish</Text>
+            <Text style={styles.buttonText}>{t('Finish')}</Text>
           </TouchableOpacity>
         </>
       )}
@@ -178,7 +179,7 @@ export default function BidirectionalSenderScreen({ selection, onComplete, onCan
         style={[styles.button, styles.buttonDanger, { marginTop: 16 }]}
         onPress={onCancel}
       >
-        <Text style={styles.buttonText}>Cancel Transfer</Text>
+        <Text style={styles.buttonText}>{t('Cancel transfer')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

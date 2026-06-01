@@ -4,6 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { athleteViews } from '../../domain';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const MAX_PHONES = 5;
@@ -36,6 +37,7 @@ const styles = StyleSheet.create({
 
 export default function EditEmergencyContactScreen({ route, navigation }: GroupsStackScreenProps<'EditEmergencyContact'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const contactId = route.params?.contactId;
   const prelinkAthleteId = route.params?.athleteId;
   const contact = contactId ? state.persons.find(p => p.id === contactId) : null;
@@ -91,12 +93,12 @@ export default function EditEmergencyContactScreen({ route, navigation }: Groups
   const confirmDelete = () => {
     if (!contact) return;
     Alert.alert(
-      `Delete ${contact.name}?`,
-      'This removes the contact and unlinks it from all athletes. This cannot be undone.',
+      `${t('Delete')} ${contact.name}?`,
+      t('This removes the contact and unlinks it from all athletes. This cannot be undone.'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('Delete'),
           style: 'destructive',
           onPress: () => {
             existingLinks.forEach(l => dispatch({ type: 'DELETE_CONTACT_LINK', payload: { id: l.id } }));
@@ -114,15 +116,15 @@ export default function EditEmergencyContactScreen({ route, navigation }: Groups
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>{contact ? 'Edit Contact' : 'New Contact'}</Text>
+        <Text style={styles.title}>{contact ? t('Edit contact') : t('New contact')}</Text>
 
-        <TextInput style={styles.input} placeholder="Name" placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="Email" placeholderTextColor={COLORS.textMuted} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        <TextInput style={styles.input} placeholder={t('Name')} placeholderTextColor={COLORS.textMuted} value={name} onChangeText={setName} />
+        <TextInput style={styles.input} placeholder={t('Email')} placeholderTextColor={COLORS.textMuted} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
 
-        <Text style={styles.section}>Phone numbers</Text>
+        <Text style={styles.section}>{t('Phone numbers')}</Text>
         {phones.map((p, i) => (
           <View key={i} style={styles.phoneRow}>
-            <TextInput style={styles.phoneInput} placeholder={`Phone ${i + 1}`} placeholderTextColor={COLORS.textMuted} value={p} onChangeText={t => setPhoneAt(i, t)} keyboardType="phone-pad" />
+            <TextInput style={styles.phoneInput} placeholder={`${t('Phone')} ${i + 1}`} placeholderTextColor={COLORS.textMuted} value={p} onChangeText={txt => setPhoneAt(i, txt)} keyboardType="phone-pad" />
             {phones.length > 1 && (
               <TouchableOpacity style={styles.remove} onPress={() => removePhoneAt(i)}>
                 <Text style={styles.removeText}>✕</Text>
@@ -132,20 +134,20 @@ export default function EditEmergencyContactScreen({ route, navigation }: Groups
         ))}
         {phones.length < MAX_PHONES && (
           <TouchableOpacity onPress={addPhone}>
-            <Text style={styles.addLink}>+ Add phone (max {MAX_PHONES})</Text>
+            <Text style={styles.addLink}>+ {t('Add phone')} ({t('max')} {MAX_PHONES})</Text>
           </TouchableOpacity>
         )}
 
-        <Text style={styles.section}>Guardian</Text>
+        <Text style={styles.section}>{t('Guardian')}</Text>
         <TouchableOpacity style={styles.toggle} onPress={() => setIsGuardian(v => !v)} activeOpacity={0.7}>
-          <Text style={{ color: COLORS.text }}>Legal guardian (Erziehungsberechtigt)</Text>
+          <Text style={{ color: COLORS.text }}>{t('Legal guardian')}</Text>
           <View style={[styles.switch, { backgroundColor: isGuardian ? COLORS.primary : COLORS.border, alignItems: isGuardian ? 'flex-end' : 'flex-start' }]}>
             <View style={styles.knob} />
           </View>
         </TouchableOpacity>
 
-        <Text style={styles.section}>Linked athletes</Text>
-        {athletes.length === 0 && <Text style={styles.hint}>No athletes yet.</Text>}
+        <Text style={styles.section}>{t('Linked athletes')}</Text>
+        {athletes.length === 0 && <Text style={styles.hint}>{t('No athletes yet.')}</Text>}
         <View style={styles.chipRow}>
           {athletes.map(a => {
             const on = athleteIds.includes(a.id);
@@ -158,11 +160,11 @@ export default function EditEmergencyContactScreen({ route, navigation }: Groups
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Save</Text>
+          <Text style={styles.buttonText}>{t('Save')}</Text>
         </TouchableOpacity>
         {contact && (
           <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={confirmDelete}>
-            <Text style={styles.buttonText}>Delete Contact</Text>
+            <Text style={styles.buttonText}>{t('Delete contact')}</Text>
           </TouchableOpacity>
         )}
       </View>

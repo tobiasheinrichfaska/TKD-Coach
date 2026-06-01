@@ -7,10 +7,12 @@ import type { TransferStackParamList } from '../../types/navigation';
 import BidirectionalSenderScreen from './BidirectionalSenderScreen';
 import BidirectionalReceiverScreen from './BidirectionalReceiverScreen';
 import { COLORS } from '../../constants/colors';
+import { useT } from '../../i18n';
 
 const Stack = createNativeStackNavigator<TransferStackParamList>();
 
 export default function TransferNavigator() {
+  const { t } = useT();
   const [senderSelection, setSenderSelection] = useState<TransferSelection | null>(null);
 
   const handleSelectData = (selection: TransferSelection) => {
@@ -25,7 +27,7 @@ export default function TransferNavigator() {
         headerTintColor: COLORS.primary,
       }}
     >
-      <Stack.Screen name="TransferMain" component={TransferScreen} options={{ title: 'Transfer' }} />
+      <Stack.Screen name="TransferMain" component={TransferScreen} options={{ title: t('Transfer') }} />
 
       <Stack.Screen
         name="SelectData"

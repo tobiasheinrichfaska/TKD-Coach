@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { AssessmentMetric } from '../types';
 import { COLORS } from '../constants/colors';
 import { formatDate } from '../utils/format';
+import { useT } from '../i18n';
 
 const styles = StyleSheet.create({
   container: { backgroundColor: COLORS.surface, padding: 12, borderRadius: 8, marginBottom: 8 },
@@ -23,6 +24,7 @@ interface MetricRowProps {
 }
 
 export function MetricRow({ date, metric, previousMetric, notes }: MetricRowProps) {
+  const { t } = useT();
   const getDeltaText = (): string => {
     switch (metric.type) {
       case 'balance_hold':
@@ -54,11 +56,11 @@ export function MetricRow({ date, metric, previousMetric, notes }: MetricRowProp
       case 'balance_hold':
         return (
           <Text style={styles.values}>
-            Dominant: {metric.dominant}s | Non-Dom: {metric.nonDominant}s
+            {t('Dominant')}: {metric.dominant}s | {t('Non-dom')}: {metric.nonDominant}s
           </Text>
         );
       case 'reaction_errors':
-        return <Text style={styles.values}>Errors: {metric.errorsPerTen}/10 cues</Text>;
+        return <Text style={styles.values}>{t('Errors')}: {metric.errorsPerTen}/10 {t('cues')}</Text>;
       case 'combo_accuracy':
         const accuracy = ((metric.correct / metric.total) * 100).toFixed(0);
         return (
@@ -69,19 +71,19 @@ export function MetricRow({ date, metric, previousMetric, notes }: MetricRowProp
       case 'vestibular_landing':
         return (
           <Text style={styles.values}>
-            Stable: {metric.stable} | Stumble: {metric.stumble} | Fall: {metric.fall}
+            {t('Stable')}: {metric.stable} | {t('Stumble')}: {metric.stumble} | {t('Fall')}: {metric.fall}
           </Text>
         );
       case 'balance_poomsae':
         return (
           <Text style={styles.values}>
-            Hold: {metric.holdSeconds}s | Arm Errors: {metric.armErrors}
+            {t('Hold')}: {metric.holdSeconds}s | {t('Arm errors')}: {metric.armErrors}
           </Text>
         );
       case 'poomsae_distraction':
         return (
           <Text style={styles.values}>
-            Errors: {metric.errors} | Baseline: {metric.baseline}
+            {t('Errors')}: {metric.errors} | {t('Baseline')}: {metric.baseline}
           </Text>
         );
       default:

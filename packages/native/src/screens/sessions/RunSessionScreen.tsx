@@ -16,6 +16,7 @@ import { generateId } from '../../utils/ids';
 import { generateSessionSummaryText } from '../../utils/format';
 import { primaryPhase, gameInPhase, bodyPartName } from '../../domain';
 import { SESSION_PHASE_LABELS } from '../../types';
+import { useT } from '../../i18n';
 import type { GameLog, SessionPhase } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
@@ -97,6 +98,7 @@ const styles = StyleSheet.create({
 
 export default function RunSessionScreen({ route, navigation }: SessionsStackScreenProps<'RunSession'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const planId = route.params.planId;
   const plan = state.sessionPlans.find(p => p.id === planId);
   const group = plan ? state.groups.find(g => g.id === plan.groupId) : null;
@@ -299,10 +301,10 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   };
 
   const handleCancel = () => {
-    Alert.alert('Cancel Session', 'Are you sure? Progress will not be saved.', [
-      { text: 'Keep going', onPress: () => {} },
+    Alert.alert(t('Cancel session'), t('Are you sure? Progress will not be saved.'), [
+      { text: t('Keep going'), onPress: () => {} },
       {
-        text: 'Discard',
+        text: t('Discard'),
         style: 'destructive',
         onPress: () => {
           if (runningLogId) dispatch({ type: 'DELETE_SESSION_LOG', payload: { id: runningLogId } });
@@ -315,7 +317,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   if (!plan || !group || !currentGame) {
     return (
       <View style={styles.container}>
-        <Text style={{ padding: 16, color: COLORS.text }}>Session not found</Text>
+        <Text style={{ padding: 16, color: COLORS.text }}>{t('Session not found')}</Text>
       </View>
     );
   }
@@ -325,9 +327,9 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Running: {plan.name}</Text>
+        <Text style={styles.headerTitle}>{t('Running')}: {plan.name}</Text>
         <Text style={styles.headerMeta}>
-          {group.name} · Game {currentGameIndex + 1}/{gameLogs.length} · {Math.round(sessionElapsedSec / 60)}/{totalPlannedMin} min
+          {group.name} · {t('Exercise')} {currentGameIndex + 1}/{gameLogs.length} · {Math.round(sessionElapsedSec / 60)}/{totalPlannedMin} min
         </Text>
       </View>
 
@@ -356,8 +358,8 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
               </Text>
               <Text style={styles.gameTime}>
                 {log.status === 'completed'
-                  ? `✓ ${fmt(log.durationSeconds || 0)} (${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min planned)`
-                  : `${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min (planned)`}
+                  ? `✓ ${fmt(log.durationSeconds || 0)} (${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min ${t('planned')})`
+                  : `${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min (${t('planned')})`}
               </Text>
 
               {active && (
@@ -370,16 +372,16 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                     {log.status === 'pending' && (
                       <>
                         <TouchableOpacity style={[styles.button, styles.buttonStart]} onPress={handleStartGame}>
-                          <Text style={styles.buttonText}>START</Text>
+                          <Text style={styles.buttonText}>{t('START')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.button, styles.buttonSwap]} onPress={() => setSwapOpen(o => !o)}>
-                          <Text style={styles.buttonText}>{swapOpen ? 'CLOSE' : '⇄ SWAP'}</Text>
+                          <Text style={styles.buttonText}>{swapOpen ? t('CLOSE') : t('⇄ SWAP')}</Text>
                         </TouchableOpacity>
                       </>
                     )}
                     {log.status === 'running' && (
                       <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={handleStopGame}>
-                        <Text style={styles.buttonText}>STOP</Text>
+                        <Text style={styles.buttonText}>{t('STOP')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -416,10 +418,10 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       <View style={styles.footer}>
         <View style={styles.footerButtons}>
           <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-            <Text style={styles.completeButtonText}>Session Complete</Text>
+            <Text style={styles.completeButtonText}>{t('Session complete')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.completeButtonText}>Cancel</Text>
+            <Text style={styles.completeButtonText}>{t('Cancel')}</Text>
           </TouchableOpacity>
         </View>
       </View>

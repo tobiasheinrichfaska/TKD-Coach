@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { ungroupedAthletes, athleteViews, sortedSlots, formatSlot } from '../../domain';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -16,6 +17,7 @@ const styles = StyleSheet.create({
 
 export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'GroupsList'>) {
   const { state } = useData();
+  const { t } = useT();
   const athleteCount = athleteViews(state.persons).length;
   const ungroupedCount = ungroupedAthletes(state.persons, state.groups).length;
   const contactCount = new Set(state.contactLinks.map(l => l.contactId)).size;
@@ -24,9 +26,9 @@ export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'Gro
     <View style={styles.container}>
       <TouchableOpacity style={styles.allRow} onPress={() => navigation.navigate('AllAthletes')}>
         <View>
-          <Text style={styles.text}>All Athletes</Text>
+          <Text style={styles.text}>{t('All Athletes')}</Text>
           <Text style={{ fontSize: 12, color: COLORS.textMuted }}>
-            {athleteCount} total{ungroupedCount > 0 ? ` · ${ungroupedCount} ungrouped` : ''}
+            {athleteCount} {t('total')}{ungroupedCount > 0 ? ` · ${ungroupedCount} ${t('ungrouped')}` : ''}
           </Text>
         </View>
         <Text style={{ fontSize: 20, color: COLORS.textMuted }}>›</Text>
@@ -34,8 +36,8 @@ export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'Gro
 
       <TouchableOpacity style={styles.contactsRow} onPress={() => navigation.navigate('EmergencyContacts')}>
         <View>
-          <Text style={styles.text}>Emergency Contacts</Text>
-          <Text style={{ fontSize: 12, color: COLORS.textMuted }}>{contactCount} contacts</Text>
+          <Text style={styles.text}>{t('Emergency contacts')}</Text>
+          <Text style={{ fontSize: 12, color: COLORS.textMuted }}>{contactCount} {t('contacts')}</Text>
         </View>
         <Text style={{ fontSize: 20, color: COLORS.textMuted }}>›</Text>
       </TouchableOpacity>
@@ -47,12 +49,12 @@ export default function GroupsScreen({ navigation }: GroupsStackScreenProps<'Gro
           <TouchableOpacity style={styles.groupItem} onPress={() => navigation.navigate('GroupDetail', { groupId: item.id })}>
             <Text style={styles.text}>{item.name}</Text>
             <Text style={{ fontSize: 12, color: COLORS.textMuted }}>
-              {item.athleteIds.length} athletes
+              {item.athleteIds.length} {t('athletes')}
               {item.trainingTimes.length > 0 ? ` · ${sortedSlots(item).map(formatSlot).join(', ')}` : ''}
             </Text>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.text}>No groups yet. Tap + to create one.</Text>}
+        ListEmptyComponent={<Text style={styles.text}>{t('No groups yet. Tap + to create one.')}</Text>}
       />
       <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('EditGroup')}>
         <Text style={{ fontSize: 32, color: COLORS.surface }}>+</Text>

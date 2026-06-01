@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS } from '../../constants/colors';
+import { useT } from '../../i18n';
 import type { TransferStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -14,11 +15,12 @@ const styles = StyleSheet.create({
 });
 
 export default function TransferScreen({ navigation }: TransferStackScreenProps<'TransferMain'>) {
+  const { t } = useT();
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Sync Data With Another Coach</Text>
+      <Text style={styles.header}>{t('Sync data with another coach')}</Text>
       <Text style={styles.description}>
-        Both coaches start the transfer on their phones. One acts as sender, one as receiver. You choose your role below.
+        {t('Both coaches start the transfer on their phones. One acts as sender, one as receiver. You choose your role below.')}
       </Text>
 
       <View style={styles.buttonContainer}>
@@ -26,25 +28,25 @@ export default function TransferScreen({ navigation }: TransferStackScreenProps<
           style={styles.button}
           onPress={() => navigation.navigate('SelectData')}
         >
-          <Text style={styles.buttonTitle}>📤 Start Transfer Sender</Text>
-          <Text style={styles.buttonSubtitle}>You will display QR codes for other phone to scan</Text>
+          <Text style={styles.buttonTitle}>📤 {t('Start as sender')}</Text>
+          <Text style={styles.buttonSubtitle}>{t('You will display QR codes for the other phone to scan')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Receiver')}
         >
-          <Text style={styles.buttonTitle}>📥 Start Transfer Receiver</Text>
-          <Text style={styles.buttonSubtitle}>You will scan QR codes from other phone</Text>
+          <Text style={styles.buttonTitle}>📥 {t('Start as receiver')}</Text>
+          <Text style={styles.buttonSubtitle}>{t('You will scan QR codes from the other phone')}</Text>
         </TouchableOpacity>
       </View>
 
       <Text style={[styles.description, { marginTop: 32 }]}>
-        <Text style={{ fontWeight: 'bold' }}>How it works:</Text>
-        {'\n'}1. Sender selects data to share
-        {'\n'}2. Receiver scans handshake QR
-        {'\n'}3. Sender pages through chunk QRs; receiver scans each
-        {'\n'}4. Receiver reviews changes and confirms merge
+        <Text style={{ fontWeight: 'bold' }}>{t('How it works:')}</Text>
+        {'\n'}1. {t('Sender selects data to share')}
+        {'\n'}2. {t('Receiver scans handshake QR')}
+        {'\n'}3. {t('Sender pages through chunk QRs; receiver scans each')}
+        {'\n'}4. {t('Receiver reviews changes and confirms merge')}
       </Text>
     </ScrollView>
   );

@@ -77,7 +77,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                   {getGroupName(item.groupId)} · {formatDateShort(item.plannedDate)}
                 </Text>
                 <Text style={styles.cardMeta}>
-                  {getGameCount(item.plannedGames)} games · {getTotalMinutes(item.plannedGames)} min
+                  {getGameCount(item.plannedGames)} {t('Exercises')} · {getTotalMinutes(item.plannedGames)} min
                 </Text>
                 <View style={styles.buttons}>
                   <TouchableOpacity
@@ -133,8 +133,8 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                 </View>
                 <Text style={styles.cardMeta}>{formatDateShort(item.startedAt)}</Text>
                 <Text style={styles.cardMeta}>
-                  {item.gameLogs.length} games ·{' '}
-                  {item.gameLogs.reduce((sum, g) => sum + (g.durationSeconds || 0), 0)} sec
+                  {item.gameLogs.length} {t('Exercises')} ·{' '}
+                  {item.gameLogs.reduce((sum, g) => sum + (g.durationSeconds || 0), 0)} {t('sec')}
                 </Text>
                 <View style={styles.buttons}>
                   <TouchableOpacity

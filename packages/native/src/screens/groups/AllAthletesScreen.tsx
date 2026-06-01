@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { groupsForAthlete, ungroupedAthletes, athleteViews, getPerson, otherRolesBesidesAthlete } from '../../domain';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -25,6 +26,7 @@ const styles = StyleSheet.create({
 
 export default function AllAthletesScreen({ navigation }: GroupsStackScreenProps<'AllAthletes'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const [filter, setFilter] = useState<'all' | 'ungrouped'>('all');
 
   const confirmDelete = (id: string, name: string) => {
@@ -32,22 +34,22 @@ export default function AllAthletesScreen({ navigation }: GroupsStackScreenProps
     const others = person ? otherRolesBesidesAthlete(person, state.contactLinks) : [];
     if (others.length > 0) {
       Alert.alert(
-        `${name} has other roles`,
-        `${name} is also ${others.join(' & ')} for others. Remove only the athlete role (keep the person), or delete the entire person?`,
+        `${name} ${t('has other roles')}`,
+        `${name} ${t('is also')} ${others.join(' & ')} ${t('for others. Remove only the athlete role (keep the person), or delete the entire person?')}`,
         [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Remove athlete role', onPress: () => dispatch({ type: 'REMOVE_ATHLETE_ROLE', payload: { id } }) },
-          { text: 'Delete person', style: 'destructive', onPress: () => dispatch({ type: 'DELETE_PERSON', payload: { id } }) },
+          { text: t('Cancel'), style: 'cancel' },
+          { text: t('Remove athlete role'), onPress: () => dispatch({ type: 'REMOVE_ATHLETE_ROLE', payload: { id } }) },
+          { text: t('Delete person'), style: 'destructive', onPress: () => dispatch({ type: 'DELETE_PERSON', payload: { id } }) },
         ],
       );
       return;
     }
     Alert.alert(
-      `Delete ${name}?`,
-      `This permanently deletes ${name} and everything linked to them — group memberships, all assessments, and attendance records (Teilnahme). This cannot be undone.`,
+      `${t('Delete')} ${name}?`,
+      t('This permanently deletes the person and everything linked to them — group memberships and all assessments. This cannot be undone.'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => dispatch({ type: 'DELETE_PERSON', payload: { id } }) },
+        { text: t('Cancel'), style: 'cancel' },
+        { text: t('Delete'), style: 'destructive', onPress: () => dispatch({ type: 'DELETE_PERSON', payload: { id } }) },
       ],
     );
   };
@@ -63,10 +65,10 @@ export default function AllAthletesScreen({ navigation }: GroupsStackScreenProps
     <View style={styles.container}>
       <View style={styles.filterRow}>
         <TouchableOpacity style={[styles.tab, filter === 'all' && styles.tabActive]} onPress={() => setFilter('all')}>
-          <Text style={filter === 'all' ? styles.tabActiveText : styles.tabText}>All ({allAthletes.length})</Text>
+          <Text style={filter === 'all' ? styles.tabActiveText : styles.tabText}>{t('All')} ({allAthletes.length})</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.tab, filter === 'ungrouped' && styles.tabActive]} onPress={() => setFilter('ungrouped')}>
-          <Text style={filter === 'ungrouped' ? styles.tabActiveText : styles.tabText}>Ungrouped ({ungrouped.length})</Text>
+          <Text style={filter === 'ungrouped' ? styles.tabActiveText : styles.tabText}>{t('Ungrouped')} ({ungrouped.length})</Text>
         </TouchableOpacity>
       </View>
 
@@ -84,7 +86,7 @@ export default function AllAthletesScreen({ navigation }: GroupsStackScreenProps
                 </Text>
               </View>
               <Text style={[styles.badge, groups.length > 0 ? styles.badgeGrouped : styles.badgeUngrouped]}>
-                {groups.length > 0 ? `${groups.length} group${groups.length > 1 ? 's' : ''}` : 'Ungrouped'}
+                {groups.length > 0 ? `${groups.length} ${groups.length > 1 ? t('groups') : t('group')}` : t('Ungrouped')}
               </Text>
               <TouchableOpacity style={styles.trash} onPress={() => confirmDelete(item.id, item.name)}>
                 <Text style={styles.trashText}>🗑</Text>
@@ -92,7 +94,7 @@ export default function AllAthletesScreen({ navigation }: GroupsStackScreenProps
             </TouchableOpacity>
           );
         }}
-        ListEmptyComponent={<Text style={styles.text}>{filter === 'ungrouped' ? 'Every athlete is in a group.' : 'No athletes yet. Tap + to add one.'}</Text>}
+        ListEmptyComponent={<Text style={styles.text}>{filter === 'ungrouped' ? t('Every athlete is in a group.') : t('No athletes yet. Tap + to add one.')}</Text>}
       />
 
       <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('EditAthlete', {})}>

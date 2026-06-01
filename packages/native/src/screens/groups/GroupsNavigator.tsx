@@ -13,10 +13,12 @@ import AthleteDetailScreen from './AthleteDetailScreen';
 import EditAthleteScreen from './EditAthleteScreen';
 import type { GroupsStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
+import { useT } from '../../i18n';
 
 const Stack = createNativeStackNavigator<GroupsStackParamList>();
 
 export default function GroupsNavigator() {
+  const { t } = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -25,61 +27,17 @@ export default function GroupsNavigator() {
         headerTintColor: COLORS.primary,
       }}
     >
-      <Stack.Screen
-        name="HumansHub"
-        component={HumansHubScreen}
-        options={{ title: 'Humans' }}
-      />
-      <Stack.Screen
-        name="GroupsList"
-        component={GroupsScreen}
-        options={{ title: 'Gruppen' }}
-      />
-      <Stack.Screen
-        name="AllAthletes"
-        component={AllAthletesScreen}
-        options={{ title: 'Alle Athleten' }}
-      />
-      <Stack.Screen
-        name="EmergencyContacts"
-        component={EmergencyContactsScreen}
-        options={{ title: 'Notfallkontakte' }}
-      />
-      <Stack.Screen
-        name="EditEmergencyContact"
-        component={EditEmergencyContactScreen}
-        options={{ title: 'Kontakt bearbeiten' }}
-      />
-      <Stack.Screen
-        name="AddContact"
-        component={AddContactScreen}
-        options={{ title: 'Kontakt hinzufügen' }}
-      />
-      <Stack.Screen
-        name="Assessment"
-        component={AssessmentNavigator}
-        options={{ title: 'Assessment', headerShown: false }}
-      />
-      <Stack.Screen
-        name="GroupDetail"
-        component={GroupDetailScreen}
-        options={{ title: 'Gruppe' }}
-      />
-      <Stack.Screen
-        name="EditGroup"
-        component={EditGroupScreen}
-        options={{ title: 'Gruppe bearbeiten' }}
-      />
-      <Stack.Screen
-        name="AthleteDetail"
-        component={AthleteDetailScreen}
-        options={{ title: 'Athlet' }}
-      />
-      <Stack.Screen
-        name="EditAthlete"
-        component={EditAthleteScreen}
-        options={{ title: 'Athlet bearbeiten' }}
-      />
+      <Stack.Screen name="HumansHub" component={HumansHubScreen} options={{ title: t('Humans') }} />
+      <Stack.Screen name="GroupsList" component={GroupsScreen} options={{ title: t('Groups') }} />
+      <Stack.Screen name="AllAthletes" component={AllAthletesScreen} options={{ title: t('All Athletes') }} />
+      <Stack.Screen name="EmergencyContacts" component={EmergencyContactsScreen} options={{ title: t('Emergency contacts') }} />
+      <Stack.Screen name="EditEmergencyContact" component={EditEmergencyContactScreen} options={{ title: t('Edit contact') }} />
+      <Stack.Screen name="AddContact" component={AddContactScreen} options={{ title: t('Add contact') }} />
+      <Stack.Screen name="Assessment" component={AssessmentNavigator} options={{ title: t('Assessment'), headerShown: false }} />
+      <Stack.Screen name="GroupDetail" component={GroupDetailScreen} options={{ title: t('Group') }} />
+      <Stack.Screen name="EditGroup" component={EditGroupScreen} options={{ title: t('Edit group') }} />
+      <Stack.Screen name="AthleteDetail" component={AthleteDetailScreen} options={{ title: t('Athlete') }} />
+      <Stack.Screen name="EditAthlete" component={EditAthleteScreen} options={{ title: t('Edit athlete') }} />
     </Stack.Navigator>
   );
 }

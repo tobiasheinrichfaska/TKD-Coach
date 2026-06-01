@@ -4,6 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { getPerson } from '../../domain';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -23,6 +24,7 @@ const styles = StyleSheet.create({
 
 export default function AddContactScreen({ route, navigation }: GroupsStackScreenProps<'AddContact'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
   const athleteId = route.params.athleteId;
   const [guardian, setGuardian] = useState(false);
 
@@ -41,7 +43,7 @@ export default function AddContactScreen({ route, navigation }: GroupsStackScree
   );
 
   const roleTag = (p: typeof state.persons[number]) =>
-    [p.athlete ? 'Athlet' : null, p.isCoach ? 'Coach' : null].filter(Boolean).join(' · ') || 'Kontakt';
+    [p.athlete ? t('Athlete') : null, p.isCoach ? t('Coach') : null].filter(Boolean).join(' · ') || t('Contact');
 
   const linkExisting = (contactId: string) => {
     dispatch({ type: 'ADD_CONTACT_LINK', payload: { id: generateId(), contactId, athleteId, guardian } });
@@ -50,10 +52,10 @@ export default function AddContactScreen({ route, navigation }: GroupsStackScree
 
   return (
     <View style={styles.container}>
-      <Text style={styles.intro}>Add an emergency contact for {athlete?.name ?? 'this athlete'} — create a new person or pick someone who already exists (e.g. a parent, or a sibling who is a guardian).</Text>
+      <Text style={styles.intro}>{t('Add an emergency contact for')} {athlete?.name ?? t('this athlete')} — {t('create a new person or pick someone who already exists (e.g. a parent, or a sibling who is a guardian).')}</Text>
 
       <TouchableOpacity style={styles.toggle} onPress={() => setGuardian(v => !v)} activeOpacity={0.7}>
-        <Text style={{ color: COLORS.text }}>Mark as guardian (Erziehungsberechtigt)</Text>
+        <Text style={{ color: COLORS.text }}>{t('Mark as guardian')}</Text>
         <View style={[styles.switch, { backgroundColor: guardian ? COLORS.primary : COLORS.border, alignItems: guardian ? 'flex-end' : 'flex-start' }]}>
           <View style={styles.knob} />
         </View>
@@ -63,10 +65,10 @@ export default function AddContactScreen({ route, navigation }: GroupsStackScree
         style={styles.createBtn}
         onPress={() => navigation.replace('EditEmergencyContact', { athleteId })}
       >
-        <Text style={styles.createText}>+ Create new contact</Text>
+        <Text style={styles.createText}>+ {t('Create new contact')}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.section}>Or choose an existing person</Text>
+      <Text style={styles.section}>{t('Or choose an existing person')}</Text>
       <FlatList
         data={candidates}
         keyExtractor={item => item.id}
@@ -76,7 +78,7 @@ export default function AddContactScreen({ route, navigation }: GroupsStackScree
             <Text style={styles.tag}>{roleTag(item)}{item.phones[0] ? ` · ${item.phones[0]}` : ''}</Text>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.muted}>No other people yet — create a new contact above.</Text>}
+        ListEmptyComponent={<Text style={styles.muted}>{t('No other people yet — create a new contact above.')}</Text>}
       />
     </View>
   );

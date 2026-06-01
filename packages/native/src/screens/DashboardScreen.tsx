@@ -100,7 +100,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
                   onPress={() => navigation.navigate('Sessions', { screen: 'SessionDetail', params: { logId: item.id } })}
                 >
                   <Text style={styles.sessionTitle}>{[planName, getGroupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
-                  <Text style={styles.sessionMeta}>{formatDateShort(item.startedAt)} · {played.length} {t('Übungen')} · {Math.round(totalSec / 60)} min</Text>
+                  <Text style={styles.sessionMeta}>{formatDateShort(item.startedAt)} · {played.length} {t('Exercises')} · {Math.round(totalSec / 60)} min</Text>
                   <Text style={styles.gameList}>{getGameNames(played.map(g => g.gameId))}</Text>
                 </TouchableOpacity>
               );
