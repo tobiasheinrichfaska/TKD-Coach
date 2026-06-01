@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OtherDataHubScreen from './OtherDataHubScreen';
 import { GamesListScreen, TechniquesListScreen, BodyPartsListScreen, TemplatesListScreen, MetricSchemasListScreen } from './OtherDataLists';
+import { EditGameScreen, EditTechniqueScreen, EditBodyPartScreen, EditTemplateScreen, EditMetricSchemaScreen } from './OtherDataEditors';
 import type { OtherDataStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
 
@@ -22,6 +23,11 @@ export default function OtherDataNavigator() {
       <Stack.Screen name="BodyPartsList" component={BodyPartsListScreen} options={{ title: 'Body parts & neuro' }} />
       <Stack.Screen name="TemplatesList" component={TemplatesListScreen} options={{ title: 'Session templates' }} />
       <Stack.Screen name="MetricSchemasList" component={MetricSchemasListScreen} options={{ title: 'Metric schemas' }} />
+      <Stack.Screen name="EditGame" component={EditGameScreen} options={{ title: 'Übung' }} />
+      <Stack.Screen name="EditTechnique" component={EditTechniqueScreen} options={{ title: 'Technik' }} />
+      <Stack.Screen name="EditBodyPart" component={EditBodyPartScreen} options={{ title: 'Körperteil' }} />
+      <Stack.Screen name="EditTemplate" component={EditTemplateScreen} options={{ title: 'Vorlage' }} />
+      <Stack.Screen name="EditMetricSchema" component={EditMetricSchemaScreen} options={{ title: 'Metrik-Schema' }} />
     </Stack.Navigator>
   );
 }

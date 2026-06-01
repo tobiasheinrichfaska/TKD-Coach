@@ -36,6 +36,11 @@ export type OtherDataStackParamList = {
   BodyPartsList: undefined;
   TemplatesList: undefined;
   MetricSchemasList: undefined;
+  EditGame: { id?: string } | undefined;
+  EditTechnique: { id?: string } | undefined;
+  EditBodyPart: { id?: string } | undefined;
+  EditTemplate: { id?: string } | undefined;
+  EditMetricSchema: { type?: string } | undefined;
 };
 
 export type SessionsStackParamList = {

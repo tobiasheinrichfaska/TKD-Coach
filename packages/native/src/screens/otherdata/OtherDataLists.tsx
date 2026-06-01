@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { SESSION_PHASE_LABELS } from '../../types';
@@ -11,79 +11,86 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontWeight: '600', color: COLORS.text },
   meta: { fontSize: 12, color: COLORS.textMuted, marginTop: 3 },
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
+  fab: { position: 'absolute', bottom: 24, right: 24, width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
 });
 
-const Row = ({ title, meta }: { title: string; meta?: string }) => (
-  <View style={styles.item}>
+const Row = ({ title, meta, onPress }: { title: string; meta?: string; onPress: () => void }) => (
+  <TouchableOpacity style={styles.item} onPress={onPress}>
     <Text style={styles.title}>{title}</Text>
     {meta ? <Text style={styles.meta}>{meta}</Text> : null}
-  </View>
+  </TouchableOpacity>
 );
 
-export function GamesListScreen(_p: OtherDataStackScreenProps<'GamesList'>) {
+const Fab = ({ onPress }: { onPress: () => void }) => (
+  <TouchableOpacity style={styles.fab} onPress={onPress}><Text style={{ fontSize: 32, color: COLORS.surface }}>+</Text></TouchableOpacity>
+);
+
+export function GamesListScreen({ navigation }: OtherDataStackScreenProps<'GamesList'>) {
   const { state } = useData();
   const data = [...state.games].sort((a, b) => a.name.localeCompare(b.name));
   return (
     <View style={styles.container}>
       <FlatList data={data} keyExtractor={g => g.id}
         renderItem={({ item }) => (
-          <Row title={`${item.name}${item.isBuiltIn ? '' : ' ·​ custom'}`}
+          <Row onPress={() => navigation.navigate('EditGame', { id: item.id })}
+            title={`${item.name}${item.isBuiltIn ? '' : ' · custom'}`}
             meta={`${item.defaultMinutes} min · Phasen ${item.sessionPhases.map(p => SESSION_PHASE_LABELS[p].split(' ')[1]).join('/')}` +
-              `${item.techniques?.length ? ` · ${item.techniques.length} Techniken` : ''}` +
-              `${item.bodyParts?.length ? ` · ${item.bodyParts.length} Körper/Neuro` : ''}`} />
+              `${item.techniques?.length ? ` · ${item.techniques.length} Techniken` : ''}${item.bodyParts?.length ? ` · ${item.bodyParts.length} Körper/Neuro` : ''}`} />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No Übungen.</Text>} />
+        ListEmptyComponent={<Text style={styles.empty}>Keine Übungen.</Text>} />
+      <Fab onPress={() => navigation.navigate('EditGame', {})} />
     </View>
   );
 }
 
-export function TechniquesListScreen(_p: OtherDataStackScreenProps<'TechniquesList'>) {
+export function TechniquesListScreen({ navigation }: OtherDataStackScreenProps<'TechniquesList'>) {
   const { state } = useData();
   const data = [...state.techniques].sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
   return (
     <View style={styles.container}>
       <FlatList data={data} keyExtractor={t => t.id}
         renderItem={({ item }) => (
-          <Row title={`${item.name}${item.koreanName ? `  ${item.koreanName}` : ''}`}
-            meta={`${item.category} · ${item.bodyPartIds.join(', ')}`} />
+          <Row onPress={() => navigation.navigate('EditTechnique', { id: item.id })}
+            title={`${item.name}${item.koreanName ? `  ${item.koreanName}` : ''}`} meta={`${item.category} · ${item.bodyPartIds.join(', ')}`} />
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No techniques.</Text>} />
+        ListEmptyComponent={<Text style={styles.empty}>Keine Techniken.</Text>} />
+      <Fab onPress={() => navigation.navigate('EditTechnique', {})} />
     </View>
   );
 }
 
-export function BodyPartsListScreen(_p: OtherDataStackScreenProps<'BodyPartsList'>) {
+export function BodyPartsListScreen({ navigation }: OtherDataStackScreenProps<'BodyPartsList'>) {
   const { state } = useData();
-  const data = [...state.bodyParts];
   return (
     <View style={styles.container}>
-      <FlatList data={data} keyExtractor={b => b.id}
-        renderItem={({ item }) => <Row title={item.name} meta={`${item.region} · ${item.kind}`} />}
-        ListEmptyComponent={<Text style={styles.empty}>No body parts.</Text>} />
+      <FlatList data={state.bodyParts} keyExtractor={b => b.id}
+        renderItem={({ item }) => <Row onPress={() => navigation.navigate('EditBodyPart', { id: item.id })} title={item.name} meta={`${item.region} · ${item.kind}`} />}
+        ListEmptyComponent={<Text style={styles.empty}>Keine Körperteile.</Text>} />
+      <Fab onPress={() => navigation.navigate('EditBodyPart', {})} />
     </View>
   );
 }
 
-export function TemplatesListScreen(_p: OtherDataStackScreenProps<'TemplatesList'>) {
+export function TemplatesListScreen({ navigation }: OtherDataStackScreenProps<'TemplatesList'>) {
   const { state } = useData();
-  const data = [...state.sessionTemplates];
   return (
     <View style={styles.container}>
-      <FlatList data={data} keyExtractor={t => t.id}
-        renderItem={({ item }) => <Row title={item.name} meta={`${item.ageGroup} · ${item.itemIds.length} Übungen`} />}
-        ListEmptyComponent={<Text style={styles.empty}>No session templates.</Text>} />
+      <FlatList data={state.sessionTemplates} keyExtractor={t => t.id}
+        renderItem={({ item }) => <Row onPress={() => navigation.navigate('EditTemplate', { id: item.id })} title={item.name} meta={`${item.ageGroup} · ${item.itemIds.length} Übungen`} />}
+        ListEmptyComponent={<Text style={styles.empty}>Keine Vorlagen.</Text>} />
+      <Fab onPress={() => navigation.navigate('EditTemplate', {})} />
     </View>
   );
 }
 
-export function MetricSchemasListScreen(_p: OtherDataStackScreenProps<'MetricSchemasList'>) {
+export function MetricSchemasListScreen({ navigation }: OtherDataStackScreenProps<'MetricSchemasList'>) {
   const { state } = useData();
-  const data = [...state.metricSchemas];
   return (
     <View style={styles.container}>
-      <FlatList data={data} keyExtractor={m => m.type}
-        renderItem={({ item }) => <Row title={item.label} meta={`${item.type} · ${item.fields.map(f => f.label).join(', ')}`} />}
-        ListEmptyComponent={<Text style={styles.empty}>No metric schemas.</Text>} />
+      <FlatList data={state.metricSchemas} keyExtractor={m => m.type}
+        renderItem={({ item }) => <Row onPress={() => navigation.navigate('EditMetricSchema', { type: item.type })} title={item.label} meta={`${item.type} · ${item.fields.map(f => f.label).join(', ')}`} />}
+        ListEmptyComponent={<Text style={styles.empty}>Keine Metrik-Schemata.</Text>} />
+      <Fab onPress={() => navigation.navigate('EditMetricSchema', {})} />
     </View>
   );
 }
