@@ -326,13 +326,17 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   };
 
   const handleCancel = () => {
-    Alert.alert(t('Cancel session'), t('Are you sure? Progress will not be saved.'), [
+    Alert.alert(t('Cancel session'), t('Discards this run and puts the session back to Planned.'), [
       { text: t('Keep going'), onPress: () => {} },
       {
         text: t('Discard'),
         style: 'destructive',
         onPress: () => {
-          if (runningLogId) dispatch({ type: 'DELETE_SESSION_LOG', payload: { id: runningLogId } });
+          // Delete ANY running log for this plan (not just the one in local state) so an
+          // accidentally-started session reliably returns to the Planned list.
+          const running = plan ? state.sessionLogs.find(l => l.planId === plan.id && l.status === 'running') : undefined;
+          const idToDelete = runningLogId ?? running?.id;
+          if (idToDelete) dispatch({ type: 'DELETE_SESSION_LOG', payload: { id: idToDelete } });
           navigation.goBack();
         },
       },

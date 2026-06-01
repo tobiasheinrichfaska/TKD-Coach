@@ -126,6 +126,7 @@ export const de: Record<string, string> = {
   'Session not found': 'Session nicht gefunden',
   'Cancel session': 'Session abbrechen',
   'Are you sure? Progress will not be saved.': 'Sicher? Der Fortschritt wird nicht gespeichert.',
+  'Discards this run and puts the session back to Planned.': 'Verwirft diesen Durchlauf und setzt die Session zurück auf Geplant.',
   'Keep going': 'Weitermachen',
   'Discard': 'Verwerfen',
   'START': 'START',

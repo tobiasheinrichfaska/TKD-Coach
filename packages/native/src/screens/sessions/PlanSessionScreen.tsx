@@ -138,12 +138,12 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     setGames(next);
   };
   // Add an Übung into a specific phase (placement = that phase, even if multi-phase).
+  // The add list stays open so several exercises can be added in a row; the just-added
+  // one drops out of the list automatically (it filters on !gameIds.includes).
   const addToPhase = (gid: string, phase: SessionPhase) => {
     if (gameIds.includes(gid)) return;
     setGames([...gameIds, gid]);
     setPhases(p => ({ ...p, [gid]: phase }));
-    setOpenAdd(null);
-    setQuery('');
   };
 
   const handleSave = () => {
