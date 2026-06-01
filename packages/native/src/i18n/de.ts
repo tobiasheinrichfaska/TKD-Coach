@@ -38,4 +38,26 @@ export const de: Record<string, string> = {
 
   // Misc chrome
   'entries': 'Einträge',
+
+  // Sessions navigator + screen
+  'Plan Session': 'Session planen',
+  'Running Session': 'Laufende Session',
+  'Recent Sessions': 'Letzte Sessions',
+  'Archive': 'Archiv',
+  'Planned sessions': 'Geplante Sessions',
+  'Recent sessions': 'Letzte Sessions',
+  'Alle →': 'Alle →',
+  'Start': 'Start',
+  'Plan again': 'Erneut planen',
+  'No planned sessions. Tap + to create one.': 'Keine geplanten Sessions. Tippe + zum Anlegen.',
+  'No recent sessions yet': 'Noch keine Sessions.',
+  '📦 Archive': '📦 Archiv',
+
+  // Other Data navigator titles
+  'Games': 'Übungen',
+  'Game': 'Übung',
+  'Technique': 'Technik',
+  'Body part': 'Körperteil',
+  'Template': 'Vorlage',
+  'Metric schema': 'Metrik-Schema',
 };

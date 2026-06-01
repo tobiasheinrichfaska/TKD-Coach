@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from '
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../../utils/format';
+import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -28,6 +29,7 @@ const styles = StyleSheet.create({
 
 export default function SessionsScreen({ navigation }: SessionsStackScreenProps<'SessionsList'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
 
   // A plan with a completed session is history (shown under Completed below), not an
   // active plan. Plans with only a running log stay active so they can be resumed.
@@ -57,7 +59,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
     <View style={styles.container}>
       <ScrollView style={styles.content}>
         {/* Planned sessions */}
-        <Text style={styles.section}>📋 Planned sessions</Text>
+        <Text style={styles.section}>📋 {t('Planned sessions')}</Text>
         {upcomingPlans.length > 0 ? (
           <FlatList
             scrollEnabled={false}
@@ -82,13 +84,13 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                     style={[styles.button, styles.buttonStart]}
                     onPress={() => navigation.navigate('RunSession', { planId: item.id })}
                   >
-                    <Text style={styles.buttonText}>Start</Text>
+                    <Text style={styles.buttonText}>{t('Start')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, styles.buttonEdit]}
                     onPress={() => navigation.navigate('PlanSession', { planId: item.id })}
                   >
-                    <Text style={styles.buttonText}>Edit</Text>
+                    <Text style={styles.buttonText}>{t('Edit')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -96,17 +98,17 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
             }}
           />
         ) : (
-          <Text style={styles.empty}>No planned sessions. Tap + to create one.</Text>
+          <Text style={styles.empty}>{t('No planned sessions. Tap + to create one.')}</Text>
         )}
 
         {/* Recent sessions */}
         <TouchableOpacity style={styles.sectionRow} onPress={() => navigation.navigate('RecentSessions')}>
-          <Text style={styles.section}>🕒 Recent sessions</Text>
-          <Text style={styles.seeAll}>Alle →</Text>
+          <Text style={styles.section}>🕒 {t('Recent sessions')}</Text>
+          <Text style={styles.seeAll}>{t('Alle →')}</Text>
         </TouchableOpacity>
         {archivedCount > 0 && (
           <TouchableOpacity onPress={() => navigation.navigate('SessionArchive')}>
-            <Text style={[styles.cardMeta, { color: COLORS.info, marginBottom: 6 }]}>📦 Archive ({archivedCount}) →</Text>
+            <Text style={[styles.cardMeta, { color: COLORS.info, marginBottom: 6 }]}>📦 {t('Archive')} ({archivedCount}) →</Text>
           </TouchableOpacity>
         )}
         {completedLogs.length > 0 ? (
@@ -141,13 +143,13 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                       })
                     }
                   >
-                    <Text style={styles.buttonText}>Plan again</Text>
+                    <Text style={styles.buttonText}>{t('Plan again')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.button, { backgroundColor: COLORS.textMuted }]}
                     onPress={() => dispatch({ type: 'UPDATE_SESSION_LOG', payload: { ...item, archived: true } })}
                   >
-                    <Text style={styles.buttonText}>Archive</Text>
+                    <Text style={styles.buttonText}>{t('Archive')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -155,7 +157,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
             }}
           />
         ) : (
-          <Text style={styles.empty}>No recent sessions yet</Text>
+          <Text style={styles.empty}>{t('No recent sessions yet')}</Text>
         )}
       </ScrollView>
 

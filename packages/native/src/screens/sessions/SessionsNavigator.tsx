@@ -7,10 +7,12 @@ import RecentSessionsScreen from './RecentSessionsScreen';
 import SessionArchiveScreen from './SessionArchiveScreen';
 import type { SessionsStackParamList } from '../../types/navigation';
 import { COLORS } from '../../constants/colors';
+import { useT } from '../../i18n';
 
 const Stack = createNativeStackNavigator<SessionsStackParamList>();
 
 export default function SessionsNavigator() {
+  const { t } = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -19,19 +21,11 @@ export default function SessionsNavigator() {
         headerTintColor: COLORS.primary,
       }}
     >
-      <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ title: 'Sessions' }} />
-      <Stack.Screen
-        name="PlanSession"
-        component={PlanSessionScreen}
-        options={{ title: 'Plan Session', presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="RunSession"
-        component={RunSessionScreen}
-        options={{ title: 'Running Session' }}
-      />
-      <Stack.Screen name="RecentSessions" component={RecentSessionsScreen} options={{ title: 'Recent Sessions' }} />
-      <Stack.Screen name="SessionArchive" component={SessionArchiveScreen} options={{ title: 'Archive' }} />
+      <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ title: t('Sessions') }} />
+      <Stack.Screen name="PlanSession" component={PlanSessionScreen} options={{ title: t('Plan Session'), presentation: 'modal' }} />
+      <Stack.Screen name="RunSession" component={RunSessionScreen} options={{ title: t('Running Session') }} />
+      <Stack.Screen name="RecentSessions" component={RecentSessionsScreen} options={{ title: t('Recent Sessions') }} />
+      <Stack.Screen name="SessionArchive" component={SessionArchiveScreen} options={{ title: t('Archive') }} />
     </Stack.Navigator>
   );
 }
