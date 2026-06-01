@@ -161,6 +161,9 @@ export default function SelectDataScreen({ onConfirm, onCancel }: SelectDataScre
         <Text style={[styles.section, { marginTop: 24 }]}>
           {t('Total')}: {totalItems} {t('items will be transferred')}
         </Text>
+        <Text style={styles.count}>
+          {t('Catalogs (exercises, techniques, body parts, templates) and contact links are always included in a transfer.')}
+        </Text>
       </ScrollView>
 
       <View style={styles.controls}>

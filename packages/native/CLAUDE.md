@@ -6,7 +6,7 @@
 
 ### Tech Stack
 - **Expo SDK 54** with TypeScript  
-- **React Navigation v7** — 5 bottom tabs: **Dashboard · Sessions · Humans · Other Data · Transfer** (each a nested NativeStack). *Humans* hub → Athletes / Groups / Emergency contacts & guardians / Assessment (Assessment is nested under Humans, not a top tab). *Other Data* hub → Games / Techniques / Body parts / Session templates / Metric schemas (browse) + a **Werkseinstellung** (factory-reset) button.
+- **React Navigation v7** — 5 bottom tabs: **Dashboard · Sessions · Humans · Other Data · Settings** (each a nested NativeStack). *Humans* hub → Athletes / Groups / Emergency contacts & guardians / Assessment (Assessment is nested under Humans, not a top tab). *Other Data* hub → Games / Techniques / Body parts / Session templates / Metric schemas (browse) + a **Werkseinstellung** (factory-reset) button. *Settings* hub → language switch (DE/EN), **QR Transfer** (nested — no longer a top tab), and maintenance (Clear stuck sessions).
 - **AsyncStorage 2.2.0** for persistence (300ms debounce)
 - **React Native** (0.81.5) — no UI library, custom StyleSheet-based components
 
@@ -176,7 +176,10 @@ src/
     │   ├── AssessmentNavigator.tsx
     │   ├── AssessmentScreen.tsx
     │   └── ProgressScreen.tsx
-    └── transfer/          ← Phase 4
+    ├── settings/                  ← "Settings" tab (5th tab)
+    │   ├── SettingsNavigator.tsx  ← Settings stack; nests the Transfer navigator
+    │   └── SettingsHubScreen.tsx  ← language switch + QR Transfer entry + Clear stuck sessions
+    └── transfer/          ← Phase 4 (reached via Settings, not a top tab)
         ├── TransferNavigator.tsx      ← Main navigator (routes to all screens)
         ├── TransferScreen.tsx         ← Role selection (Sender/Receiver)
         ├── SelectDataScreen.tsx       ← Sender: choose what to sync
@@ -245,4 +248,4 @@ This starts the server on **port 8082** with correct NODE_OPTIONS for TypeScript
 
 ---
 
-*Last updated: 2026-05-30 — Monorepo metro fix, orientation support, all 5 tabs working; type-safety pass (eliminated `any`/`as any` on screen props & metric drafts, added pako shim, fixed sort-on-state mutation bugs)*
+*Last updated: 2026-06-01 — audit fixes: Settings is now the 5th tab (Transfer nested under it); QR receiver review shows every synced collection (catalogs + contact links) and blocks Accept on an empty diff; SelectData notes always-included catalogs; complete-while-running finalizes the current drill. Earlier (2026-05-30): monorepo metro fix, orientation, type-safety pass.*

@@ -241,6 +241,8 @@ export const de: Record<string, string> = {
   'Delete person': 'Person löschen',
   'This permanently deletes the person and everything linked to them — group memberships and all assessments. This cannot be undone.':
     'Dies löscht die Person und alles Verknüpfte dauerhaft — Gruppenmitgliedschaften und alle Bewertungen. Kann nicht rückgängig gemacht werden.',
+  'This removes the contact and unlinks it from all athletes. This cannot be undone.':
+    'Dies entfernt den Kontakt und löst alle Verknüpfungen zu Athleten. Kann nicht rückgängig gemacht werden.',
   'Ungrouped': 'Ohne Gruppe',
   'Every athlete is in a group.': 'Jeder Athlet ist in einer Gruppe.',
   'No athletes yet. Tap + to add one.': 'Noch keine Athleten. Tippe + zum Anlegen.',
@@ -389,6 +391,12 @@ export const de: Record<string, string> = {
   'session plans': 'Session-Pläne',
   'session logs': 'Session-Protokolle',
   'assessments': 'Bewertungen',
+  'session templates': 'Session-Vorlagen',
+  'contact links': 'Kontakt-Verknüpfungen',
+  'body parts': 'Körperteile',
+  'Nothing to merge': 'Nichts zusammenzuführen',
+  'Catalogs (exercises, techniques, body parts, templates) and contact links are always included in a transfer.':
+    'Kataloge (Übungen, Techniken, Körperteile, Vorlagen) und Kontakt-Verknüpfungen sind immer in einer Übertragung enthalten.',
   'Updated data': 'Aktualisierte Daten',
   'Unchanged': 'Unverändert',
   'items match your data': 'Einträge stimmen mit deinen Daten überein',

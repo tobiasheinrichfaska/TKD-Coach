@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Scr
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { assembleFromChunks, detectChanges, applyChanges } from '../../utils/qrChunks';
-import type { QRChunk, ChangeDetection } from '../../utils/qrChunks';
+import { assembleFromChunks, detectChanges, applyChanges, sanitizeImported, SYNCED_COLLECTIONS } from '../../utils/qrChunks';
+import type { QRChunk, ChangeDetection, SyncedCollection } from '../../utils/qrChunks';
 import { useT } from '../../i18n';
 
 const styles = StyleSheet.create({
@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
   overlayText: { color: COLORS.surface, textAlign: 'center', fontSize: 14, marginBottom: 8 },
   progress: { color: COLORS.surface, fontSize: 12, marginBottom: 12, textAlign: 'center' },
   button: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center' },
+  buttonDisabled: { opacity: 0.5 },
   buttonDanger: { backgroundColor: COLORS.danger },
   buttonText: { color: COLORS.surface, fontWeight: 'bold' },
   noCamera: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
@@ -30,6 +31,26 @@ const styles = StyleSheet.create({
 });
 
 type ReceiverState = 'scanning-handshake' | 'scanning-chunks' | 'processing' | 'review' | 'complete';
+
+// i18n label key for every synced collection. Typed against SyncedCollection, so adding a
+// collection to the sync set without a label here is a compile error — the review must show
+// ALL of them (catalogs + contact links always ride along), so there's no silent merge.
+const COLLECTION_LABELS: Record<SyncedCollection, string> = {
+  groups: 'groups',
+  persons: 'people',
+  sessionPlans: 'session plans',
+  sessionLogs: 'session logs',
+  assessments: 'assessments',
+  games: 'exercises',
+  sessionTemplates: 'session templates',
+  contactLinks: 'contact links',
+  bodyParts: 'body parts',
+  techniques: 'techniques',
+};
+
+/** Sum item counts across every synced collection in one change bucket. */
+const bucketTotal = (bucket: Record<string, unknown[]>): number =>
+  SYNCED_COLLECTIONS.reduce((s, key) => s + (bucket[key]?.length ?? 0), 0);
 
 interface HandshakeData {
   role: string;
@@ -79,6 +100,11 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
         if (!chunk.id || chunk.total === undefined || chunk.index === undefined || !chunk.data) {
           return;
         }
+        // The chunk's own `total` drives completion; the handshake announced one too.
+        // A mismatch means we're scanning chunks from a different transfer — warn.
+        if (handshake && chunk.total !== handshake.totalChunks) {
+          console.warn(`Chunk total (${chunk.total}) != handshake total (${handshake.totalChunks})`);
+        }
 
         const chunkKey = `${chunk.id}_${chunk.index}`;
         if (scannedIdsRef.current.has(chunkKey)) {
@@ -105,7 +131,7 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
     setReceiverState('processing');
     try {
       const packets = allChunks.map(c => JSON.stringify(c));
-      const importedData = assembleFromChunks(packets);
+      const importedData = sanitizeImported(assembleFromChunks(packets));
       const detected = detectChanges(state, importedData);
       setChanges(detected);
       setReceiverState('review');
@@ -155,9 +181,24 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
   }
 
   if (receiverState === 'review' && changes) {
-    const totalNew = changes.new.groups.length + changes.new.persons.length + changes.new.sessionPlans.length + changes.new.sessionLogs.length + changes.new.assessments.length;
-    const totalChanged = changes.changed.groups.length + changes.changed.persons.length + changes.changed.sessionPlans.length + changes.changed.sessionLogs.length + changes.changed.assessments.length;
-    const totalUnchanged = changes.unchanged.groups.length + changes.unchanged.persons.length + changes.unchanged.sessionPlans.length + changes.unchanged.sessionLogs.length + changes.unchanged.assessments.length;
+    const newBucket = changes.new as unknown as Record<string, unknown[]>;
+    const changedBucket = changes.changed as unknown as Record<string, unknown[]>;
+    const unchangedBucket = changes.unchanged as unknown as Record<string, unknown[]>;
+    const totalNew = bucketTotal(newBucket);
+    const totalChanged = bucketTotal(changedBucket);
+    const totalUnchanged = bucketTotal(unchangedBucket);
+    // Nothing new or changed → accepting would be a no-op; block it.
+    const canMerge = totalNew + totalChanged > 0;
+
+    // Per-collection breakdown for one bucket, e.g. "+ 3 groups" / "~ 2 exercises".
+    const breakdown = (bucket: Record<string, unknown[]>, sign: string, itemStyle: object) =>
+      SYNCED_COLLECTIONS
+        .filter(key => (bucket[key]?.length ?? 0) > 0)
+        .map(key => (
+          <Text key={key} style={[styles.changeItem, itemStyle]}>
+            {sign} {bucket[key].length} {t(COLLECTION_LABELS[key])}
+          </Text>
+        ));
 
     return (
       <View style={styles.container}>
@@ -168,22 +209,14 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
           {totalNew > 0 && (
             <View style={styles.changeSection}>
               <Text style={[styles.changeTitle, { color: COLORS.success }]}>{t('New data')} ({totalNew})</Text>
-              {changes.new.groups.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.groups.length} {t('groups')}</Text>}
-              {changes.new.persons.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.persons.length} {t('people')}</Text>}
-              {changes.new.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionPlans.length} {t('session plans')}</Text>}
-              {changes.new.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.sessionLogs.length} {t('session logs')}</Text>}
-              {changes.new.assessments.length > 0 && <Text style={[styles.changeItem, styles.newItem]}>+ {changes.new.assessments.length} {t('assessments')}</Text>}
+              {breakdown(newBucket, '+', styles.newItem)}
             </View>
           )}
 
           {totalChanged > 0 && (
             <View style={styles.changeSection}>
               <Text style={[styles.changeTitle, { color: COLORS.warning }]}>{t('Updated data')} ({totalChanged})</Text>
-              {changes.changed.groups.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.groups.length} {t('groups')}</Text>}
-              {changes.changed.persons.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.persons.length} {t('people')}</Text>}
-              {changes.changed.sessionPlans.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionPlans.length} {t('session plans')}</Text>}
-              {changes.changed.sessionLogs.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.sessionLogs.length} {t('session logs')}</Text>}
-              {changes.changed.assessments.length > 0 && <Text style={[styles.changeItem, styles.changedItem]}>~ {changes.changed.assessments.length} {t('assessments')}</Text>}
+              {breakdown(changedBucket, '~', styles.changedItem)}
             </View>
           )}
 
@@ -193,10 +226,20 @@ export default function BidirectionalReceiverScreen({ onComplete, onCancel }: { 
               <Text style={[styles.changeItem, styles.unchangedItem]}>= {totalUnchanged} {t('items match your data')}</Text>
             </View>
           )}
+
+          {!canMerge && (
+            <View style={styles.changeSection}>
+              <Text style={[styles.changeItem, styles.unchangedItem]}>{t('Nothing to merge')}</Text>
+            </View>
+          )}
         </ScrollView>
 
         <View style={{ padding: 16, gap: 8 }}>
-          <TouchableOpacity style={styles.button} onPress={handleAccept}>
+          <TouchableOpacity
+            style={[styles.button, !canMerge && styles.buttonDisabled]}
+            onPress={handleAccept}
+            disabled={!canMerge}
+          >
             <Text style={styles.buttonText}>{t('Accept & merge')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.button, styles.buttonDanger]} onPress={() => { setReceiverState('scanning-chunks'); setChunks(new Map()); scannedIdsRef.current.clear(); }}>

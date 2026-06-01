@@ -293,6 +293,14 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const handleComplete = () => {
     if (!plan || !group) return;
 
+    // Finalize a still-running current drill so its time isn't lost on complete.
+    const now = Date.now();
+    const finalizedLogs = gameLogs.map(l =>
+      l.status === 'running' && l.startedAt
+        ? { ...l, status: 'completed' as const, endedAt: now, durationSeconds: Math.round((now - l.startedAt) / 1000) }
+        : l
+    );
+
     const existing = runningLogIdRef.current;
     const id = existing ?? generateId();
     const payload = {
@@ -301,7 +309,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       groupId: plan.groupId,
       startedAt: sessionStartedAtRef.current,
       endedAt: new Date().toISOString(),
-      gameLogs: gameLogs.map(toPersisted),
+      gameLogs: finalizedLogs.map(toPersisted),
       attendance,
       status: 'completed' as const,
     };
@@ -315,7 +323,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     const summaryText = generateSessionSummaryText(
       group.name,
       plan.plannedDate,
-      gameLogs.map(gl => ({
+      finalizedLogs.map(gl => ({
         name: state.games.find(g => g.id === gl.gameId)?.name || gl.gameId,
         plannedMinutes: state.games.find(g => g.id === gl.gameId)?.defaultMinutes || 0,
         actualSeconds: gl.durationSeconds,

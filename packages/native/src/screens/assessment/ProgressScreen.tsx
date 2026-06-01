@@ -71,7 +71,7 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
     try {
       await Share.share({ message: summary, title: `${athlete.name} Progress` });
     } catch (e) {
-      console.log('Share error:', e);
+      console.error('Share error:', e);
     }
   };
 
