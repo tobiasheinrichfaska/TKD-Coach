@@ -14,6 +14,7 @@ import {
   playedCount,
   sessionDurationSec,
   athleteSessions,
+  reconcileRunningLogs,
 } from '../selectors';
 import { GameDefinition, SessionLog, SessionPlan, Assessment } from '../../types';
 
@@ -77,6 +78,28 @@ describe('partitionPlans / runningLogForPlan / recentCompletedLogs', () => {
     ];
     expect(recentCompletedLogs(logs).map(l => l.id)).toEqual(['b', 'a']);
     expect(recentCompletedLogs(logs, 1).map(l => l.id)).toEqual(['b']);
+  });
+});
+
+describe('reconcileRunningLogs', () => {
+  const r = (id: string, planId: string, status: SessionLog['status'], startedAt: string): SessionLog => ({
+    id, planId, groupId: 'g', startedAt, gameLogs: [], status,
+  });
+  it('drops running logs for plans that also have a completed log', () => {
+    const logs = [r('run', 'p1', 'running', '2026-06-01T10:00:00Z'), r('done', 'p1', 'completed', '2026-06-01T11:00:00Z')];
+    expect(reconcileRunningLogs(logs).map(l => l.id)).toEqual(['done']);
+  });
+  it('keeps only the newest running log per plan', () => {
+    const logs = [
+      r('old', 'p1', 'running', '2026-06-01T10:00:00Z'),
+      r('new', 'p1', 'running', '2026-06-01T12:00:00Z'),
+      r('other', 'p2', 'running', '2026-06-01T09:00:00Z'),
+    ];
+    expect(reconcileRunningLogs(logs).map(l => l.id).sort()).toEqual(['new', 'other']);
+  });
+  it('preserves all non-running logs untouched', () => {
+    const logs = [r('c1', 'p1', 'completed', '2026-06-01T10:00:00Z'), r('x', 'p9', 'cancelled', '2026-06-01T10:00:00Z')];
+    expect(reconcileRunningLogs(logs).map(l => l.id)).toEqual(['c1', 'x']);
   });
 });
 

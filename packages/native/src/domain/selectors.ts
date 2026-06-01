@@ -84,6 +84,26 @@ export function athleteSessions(logs: SessionLog[], athleteId: string): SessionL
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
 }
 
+/**
+ * Clean up running logs (data hygiene, applied on load):
+ *  - drop a running log if its plan also has a completed log (the run finished);
+ *  - keep only the NEWEST running log per plan (collapses accidental duplicates).
+ * All non-running logs are preserved untouched. Pure + unit-tested.
+ */
+export function reconcileRunningLogs(logs: SessionLog[]): SessionLog[] {
+  const completedPlanIds = new Set(logs.filter(l => l.status === 'completed').map(l => l.planId));
+  const newestRunningByPlan = new Map<string, SessionLog>();
+  for (const l of logs) {
+    if (l.status !== 'running' || completedPlanIds.has(l.planId)) continue;
+    const cur = newestRunningByPlan.get(l.planId);
+    if (!cur || new Date(l.startedAt).getTime() > new Date(cur.startedAt).getTime()) {
+      newestRunningByPlan.set(l.planId, l);
+    }
+  }
+  const keep = new Set([...newestRunningByPlan.values()].map(l => l.id));
+  return logs.filter(l => l.status !== 'running' || keep.has(l.id));
+}
+
 export interface SessionTotals {
   plannedSec: number;
   actualSec: number;

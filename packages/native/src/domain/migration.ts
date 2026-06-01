@@ -5,6 +5,7 @@ import { BUILTIN_TEMPLATES } from './templates';
 import { BUILTIN_BODY_PARTS } from './bodyparts';
 import { BUILTIN_TECHNIQUES } from './techniques';
 import { BUILTIN_METRIC_SCHEMAS } from './metrics';
+import { reconcileRunningLogs } from './selectors';
 
 /**
  * Bring stored data up to the current shape:
@@ -99,7 +100,7 @@ export function migrate(data: AppData): AppData {
     persons,
     groups,
     sessionPlans: d.sessionPlans || [],
-    sessionLogs: d.sessionLogs || [],
+    sessionLogs: reconcileRunningLogs(d.sessionLogs || []),
     assessments: d.assessments || [],
     sessionTemplates,
     contactLinks,
