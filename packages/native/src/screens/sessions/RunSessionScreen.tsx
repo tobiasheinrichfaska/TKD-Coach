@@ -197,11 +197,13 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     [plan, runningLogId, dispatch, attendance]
   );
 
-  // Toggle one athlete present/absent; persist immediately if the run already exists.
+  // Toggle one athlete present/absent and persist immediately. This creates the running
+  // SessionLog if none exists yet, so check-ins are saved even before the first game is
+  // started (Cancel/Abbrechen can still discard the whole run back to Planned).
   const togglePresent = (athleteId: string) => {
     const next = toggleAttendance(attendance, athleteId);
     setAttendance(next);
-    if (runningLogId) persistRunning(gameLogs, next);
+    persistRunning(gameLogs, next);
   };
 
   // Timer: counts up; at planned duration fires the signal once and flips to overrun.

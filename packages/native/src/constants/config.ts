@@ -5,4 +5,4 @@
  *
  * ⚠️ Set to false before shipping — true destroys the user's stored data on launch.
  */
-export const DEV_RESEED = true;
+export const DEV_RESEED = false;
