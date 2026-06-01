@@ -39,12 +39,49 @@ export function partitionPlans(plans: SessionPlan[], logs: SessionLog[]): Partit
   return { inProgress: [...inProgress].sort(byDate), planned: [...planned].sort(byDate) };
 }
 
-/** Completed, non-archived logs, newest first, capped to `limit`. */
-export function recentCompletedLogs(logs: SessionLog[], limit = 10): SessionLog[] {
-  return logs
+/** Completed, non-archived logs, newest first. `limit` undefined = all. */
+export function recentCompletedLogs(logs: SessionLog[], limit?: number): SessionLog[] {
+  const sorted = logs
     .filter(l => l.status === 'completed' && !l.archived)
-    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
-    .slice(0, limit);
+    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime());
+  return limit == null ? sorted : sorted.slice(0, limit);
+}
+
+/** Archived logs, newest first. */
+export function archivedLogs(logs: SessionLog[]): SessionLog[] {
+  return logs
+    .filter(l => l.archived)
+    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime());
+}
+
+/** Sum of planned minutes for a list of game ids. */
+export function plannedMinutes(gameIds: string[], games: GameDefinition[]): number {
+  const byId = new Map(games.map(g => [g.id, g]));
+  return gameIds.reduce((s, id) => s + (byId.get(id)?.defaultMinutes || 0), 0);
+}
+
+/** Summed actual drill seconds of a session. */
+export function actualSeconds(log: SessionLog): number {
+  return log.gameLogs.reduce((s, gl) => s + (gl.durationSeconds || 0), 0);
+}
+
+/** Number of drills actually played (have a duration). */
+export function playedCount(log: SessionLog): number {
+  return log.gameLogs.filter(gl => gl.durationSeconds != null).length;
+}
+
+/** Session length in seconds: summed drill time, or wall-clock if no drills were timed. */
+export function sessionDurationSec(log: SessionLog): number {
+  const drill = actualSeconds(log);
+  if (drill > 0) return drill;
+  return log.endedAt ? Math.max(0, Math.round((Date.parse(log.endedAt) - Date.parse(log.startedAt)) / 1000)) : 0;
+}
+
+/** Sessions an athlete was rostered for (attendance recorded), newest first. */
+export function athleteSessions(logs: SessionLog[], athleteId: string): SessionLog[] {
+  return logs
+    .filter(l => l.attendance?.some(a => a.athleteId === athleteId))
+    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
 }
 
 export interface SessionTotals {

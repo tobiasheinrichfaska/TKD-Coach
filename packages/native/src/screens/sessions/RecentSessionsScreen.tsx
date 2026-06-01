@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../../utils/format';
+import { recentCompletedLogs, actualSeconds } from '../../domain';
 import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
@@ -26,9 +27,7 @@ export default function RecentSessionsScreen({ navigation }: SessionsStackScreen
   const { t } = useT();
   const todayISO = toLocalDateISO();
 
-  const recent = [...state.sessionLogs]
-    .filter(l => l.status === 'completed' && !l.archived)
-    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime());
+  const recent = recentCompletedLogs(state.sessionLogs);
 
   const groupName = (id: string) => state.groups.find(g => g.id === id)?.name || 'Unknown';
   const planName = (id: string) => state.sessionPlans.find(p => p.id === id)?.name;
@@ -42,7 +41,7 @@ export default function RecentSessionsScreen({ navigation }: SessionsStackScreen
         renderItem={({ item }) => {
           const isToday = toLocalDateISO(new Date(item.endedAt || item.startedAt)) === todayISO;
           const played = item.gameLogs.filter(g => g.durationSeconds != null);
-          const totalSec = item.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
+          const totalSec = actualSeconds(item);
           return (
             <TouchableOpacity
               style={[styles.card, isToday && styles.cardToday]}

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt, formatDateShort, formatTime, formatDuration } from '../../utils/format';
-import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson, otherRolesBesidesAthlete, athleteAttendanceStats } from '../../domain';
+import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson, otherRolesBesidesAthlete, athleteAttendanceStats, athleteSessions, sessionDurationSec } from '../../domain';
 import { callNumber, sendEmail } from '../../utils/linking';
 import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
@@ -135,14 +135,11 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
 
         <Text style={styles.section}>{t('Sessions')}</Text>
         {(() => {
-          const attended = state.sessionLogs
-            .filter(l => l.attendance?.some(a => a.athleteId === athlete.id))
-            .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+          const attended = athleteSessions(state.sessionLogs, athlete.id);
           if (attended.length === 0) return <Text style={styles.hint}>{t('No sessions yet')}</Text>;
           return attended.map(l => {
             const present = l.attendance?.find(a => a.athleteId === athlete.id)?.present;
-            const gameSec = l.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
-            const totalSec = gameSec || (l.endedAt ? Math.round((Date.parse(l.endedAt) - Date.parse(l.startedAt)) / 1000) : 0);
+            const totalSec = sessionDurationSec(l);
             return (
               <TouchableOpacity
                 key={l.id}

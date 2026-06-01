@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort } from '../../utils/format';
+import { archivedLogs, actualSeconds } from '../../domain';
 import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
@@ -21,9 +22,7 @@ export default function SessionArchiveScreen({ navigation }: SessionsStackScreen
   const { state, dispatch } = useData();
   const { t } = useT();
 
-  const archived = [...state.sessionLogs]
-    .filter(l => l.archived)
-    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime());
+  const archived = archivedLogs(state.sessionLogs);
 
   const groupName = (id: string) => state.groups.find(g => g.id === id)?.name || 'Unknown';
   const planName = (id: string) => state.sessionPlans.find(p => p.id === id)?.name;
@@ -36,7 +35,7 @@ export default function SessionArchiveScreen({ navigation }: SessionsStackScreen
         keyExtractor={item => item.id}
         renderItem={({ item }) => {
           const played = item.gameLogs.filter(g => g.durationSeconds != null);
-          const totalSec = item.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
+          const totalSec = actualSeconds(item);
           return (
             <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('SessionDetail', { logId: item.id })}>
               <Text style={styles.title}>{[planName(item.planId), groupName(item.groupId)].filter(Boolean).join(' · ')}</Text>

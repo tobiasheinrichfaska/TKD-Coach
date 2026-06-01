@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, Alert }
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../../utils/format';
-import { partitionPlans, recentCompletedLogs } from '../../domain';
+import { partitionPlans, recentCompletedLogs, plannedMinutes, actualSeconds } from '../../domain';
 import { useT } from '../../i18n';
 import type { SessionPlan } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
@@ -38,13 +38,11 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
 
   // Status classification lives in the pure domain layer (selectors); the screen only renders.
   const { inProgress, planned } = partitionPlans(state.sessionPlans, state.sessionLogs);
-  const completedLogs = recentCompletedLogs(state.sessionLogs);
+  const completedLogs = recentCompletedLogs(state.sessionLogs, 10);
   const archivedCount = state.sessionLogs.filter(l => l.archived).length;
 
   const todayISO = toLocalDateISO();
   const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || t('Unknown group');
-  const getTotalMinutes = (gameIds: string[]) =>
-    gameIds.reduce((sum, gid) => sum + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
 
   const discardInProgress = (planId: string) => {
     Alert.alert(t('Discard running session?'), t('Puts the session back to Planned. Nothing is saved.'), [
@@ -63,7 +61,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
   const PlanMeta = ({ item }: { item: SessionPlan }) => (
     <>
       <Text style={styles.cardMeta}>{getGroupName(item.groupId)} · {formatDateShort(item.plannedDate)}</Text>
-      <Text style={styles.cardMeta}>{item.plannedGames.length} {t('Exercises')} · {getTotalMinutes(item.plannedGames)} min</Text>
+      <Text style={styles.cardMeta}>{item.plannedGames.length} {t('Exercises')} · {plannedMinutes(item.plannedGames, state.games)} min</Text>
     </>
   );
 
@@ -161,8 +159,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                   </View>
                   <Text style={styles.cardMeta}>{formatDateShort(item.startedAt)}</Text>
                   <Text style={styles.cardMeta}>
-                    {item.gameLogs.length} {t('Exercises')} ·{' '}
-                    {item.gameLogs.reduce((sum, g) => sum + (g.durationSeconds || 0), 0)} {t('sec')}
+                    {item.gameLogs.length} {t('Exercises')} · {actualSeconds(item)} {t('sec')}
                   </Text>
                   <View style={styles.buttons}>
                     <TouchableOpacity

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from '
 import { useData } from '../context/DataContext';
 import { COLORS } from '../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../utils/format';
-import { slotsOnDay, formatSlot } from '../domain';
+import { slotsOnDay, formatSlot, plannedMinutes, actualSeconds, recentCompletedLogs } from '../domain';
 import { APP_INFO } from '../constants/appInfo';
 import { useT } from '../i18n';
 import type { RootTabScreenProps } from '../types/navigation';
@@ -39,12 +39,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
   // Today's still-open sessions (to-start or in-progress). Done-today sessions are "recent"
   // and appear in Recent Sessions below — not here.
   const todaysOpen = state.sessionPlans.filter(p => p.plannedDate === todayISO && !completedPlanIds.has(p.id));
-  // Copy before sort: Array.prototype.sort mutates in place — sorting state.sessionLogs
-  // directly would corrupt the reducer's source of truth and silently break reference equality.
-  const recentLogs = [...state.sessionLogs]
-    .filter(l => l.status === 'completed' && !l.archived)
-    .sort((a, b) => new Date(b.endedAt || b.startedAt).getTime() - new Date(a.endedAt || a.startedAt).getTime())
-    .slice(0, 5);
+  const recentLogs = recentCompletedLogs(state.sessionLogs, 5);
 
   const now = new Date();
   const trainingToday = state.groups
@@ -66,7 +61,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
           todaysOpen.map(plan => {
             const running = runningPlanIds.has(plan.id);
             const status = running ? `▶ ${t('Resume')}` : `○ ${t('Start')}`;
-            const totalMin = plan.plannedGames.reduce((s, gid) => s + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
+            const totalMin = plannedMinutes(plan.plannedGames, state.games);
             return (
               <TouchableOpacity
                 key={plan.id}
@@ -93,7 +88,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
             renderItem={({ item }) => {
               const planName = state.sessionPlans.find(p => p.id === item.planId)?.name;
               const played = item.gameLogs.filter(g => g.durationSeconds != null);
-              const totalSec = item.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
+              const totalSec = actualSeconds(item);
               return (
                 <TouchableOpacity
                   style={styles.sessionCard}

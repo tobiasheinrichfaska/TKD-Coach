@@ -8,6 +8,12 @@ import {
   partitionPlans,
   runningLogForPlan,
   recentCompletedLogs,
+  archivedLogs,
+  plannedMinutes,
+  actualSeconds,
+  playedCount,
+  sessionDurationSec,
+  athleteSessions,
 } from '../selectors';
 import { GameDefinition, SessionLog, SessionPlan, Assessment } from '../../types';
 
@@ -71,6 +77,43 @@ describe('partitionPlans / runningLogForPlan / recentCompletedLogs', () => {
     ];
     expect(recentCompletedLogs(logs).map(l => l.id)).toEqual(['b', 'a']);
     expect(recentCompletedLogs(logs, 1).map(l => l.id)).toEqual(['b']);
+  });
+});
+
+describe('session aggregation helpers', () => {
+  it('plannedMinutes sums defaultMinutes for ids', () => {
+    expect(plannedMinutes(['A', 'B', 'missing'], games)).toBe(15); // 10 + 5 + 0
+  });
+  it('actualSeconds + playedCount over a log', () => {
+    const l = log('l', 'p', 'completed', [{ gameId: 'A', sec: 540 }, { gameId: 'B' }]);
+    expect(actualSeconds(l)).toBe(540);
+    expect(playedCount(l)).toBe(1);
+  });
+  it('sessionDurationSec uses drill time, else wall-clock', () => {
+    const drilled = log('l', 'p', 'completed', [{ gameId: 'A', sec: 300 }]);
+    expect(sessionDurationSec(drilled)).toBe(300);
+    const untimed: SessionLog = {
+      id: 'l', planId: 'p', groupId: 'g', status: 'completed',
+      startedAt: '2026-06-01T10:00:00.000Z', endedAt: '2026-06-01T10:05:00.000Z', gameLogs: [],
+    };
+    expect(sessionDurationSec(untimed)).toBe(300);
+  });
+  it('archivedLogs filters + sorts newest first', () => {
+    const logs: SessionLog[] = [
+      { ...log('a', 'p', 'completed', []), archived: true, startedAt: '2026-06-01T10:00:00Z' },
+      { ...log('b', 'p', 'completed', []), archived: true, startedAt: '2026-06-03T10:00:00Z' },
+      log('c', 'p', 'completed', []),
+    ];
+    expect(archivedLogs(logs).map(l => l.id)).toEqual(['b', 'a']);
+  });
+  it('athleteSessions: rostered logs, newest first', () => {
+    const logs: SessionLog[] = [
+      { ...log('a', 'p', 'completed', []), startedAt: '2026-06-01T10:00:00Z', attendance: [{ athleteId: 'x', present: true }] },
+      { ...log('b', 'p', 'completed', []), startedAt: '2026-06-03T10:00:00Z', attendance: [{ athleteId: 'x', present: false }] },
+      { ...log('c', 'p', 'completed', []), attendance: [{ athleteId: 'y', present: true }] },
+    ];
+    expect(athleteSessions(logs, 'x').map(l => l.id)).toEqual(['b', 'a']);
+    expect(athleteSessions(logs, 'y').map(l => l.id)).toEqual(['c']);
   });
 });
 

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort, formatTime, formatDuration } from '../../utils/format';
-import { primaryPhase, phaseBand, presentCount } from '../../domain';
+import { primaryPhase, phaseBand, presentCount, actualSeconds, playedCount } from '../../domain';
 import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
 import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
@@ -56,8 +56,8 @@ export default function SessionDetailScreen({ route, navigation }: SessionsStack
   const game = (id: string) => state.games.find(g => g.id === id);
   const phaseOf = (gid: string): SessionPhase => plan?.gamePhases?.[gid] ?? primaryPhase(game(gid));
 
-  const played = log.gameLogs.filter(g => g.durationSeconds != null);
-  const totalSec = log.gameLogs.reduce((s, g) => s + (g.durationSeconds || 0), 0);
+  const played = playedCount(log);
+  const totalSec = actualSeconds(log);
 
   const statusColor =
     log.status === 'completed' ? COLORS.success : log.status === 'running' ? COLORS.primary : COLORS.textMuted;
@@ -132,7 +132,7 @@ export default function SessionDetailScreen({ route, navigation }: SessionsStack
 
         <View style={styles.totals}>
           <Text style={styles.totalsText}>
-            {played.length} {t('of')} {log.gameLogs.length} {t('Exercises')} · {formatDuration(totalSec)} {t('total')}
+            {played} {t('of')} {log.gameLogs.length} {t('Exercises')} · {formatDuration(totalSec)} {t('total')}
           </Text>
         </View>
 
