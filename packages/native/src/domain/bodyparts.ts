@@ -16,6 +16,13 @@ export const BODY_PARTS: BodyPart[] = [
   { id: 'shoulders', name: 'Shoulders', region: 'shoulders', kind: 'joint' },
   { id: 'arms', name: 'Arms', region: 'arms', kind: 'muscle' },
   { id: 'neck', name: 'Neck', region: 'neck', kind: 'joint' },
+  { id: 'wrist', name: 'Wrist', region: 'arms', kind: 'joint' },
+  { id: 'feet', name: 'Feet', region: 'lower-leg', kind: 'joint' },
+  { id: 'lower-back', name: 'Lower back', region: 'spine', kind: 'region' },
+  { id: 'obliques', name: 'Obliques', region: 'core', kind: 'muscle' },
+  { id: 'hip-rotators', name: 'Hip rotators', region: 'hips', kind: 'muscle' },
+  { id: 'it-band', name: 'IT band', region: 'upper-leg', kind: 'region' },
+  { id: 'achilles', name: 'Achilles', region: 'lower-leg', kind: 'region' },
   { id: 'full-body', name: 'Full body', region: 'full-body', kind: 'region' },
 
   // ===== Neuro-athletic abilities (tagged like body parts; kind 'neuro') =====

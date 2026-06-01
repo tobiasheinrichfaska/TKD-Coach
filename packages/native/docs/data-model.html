@@ -614,7 +614,7 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 <table>
 <thead><tr><th>Export</th><th>Signature</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>BODY_PARTS</code> / <code>TECHNIQUES</code></td><td>BodyPart[] / Technique[]</td><td>The canonical catalogs (17 body parts, 16 techniques).</td></tr>
+<tr><td><code>BODY_PARTS</code> / <code>TECHNIQUES</code></td><td>BodyPart[] / Technique[]</td><td>The canonical catalogs (32 body-part entries = 22 anatomical + 10 neuro; 47 techniques incl. Taegeuk + Yudanja poomsae).</td></tr>
 <tr><td><code>getBodyPart(id)</code> / <code>getTechnique(id)</code></td><td>→ entry | undefined</td><td>Resolve a kebab id.</td></tr>
 <tr><td><code>bodyPartName(id)</code> / <code>techniqueName(id)</code></td><td>→ string</td><td>Human label (falls back to the id).</td></tr>
 </tbody>
