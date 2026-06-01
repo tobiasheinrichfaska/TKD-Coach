@@ -10,3 +10,4 @@ export * from './selectors';
 export * from './templates';
 export * from './graduation';
 export * from './migration';
+export * from './attendance';

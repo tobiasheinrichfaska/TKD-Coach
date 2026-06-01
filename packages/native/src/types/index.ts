@@ -172,6 +172,12 @@ export interface GameLog {
   durationSeconds?: number;
 }
 
+/** Who was present at a session — a roster snapshot taken at run time. */
+export interface AttendanceEntry {
+  athleteId: string;
+  present: boolean;
+}
+
 export interface SessionLog {
   id: string;
   planId: string;
@@ -179,6 +185,8 @@ export interface SessionLog {
   startedAt: string;
   endedAt?: string;
   gameLogs: GameLog[];
+  /** Roster snapshot with present/absent marks, captured when the session is run. */
+  attendance?: AttendanceEntry[];
   notes?: string;
   status: 'running' | 'completed' | 'cancelled';
   /** Archived completed sessions move to the Archive page (out of Recent/Completed). */

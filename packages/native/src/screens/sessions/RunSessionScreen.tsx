@@ -14,10 +14,10 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { generateId } from '../../utils/ids';
 import { generateSessionSummaryText } from '../../utils/format';
-import { primaryPhase, gameInPhase, bodyPartName } from '../../domain';
+import { primaryPhase, gameInPhase, bodyPartName, athletesInGroup, defaultAttendance, toggleAttendance, presentCount } from '../../domain';
 import { SESSION_PHASE_LABELS } from '../../types';
 import { useT } from '../../i18n';
-import type { GameLog, SessionPhase } from '../../types';
+import type { GameLog, SessionPhase, AttendanceEntry } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 const beepAsset = require('../../../assets/beep.wav');
@@ -94,6 +94,15 @@ const styles = StyleSheet.create({
   completeButton: { flex: 1, backgroundColor: COLORS.primary, padding: 12, borderRadius: 8, alignItems: 'center' },
   completeButtonText: { color: COLORS.surface, fontWeight: 'bold' },
   cancelButton: { flex: 1, backgroundColor: COLORS.danger, padding: 12, borderRadius: 8, alignItems: 'center' },
+  attCard: { backgroundColor: COLORS.surface, borderRadius: 8, borderWidth: 1, borderColor: COLORS.border, padding: 12, marginBottom: 12 },
+  attHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  attTitle: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  attMeta: { fontSize: 12, color: COLORS.textMuted },
+  attChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  attChip: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: COLORS.success, backgroundColor: COLORS.success },
+  attChipAbsent: { borderColor: COLORS.border, backgroundColor: 'transparent' },
+  attChipText: { fontSize: 13, color: COLORS.surface, fontWeight: '600' },
+  attChipTextAbsent: { color: COLORS.textMuted, fontWeight: '400', textDecorationLine: 'line-through' },
 });
 
 export default function RunSessionScreen({ route, navigation }: SessionsStackScreenProps<'RunSession'>) {
@@ -118,6 +127,13 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   );
   const [runningLogId, setRunningLogId] = useState<string | null>(runningLog?.id ?? null);
   const sessionStartedAtRef = useRef<string>(runningLog?.startedAt ?? new Date().toISOString());
+
+  // Attendance: roster snapshot (all present by default), preserving marks when resuming.
+  const roster = athletesInGroup(state.persons, group ?? undefined);
+  const [attendance, setAttendance] = useState<AttendanceEntry[]>(() =>
+    defaultAttendance(roster.map(a => a.id), runningLog?.attendance)
+  );
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
 
   const [timerDisplay, setTimerDisplay] = useState('0:00');
   const [remainingDisplay, setRemainingDisplay] = useState('');
@@ -159,7 +175,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
 
   /** Persist the in-progress run so it survives navigation away and app restart. */
   const persistRunning = useCallback(
-    (logs: GameLogState[]) => {
+    (logs: GameLogState[], att: AttendanceEntry[] = attendance) => {
       if (!plan) return;
       const id = runningLogId ?? generateId();
       const payload = {
@@ -168,6 +184,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
         groupId: plan.groupId,
         startedAt: sessionStartedAtRef.current,
         gameLogs: logs.map(toPersisted),
+        attendance: att,
         status: 'running' as const,
       };
       if (!runningLogId) {
@@ -177,8 +194,15 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
         dispatch({ type: 'UPDATE_SESSION_LOG', payload });
       }
     },
-    [plan, runningLogId, dispatch]
+    [plan, runningLogId, dispatch, attendance]
   );
+
+  // Toggle one athlete present/absent; persist immediately if the run already exists.
+  const togglePresent = (athleteId: string) => {
+    const next = toggleAttendance(attendance, athleteId);
+    setAttendance(next);
+    if (runningLogId) persistRunning(gameLogs, next);
+  };
 
   // Timer: counts up; at planned duration fires the signal once and flips to overrun.
   // Primitive deps (not the whole log object) so setGameLogs doesn't churn the interval.
@@ -276,6 +300,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       startedAt: sessionStartedAtRef.current,
       endedAt: new Date().toISOString(),
       gameLogs: gameLogs.map(toPersisted),
+      attendance,
       status: 'completed' as const,
     };
     // Finalize the running log (or create one if nothing was started).
@@ -334,6 +359,28 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       </View>
 
       <ScrollView style={styles.content}>
+        {/* Attendance — tap a name to toggle present/absent */}
+        {roster.length > 0 && (
+          <View style={styles.attCard}>
+            <TouchableOpacity style={styles.attHeader} onPress={() => setAttendanceOpen(o => !o)} activeOpacity={0.7}>
+              <Text style={styles.attTitle}>👥 {t('Attendance')}</Text>
+              <Text style={styles.attMeta}>{presentCount(attendance)}/{roster.length} {t('present')} {attendanceOpen ? '▲' : '▼'}</Text>
+            </TouchableOpacity>
+            {attendanceOpen && (
+              <View style={styles.attChipRow}>
+                {roster.map(a => {
+                  const present = attendance.find(e => e.athleteId === a.id)?.present ?? true;
+                  return (
+                    <TouchableOpacity key={a.id} style={[styles.attChip, !present && styles.attChipAbsent]} onPress={() => togglePresent(a.id)}>
+                      <Text style={[styles.attChipText, !present && styles.attChipTextAbsent]}>{present ? '✓ ' : ''}{a.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        )}
+
         {gameLogs.map((log, idx) => {
           const active = idx === currentGameIndex;
           const overrunHere = active && isOverrun;

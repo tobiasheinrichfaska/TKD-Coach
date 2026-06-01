@@ -133,6 +133,9 @@ export const de: Record<string, string> = {
   'CLOSE': 'SCHLIESSEN',
   '⇄ SWAP': '⇄ TAUSCHEN',
   'Session complete': 'Session abschließen',
+  'Attendance': 'Anwesenheit',
+  'present': 'anwesend',
+  'absent': 'abwesend',
 
   // ---- Plan session ----
   'Name required': 'Name benötigt',

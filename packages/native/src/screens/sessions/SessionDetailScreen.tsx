@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort, formatTime, formatDuration } from '../../utils/format';
-import { primaryPhase, phaseBand } from '../../domain';
+import { primaryPhase, phaseBand, presentCount, absentIds } from '../../domain';
 import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
 import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
@@ -76,6 +76,26 @@ export default function SessionDetailScreen({ route, navigation }: SessionsStack
           <Text style={[styles.badge, { backgroundColor: statusColor }]}>{statusLabel}</Text>
           {log.archived && <Text style={[styles.badge, { backgroundColor: COLORS.textMuted }]}>{t('Archive')}</Text>}
         </View>
+
+        {/* Attendance */}
+        {log.attendance && log.attendance.length > 0 && (() => {
+          const absentNames = absentIds(log.attendance)
+            .map(id => state.persons.find(p => p.id === id)?.name)
+            .filter(Boolean);
+          return (
+            <>
+              <Text style={styles.sectionLabel}>{t('Attendance')}</Text>
+              <View style={styles.totals}>
+                <Text style={styles.totalsText}>
+                  {presentCount(log.attendance)}/{log.attendance.length} {t('present')}
+                </Text>
+                {absentNames.length > 0 && (
+                  <Text style={[styles.gameMeta, { marginTop: 4 }]}>{t('absent')}: {absentNames.join(', ')}</Text>
+                )}
+              </View>
+            </>
+          );
+        })()}
 
         {/* Per-phase breakdown of what was trained */}
         {PHASES.map(phase => {

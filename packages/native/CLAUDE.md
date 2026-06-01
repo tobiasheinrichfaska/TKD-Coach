@@ -19,7 +19,7 @@ See [`src/types/index.ts`](src/types/index.ts) for full schema. Core entities:
 - **ContactLink:** edge {`contactId`→Person, `athleteId`→Person, `guardian`} — emergency-contact/guardian relationship; **guardian is per-edge**. Phones/emails are tappable (`utils/linking.ts`).
 - **GameDefinition (Übung):** built-in (factory) + user-configurable, **seeded once** on a fresh install (never auto-overwritten). `sessionPhases: SessionPhase[]` (one or more of the 5 protocol phases; a plan groups an entry under its lowest via `primaryPhase`), duration, optional `logMetricType`, `techniques`/`bodyParts` tags. No `phase` or `neuroTarget` — colour derives from the phase (`phaseBand`), and body parts stand in for the old neuro target.
 - **SessionPlan:** group, date, template (kids-2h / youth-adult-1h30 / custom), planned game IDs
-- **SessionLog:** completed session with per-game durations
+- **SessionLog:** completed session with per-game durations, plus an optional **`attendance`** roster snapshot (`AttendanceEntry{athleteId, present}`) captured at run time (logic in `domain/attendance.ts`: `defaultAttendance`, `toggleAttendance`, `presentCount`, `isPresent`, `absentIds`)
 - **Assessment:** athlete metric (balance hold, combo accuracy, error count, etc.) with date, notes
 
 State persisted to AsyncStorage; changes debounced 300ms.

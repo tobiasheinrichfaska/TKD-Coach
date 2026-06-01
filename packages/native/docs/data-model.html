@@ -89,6 +89,7 @@
   <a href="#templates-fn">Template functions</a>
   <a href="#catalog-fn">Catalog lookups</a>
   <a href="#graduation">Graduation rules</a>
+  <a href="#attendance-fn">Attendance</a>
   <a href="#migration">Migration &amp; seeding</a>
   <a href="#sync">Sync (QR)</a>
   <a href="#testing">Testing</a>
@@ -346,6 +347,7 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
 <tr><td>SessionLog</td><td><code>planId</code></td><td>SessionPlan</td><td>one → one</td></tr>
 <tr><td>SessionLog</td><td><code>groupId</code></td><td>Group</td><td>many → one</td></tr>
 <tr><td>SessionLog</td><td><code>gameLogs[]</code></td><td>GameLog</td><td><span class="tag-good">composition</span> (owned, embedded)</td></tr>
+<tr><td>SessionLog</td><td><code>attendance[].athleteId</code></td><td>Person</td><td>many → one</td></tr>
 <tr><td>GameLog</td><td><code>gameId</code></td><td>GameDefinition</td><td>many → one</td></tr>
 <tr><td>Assessment</td><td><code>athleteId</code></td><td>Person</td><td>many → one</td></tr>
 <tr><td>Assessment</td><td><code>gameId</code></td><td>GameDefinition</td><td>many → one</td></tr>
@@ -484,6 +486,7 @@ person can be a guardian for one athlete and only a contact for another. Phones/
 <tr><td><code class="req">startedAt</code></td><td>string</td><td>ISO timestamp.</td></tr>
 <tr><td><code>endedAt</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
 <tr><td><code class="req">gameLogs</code></td><td>GameLog[]</td><td>Per-drill records.</td></tr>
+<tr><td><code>attendance</code> <span class="opt">?</span></td><td>AttendanceEntry[]</td><td>Roster snapshot captured at run time; <code>{athleteId, present}</code>, all present by default. Absent entries omitted from <code>attendance</code> are treated as present (legacy logs).</td></tr>
 <tr><td><code class="req">status</code></td><td>'running' | 'completed' | 'cancelled'</td><td>Drives dashboards + coverage.</td></tr>
 <tr><td><code>archived</code> <span class="opt">?</span></td><td>boolean</td><td>Moves out of Recent into Archive.</td></tr>
 <tr><td><code>notes</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
@@ -496,6 +499,13 @@ person can be a guardian for one athlete and only a contact for another. Phones/
 <tr><td><code>startedAt</code> <span class="opt">?</span></td><td>string</td><td><em>undefined</em> = drill never started (no fake stamps).</td></tr>
 <tr><td><code>endedAt</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
 <tr><td><code>durationSeconds</code> <span class="opt">?</span></td><td>number</td><td>Counts toward "played" in totals.</td></tr>
+</tbody>
+</table>
+<table>
+<thead><tr><th>AttendanceEntry</th><th>Type</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code class="req">athleteId</code></td><td>string</td><td>→ Person.id (athlete role).</td></tr>
+<tr><td><code class="req">present</code></td><td>boolean</td><td>Marked at run time; defaults true.</td></tr>
 </tbody>
 </table>
 </div>
@@ -685,6 +695,19 @@ rules use "definitely" bounds (<code>refYear</code> = current year):</p>
 </table>
 <p class="legend">The athlete editor shows only the stored grade plus <em>Graduieren</em> / <em>Zurückstufen</em> (and <em>Zu Dan umwandeln</em>
 when eligible); each button is enabled purely by these functions — the UI embeds none of the rules. 17 unit tests lock the age boundaries.</p>
+
+<h2 id="attendance-fn">Data manipulation 6b — Attendance <span class="src">domain/attendance.ts</span></h2>
+<p>Attendance is a roster snapshot on a <code>SessionLog</code>, captured when the session is run. Logic is UI-free and unit-tested.</p>
+<table>
+<thead><tr><th>Function</th><th>Signature</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>defaultAttendance</code></td><td>(athleteIds, existing?) → AttendanceEntry[]</td><td>All present by default; preserves prior marks when resuming; drops left, adds joined.</td></tr>
+<tr><td><code>toggleAttendance</code></td><td>(att, athleteId) → AttendanceEntry[]</td><td>Flip one athlete's <code>present</code>, returning a new list (no mutation).</td></tr>
+<tr><td><code>presentCount</code></td><td>(att?) → number</td><td>Count marked present.</td></tr>
+<tr><td><code>isPresent</code></td><td>(att?, athleteId) → boolean</td><td>Present? Unknown ⇒ true (legacy logs).</td></tr>
+<tr><td><code>absentIds</code></td><td>(att?) → string[]</td><td>Athlete ids marked absent.</td></tr>
+</tbody>
+</table>
 
 <h2 id="migration">Data manipulation 7 — Migration &amp; seeding <span class="src">domain/migration.ts</span></h2>
 <p><code>migrate(data: AppData) → AppData</code> is pure and runs on every load (and as the fresh-install seed). It:</p>
