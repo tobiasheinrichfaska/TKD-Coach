@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { athleteViews, coaches } from '../../domain';
+import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -15,6 +16,7 @@ const styles = StyleSheet.create({
 
 export default function HumansHubScreen({ navigation }: GroupsStackScreenProps<'HumansHub'>) {
   const { state } = useData();
+  const { t } = useT();
   const athleteCount = athleteViews(state.persons).length;
   const coachCount = coaches(state.persons).length;
   const guardianCount = new Set(state.contactLinks.filter(l => l.guardian).map(l => l.contactId)).size;
@@ -32,7 +34,7 @@ export default function HumansHubScreen({ navigation }: GroupsStackScreenProps<'
       {rows.map(r => (
         <TouchableOpacity key={r.title} style={[styles.row, { borderLeftColor: r.color }]} onPress={r.go}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>{r.title}</Text>
+            <Text style={styles.title}>{t(r.title)}</Text>
             <Text style={styles.meta}>{r.meta}</Text>
           </View>
           <Text style={styles.chevron}>›</Text>

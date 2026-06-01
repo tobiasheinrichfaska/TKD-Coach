@@ -214,11 +214,18 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
 
         <Text style={styles.section}>Template</Text>
         <View style={styles.chipRow}>
-          {TEMPLATE_GROUPS.map(grp => (
-            <TouchableOpacity key={grp.label} style={[styles.chip, openGroup === grp.label && styles.chipActive]} onPress={() => setOpenGroup(g => (g === grp.label ? null : grp.label))}>
-              <Text style={[styles.chipText, openGroup === grp.label && styles.chipTextActive]}>{grp.label}</Text>
-            </TouchableOpacity>
-          ))}
+          {TEMPLATE_GROUPS.map(grp => {
+            // Single-item groups (Empty/Warm-up/Cool-down) apply in one tap; multi-item groups open.
+            const single = grp.items.length === 1 ? grp.items[0] : null;
+            const onPress = single
+              ? () => applyTemplate(single.t, single.ids)
+              : () => setOpenGroup(g => (g === grp.label ? null : grp.label));
+            return (
+              <TouchableOpacity key={grp.label} style={[styles.chip, openGroup === grp.label && styles.chipActive]} onPress={onPress}>
+                <Text style={[styles.chipText, openGroup === grp.label && styles.chipTextActive]}>{grp.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
         {openGroup && (
           <View style={styles.chipRow}>

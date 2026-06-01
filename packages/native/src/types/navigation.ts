@@ -58,12 +58,17 @@ export type TransferStackParamList = {
   Receiver: undefined;
 };
 
+export type SettingsStackParamList = {
+  SettingsHub: undefined;
+  Transfer: NavigatorScreenParams<TransferStackParamList>;
+};
+
 export type RootTabParamList = {
   Dashboard: undefined;
   Sessions: NavigatorScreenParams<SessionsStackParamList>;
   Humans: NavigatorScreenParams<GroupsStackParamList>;
   OtherData: NavigatorScreenParams<OtherDataStackParamList>;
-  Transfer: NavigatorScreenParams<TransferStackParamList>;
+  Settings: NavigatorScreenParams<SettingsStackParamList>;
 };
 
 // --- Screen prop helpers -----------------------------------------------------
@@ -98,6 +103,12 @@ export type TransferStackScreenProps<T extends keyof TransferStackParamList> =
 export type OtherDataStackScreenProps<T extends keyof OtherDataStackParamList> =
   CompositeScreenProps<
     NativeStackScreenProps<OtherDataStackParamList, T>,
+    RootTabScreenProps<keyof RootTabParamList>
+  >;
+
+export type SettingsStackScreenProps<T extends keyof SettingsStackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<SettingsStackParamList, T>,
     RootTabScreenProps<keyof RootTabParamList>
   >;
 

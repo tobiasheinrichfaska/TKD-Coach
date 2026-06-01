@@ -4,6 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { BUILTIN_GAMES } from '../../constants/games';
 import { BUILTIN_TEMPLATES, BUILTIN_BODY_PARTS, BUILTIN_TECHNIQUES, BUILTIN_METRIC_SCHEMAS } from '../../domain';
+import { useT } from '../../i18n';
 import type { OtherDataStackScreenProps, OtherDataStackParamList } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -19,6 +20,7 @@ const styles = StyleSheet.create({
 
 export default function OtherDataHubScreen({ navigation }: OtherDataStackScreenProps<'OtherDataHub'>) {
   const { state, dispatch } = useData();
+  const { t } = useT();
 
   const rows: { title: string; meta: string; route: keyof OtherDataStackParamList }[] = [
     { title: 'Übungen (Games)', meta: `${state.games.length}`, route: 'GamesList' },
@@ -59,15 +61,15 @@ export default function OtherDataHubScreen({ navigation }: OtherDataStackScreenP
       {rows.map(r => (
         <TouchableOpacity key={r.route} style={styles.row} onPress={() => navigation.navigate(r.route)}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>{r.title}</Text>
-            <Text style={styles.meta}>{r.meta} entries</Text>
+            <Text style={styles.title}>{t(r.title)}</Text>
+            <Text style={styles.meta}>{r.meta} {t('entries')}</Text>
           </View>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
       ))}
 
       <TouchableOpacity style={styles.resetBtn} onPress={resetFactory}>
-        <Text style={styles.resetText}>↺ Werkseinstellung (Kataloge zurücksetzen)</Text>
+        <Text style={styles.resetText}>↺ {t('Werkseinstellung')} (Kataloge zurücksetzen)</Text>
       </TouchableOpacity>
       <Text style={styles.hint}>Catalogs are editable seed-once stores. This re-applies the factory data, keeping your people / groups / sessions.</Text>
     </ScrollView>
