@@ -29,7 +29,7 @@ export default function RecentSessionsScreen({ navigation }: SessionsStackScreen
 
   const recent = recentCompletedLogs(state.sessionLogs);
 
-  const groupName = (id: string) => state.groups.find(g => g.id === id)?.name || 'Unknown';
+  const groupName = (id: string) => state.groups.find(g => g.id === id)?.name || t('Unknown group');
   const planName = (id: string) => state.sessionPlans.find(p => p.id === id)?.name;
   const gameNames = (ids: string[]) => ids.map(id => state.games.find(g => g.id === id)?.shortName || id).join(' · ');
 
@@ -49,7 +49,7 @@ export default function RecentSessionsScreen({ navigation }: SessionsStackScreen
             >
               <View style={styles.titleRow}>
                 <Text style={styles.title}>{[planName(item.planId), groupName(item.groupId)].filter(Boolean).join(' · ')}</Text>
-                {isToday && <Text style={styles.todayBadge}>HEUTE</Text>}
+                {isToday && <Text style={styles.todayBadge}>{t('Today')}</Text>}
               </View>
               <Text style={styles.meta}>{formatDateShort(item.startedAt)} · {played.length} {t('Exercises')} · {Math.round(totalSec / 60)} min</Text>
               <Text style={styles.games}>{gameNames(played.map(g => g.gameId))}</Text>

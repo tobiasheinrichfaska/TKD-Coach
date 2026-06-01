@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from '
 import { useData } from '../context/DataContext';
 import { COLORS } from '../constants/colors';
 import { formatDateShort, toLocalDateISO } from '../utils/format';
-import { slotsOnDay, formatSlot, plannedMinutes, actualSeconds, recentCompletedLogs } from '../domain';
+import { slotsOnDay, formatSlot, plannedMinutes, actualSeconds, recentCompletedLogs, planStatus, todaysPlans } from '../domain';
 import { APP_INFO } from '../constants/appInfo';
 import { useT } from '../i18n';
 import type { RootTabScreenProps } from '../types/navigation';
@@ -34,11 +34,9 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
 
   const todayISO = toLocalDateISO();
 
-  const completedPlanIds = new Set(state.sessionLogs.filter(l => l.status === 'completed').map(l => l.planId));
-  const runningPlanIds = new Set(state.sessionLogs.filter(l => l.status === 'running').map(l => l.planId));
-  // Today's still-open sessions (to-start or in-progress). Done-today sessions are "recent"
-  // and appear in Recent Sessions below — not here.
-  const todaysOpen = state.sessionPlans.filter(p => p.plannedDate === todayISO && !completedPlanIds.has(p.id));
+  // Today's still-open sessions (to-start or in-progress). Status is derived in the domain
+  // layer (planStatus); done-today sessions are "recent" and appear below, not here.
+  const todaysOpen = todaysPlans(state.sessionPlans, todayISO).filter(p => planStatus(p.id, state.sessionLogs) !== 'done');
   const recentLogs = recentCompletedLogs(state.sessionLogs, 5);
 
   const now = new Date();
@@ -46,7 +44,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
     .map(g => ({ group: g, slots: slotsOnDay(g, now) }))
     .filter(x => x.slots.length > 0);
 
-  const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || 'Unknown';
+  const getGroupName = (groupId: string) => state.groups.find(g => g.id === groupId)?.name || t('Unknown group');
   const getGameNames = (gameIds: string[]) =>
     gameIds
       .map(id => state.games.find(g => g.id === id)?.shortName || id)
@@ -59,7 +57,7 @@ export default function DashboardScreen({ navigation }: RootTabScreenProps<'Dash
         <Text style={styles.section}>🗓 {t('Today\'s Sessions')}</Text>
         {todaysOpen.length > 0 ? (
           todaysOpen.map(plan => {
-            const running = runningPlanIds.has(plan.id);
+            const running = planStatus(plan.id, state.sessionLogs) === 'running';
             const status = running ? `▶ ${t('Resume')}` : `○ ${t('Start')}`;
             const totalMin = plannedMinutes(plan.plannedGames, state.games);
             return (

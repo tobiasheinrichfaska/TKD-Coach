@@ -1,5 +1,6 @@
 import { Belt } from '../types';
 import { getBeltLabel } from '../constants/belts';
+import { translate as t } from '../i18n';
 
 /**
  * Format ISO date string to readable German date (e.g., "30.05.2026").
@@ -56,7 +57,7 @@ export function formatDateShort(iso: string): string {
     date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear()
   ) {
-    return 'Heute';
+    return t('Today');
   }
 
   // Check if tomorrow
@@ -67,7 +68,7 @@ export function formatDateShort(iso: string): string {
     date.getMonth() === tomorrow.getMonth() &&
     date.getFullYear() === tomorrow.getFullYear()
   ) {
-    return 'Morgen';
+    return t('Tomorrow');
   }
 
   // Default: day.month
@@ -77,13 +78,13 @@ export function formatDateShort(iso: string): string {
 }
 
 /**
- * Format ISO timestamp to German time (e.g., "14:30 Uhr").
+ * Format ISO timestamp to 24h clock time (e.g., "14:30").
  */
 export function formatTime(iso: string): string {
   const date = new Date(iso);
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes} Uhr`;
+  return `${hours}:${minutes}`;
 }
 
 /**
@@ -112,7 +113,7 @@ export function generateSessionSummaryText(
     })
     .join('\n');
 
-  return `Session abgeschlossen\n${groupName} · ${formatDate(date)}\n\n${gameLines}`;
+  return `${t('Session completed')}\n${groupName} · ${formatDate(date)}\n\n${gameLines}`;
 }
 
 /**
@@ -130,5 +131,5 @@ export function generateProgressSummaryText(
     })
     .join('\n');
 
-  return `Fortschritt: ${athleteName}\n${formatBelt(belt)}\n\n${lines}`;
+  return `${t('Progress')}: ${athleteName}\n${formatBelt(belt)}\n\n${lines}`;
 }

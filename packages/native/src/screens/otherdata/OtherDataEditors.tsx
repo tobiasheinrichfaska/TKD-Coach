@@ -27,7 +27,7 @@ const s = StyleSheet.create({
   fieldCard: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, padding: 10, marginBottom: 8 },
 });
 
-function Field({ label, value, onChange, placeholder, keyboardType }: { label: string; value: string; onChange: (t: string) => void; placeholder?: string; keyboardType?: 'default' | 'number-pad' }) {
+function Field({ label, value, onChange, placeholder, keyboardType }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; keyboardType?: 'default' | 'number-pad' }) {
   return (
     <>
       <Text style={s.label}>{label}</Text>

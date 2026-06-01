@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { AssessmentMetric } from '../types';
+import { AssessmentMetric, MetricTypeDef } from '../types';
 import { COLORS } from '../constants/colors';
 import { formatDate } from '../utils/format';
-import { useT } from '../i18n';
+import { fieldDelta } from '../domain';
 
 const styles = StyleSheet.create({
   container: { backgroundColor: COLORS.surface, padding: 12, borderRadius: 8, marginBottom: 8 },
@@ -11,9 +11,6 @@ const styles = StyleSheet.create({
   date: { fontSize: 12, color: COLORS.textMuted },
   deltaText: { fontSize: 14, fontWeight: 'bold' },
   values: { marginTop: 8, fontSize: 14, color: COLORS.text },
-  deltaPositive: { color: COLORS.success },
-  deltaNegative: { color: COLORS.warning },
-  deltaFlat: { color: COLORS.textMuted },
 });
 
 interface MetricRowProps {
@@ -21,83 +18,34 @@ interface MetricRowProps {
   metric: AssessmentMetric;
   previousMetric?: AssessmentMetric;
   notes?: string;
+  /** Schema for this metric type — drives the value display and the headline delta. */
+  schema?: MetricTypeDef;
 }
 
-export function MetricRow({ date, metric, previousMetric, notes }: MetricRowProps) {
-  const { t } = useT();
-  const getDeltaText = (): string => {
-    switch (metric.type) {
-      case 'balance_hold':
-        if (!previousMetric || previousMetric.type !== 'balance_hold') return '—';
-        const balDelta = metric.dominant - previousMetric.dominant;
-        return balDelta > 0 ? `+${balDelta}s` : `${balDelta}s`;
-      case 'reaction_errors':
-        if (!previousMetric || previousMetric.type !== 'reaction_errors') return '—';
-        const errDelta = metric.errorsPerTen - previousMetric.errorsPerTen;
-        return errDelta < 0 ? `${errDelta}` : `+${errDelta}`;
-      default:
-        return '—';
-    }
-  };
+const fmt = (n: number): string => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+const val = (m: AssessmentMetric, key: string): number => (m as unknown as Record<string, number>)[key] ?? 0;
 
-  const getDeltaColor = (): string => {
-    const delta = getDeltaText();
-    if (delta === '—') return COLORS.textMuted;
-    if (delta.startsWith('-')) return COLORS.success;
-    if (delta.startsWith('+')) {
-      // For balance, more is better; for errors, less is better
-      return metric.type === 'balance_hold' ? COLORS.success : COLORS.warning;
-    }
-    return COLORS.textMuted;
-  };
+export function MetricRow({ date, metric, previousMetric, notes, schema }: MetricRowProps) {
+  const primary = schema?.fields.find(f => f.key === schema.primaryField);
+  const delta =
+    primary && previousMetric && previousMetric.type === metric.type
+      ? fieldDelta(primary, val(metric, primary.key), val(previousMetric, primary.key))
+      : null;
 
-  const getMetricDisplay = (): React.ReactNode => {
-    switch (metric.type) {
-      case 'balance_hold':
-        return (
-          <Text style={styles.values}>
-            {t('Dominant')}: {metric.dominant}s | {t('Non-dom')}: {metric.nonDominant}s
-          </Text>
-        );
-      case 'reaction_errors':
-        return <Text style={styles.values}>{t('Errors')}: {metric.errorsPerTen}/10 {t('cues')}</Text>;
-      case 'combo_accuracy':
-        const accuracy = ((metric.correct / metric.total) * 100).toFixed(0);
-        return (
-          <Text style={styles.values}>
-            {metric.correct}/{metric.total} ({accuracy}%)
-          </Text>
-        );
-      case 'vestibular_landing':
-        return (
-          <Text style={styles.values}>
-            {t('Stable')}: {metric.stable} | {t('Stumble')}: {metric.stumble} | {t('Fall')}: {metric.fall}
-          </Text>
-        );
-      case 'balance_poomsae':
-        return (
-          <Text style={styles.values}>
-            {t('Hold')}: {metric.holdSeconds}s | {t('Arm errors')}: {metric.armErrors}
-          </Text>
-        );
-      case 'poomsae_distraction':
-        return (
-          <Text style={styles.values}>
-            {t('Errors')}: {metric.errors} | {t('Baseline')}: {metric.baseline}
-          </Text>
-        );
-      default:
-        return null;
-    }
-  };
+  const deltaText = delta ? `${delta.raw > 0 ? '+' : ''}${fmt(delta.raw)}${primary?.unit ?? ''}` : '—';
+  const deltaColor = !delta || delta.raw === 0 ? COLORS.textMuted : delta.improved ? COLORS.success : COLORS.warning;
+
+  const display = schema
+    ? schema.fields.map(f => `${f.label}: ${fmt(val(metric, f.key))}${f.unit ?? ''}`).join('  ·  ')
+    : '';
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.date}>{formatDate(date)}</Text>
-        <Text style={[styles.deltaText, { color: getDeltaColor() }]}>{getDeltaText()}</Text>
+        <Text style={[styles.deltaText, { color: deltaColor }]}>{deltaText}</Text>
       </View>
-      {getMetricDisplay()}
+      {!!display && <Text style={styles.values}>{display}</Text>}
       {notes && <Text style={{ fontSize: 12, color: COLORS.textMuted, marginTop: 8 }}>📝 {notes}</Text>}
     </View>
   );

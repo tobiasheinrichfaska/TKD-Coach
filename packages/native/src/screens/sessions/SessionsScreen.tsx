@@ -110,7 +110,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                 <View style={[styles.card, isToday && styles.cardToday]}>
                   <View style={styles.titleRow}>
                     <Text style={styles.cardTitle}>{item.name}</Text>
-                    {isToday && <Text style={styles.todayBadge}>HEUTE</Text>}
+                    {isToday && <Text style={styles.todayBadge}>{t('Today')}</Text>}
                   </View>
                   <PlanMeta item={item} />
                   <View style={styles.buttons}>
@@ -155,7 +155,7 @@ export default function SessionsScreen({ navigation }: SessionsStackScreenProps<
                     <Text style={styles.cardTitle}>
                       {[state.sessionPlans.find(p => p.id === item.planId)?.name, getGroupName(item.groupId)].filter(Boolean).join(' · ')}
                     </Text>
-                    {isToday && <Text style={styles.todayBadge}>HEUTE</Text>}
+                    {isToday && <Text style={styles.todayBadge}>{t('Today')}</Text>}
                   </View>
                   <Text style={styles.cardMeta}>{formatDateShort(item.startedAt)}</Text>
                   <Text style={styles.cardMeta}>

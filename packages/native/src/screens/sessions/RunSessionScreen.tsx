@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -204,12 +204,13 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   };
 
   // Timer: counts up; at planned duration fires the signal once and flips to overrun.
-  // Primitive deps (not the whole log object) so setGameLogs doesn't churn the interval.
+  // Depends only on primitives (+ memoised completedSec) so per-tick state updates don't
+  // churn the interval — it re-arms only on a real transition (start/stop/swap/complete).
   const status = currentGameLog?.status;
   const startedAt = currentGameLog?.startedAt;
   const plannedMinutes = currentGame?.defaultMinutes ?? 0;
+  const completedSec = useMemo(() => gameLogs.reduce((s, l) => s + (l.durationSeconds || 0), 0), [gameLogs]);
   useEffect(() => {
-    const completedSec = gameLogs.reduce((s, l) => s + (l.durationSeconds || 0), 0);
     if (status !== 'running' || !startedAt) {
       setTimerDisplay('0:00');
       setRemainingDisplay('');
@@ -229,8 +230,8 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
         setIsOverrun(over);
         setRemainingDisplay(
           over
-            ? `▲ planned time reached · +${fmt(-remaining)} over`
-            : `${plannedMinutes} min planned · ${fmt(remaining)} left`
+            ? `▲ ${t('planned time reached')} · +${fmt(-remaining)} ${t('over')}`
+            : `${plannedMinutes} ${t('min planned')} · ${fmt(remaining)} ${t('left')}`
         );
         if (over && !signaledRef.current.has(idx)) {
           signaledRef.current.add(idx);
@@ -244,7 +245,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
     tick();
     const interval = setInterval(tick, 250);
     return () => clearInterval(interval);
-  }, [status, startedAt, currentGameIndex, plannedMinutes, fireSignal, gameLogs]);
+  }, [status, startedAt, currentGameIndex, plannedMinutes, fireSignal, completedSec, t]);
 
   const handleStartGame = () => {
     signaledRef.current.delete(currentGameIndex); // allow the signal to fire for this run

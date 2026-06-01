@@ -4,7 +4,7 @@ import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { MetricRow } from '../../components/MetricRow';
 import { formatBelt, generateProgressSummaryText } from '../../utils/format';
-import { toAthleteView, getPerson } from '../../domain';
+import { toAthleteView, getPerson, getMetricSchema } from '../../domain';
 import { useT } from '../../i18n';
 import type { AssessmentStackScreenProps } from '../../types/navigation';
 
@@ -52,28 +52,19 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
   const handleShare = async () => {
     const metrics = Array.from(gameGroups.entries()).map(([gameId, gameAssessments]) => {
       const game = state.games.find(g => g.id === gameId);
+      const schema = getMetricSchema(state.metricSchemas, game?.logMetricType ?? '');
+      const primary = schema?.fields.find(f => f.key === schema.primaryField);
       const latest = gameAssessments[0];
       const previous = gameAssessments[1];
+      const valOf = (m: typeof latest.metric, key: string) => (m as unknown as Record<string, number>)[key] ?? 0;
 
-      // Extract numeric value for delta
-      let current = 0;
-      if (latest.metric.type === 'balance_hold') current = latest.metric.dominant;
-      else if (latest.metric.type === 'reaction_errors') current = latest.metric.errorsPerTen;
+      const current = primary ? valOf(latest.metric, primary.key) : 0;
+      const prev =
+        primary && previous && previous.metric.type === latest.metric.type
+          ? valOf(previous.metric, primary.key)
+          : undefined;
 
-      let prev: number | undefined;
-      if (previous?.metric.type === latest.metric.type) {
-        if (latest.metric.type === 'balance_hold' && previous.metric.type === 'balance_hold')
-          prev = previous.metric.dominant;
-        else if (latest.metric.type === 'reaction_errors' && previous.metric.type === 'reaction_errors')
-          prev = previous.metric.errorsPerTen;
-      }
-
-      return {
-        metricName: game?.name || gameId,
-        current,
-        previous: prev,
-        unit: latest.metric.type === 'reaction_errors' ? '' : 's',
-      };
+      return { metricName: game?.name || gameId, current, previous: prev, unit: primary?.unit ?? '' };
     });
 
     const summary = generateProgressSummaryText(athlete.name, athlete.belt, metrics);
@@ -108,6 +99,7 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
                     metric={item.metric}
                     previousMetric={index < gameAssessments.length - 1 ? gameAssessments[index + 1].metric : undefined}
                     notes={item.notes}
+                    schema={getMetricSchema(state.metricSchemas, state.games.find(g => g.id === gameId)?.logMetricType ?? '')}
                   />
                 )}
               />

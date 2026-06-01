@@ -41,6 +41,21 @@ describe('buildMetric', () => {
   });
 });
 
+describe('every metric type is loggable via the schema-driven form path', () => {
+  // Mirrors AssessmentScreen: each field gets a value, buildMetric must succeed for ALL
+  // six types (regression guard for the audit bug where 3 types could not be entered),
+  // and the progress primaryField must be extractable for the share/delta path.
+  it.each(S.map(s => s.type))('round-trips %s and exposes its primaryField', type => {
+    const schema = getMetricSchema(S, type)!;
+    const values: Record<string, number> = {};
+    schema.fields.forEach((f, i) => { values[f.key] = i + 1; });
+    const metric = buildMetric(schema, values);
+    expect(metric).not.toBeNull();
+    const primary = schema.fields.find(f => f.key === schema.primaryField)!;
+    expect((metric as unknown as Record<string, number>)[primary.key]).toBeGreaterThan(0);
+  });
+});
+
 describe('fieldDelta', () => {
   const higher = { key: 'dominant', label: 'Dominant' };
   const lower = { key: 'errorsPerTen', label: 'Errors', lowerIsBetter: true };

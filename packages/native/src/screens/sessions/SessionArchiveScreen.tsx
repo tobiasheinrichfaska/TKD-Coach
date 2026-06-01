@@ -24,7 +24,7 @@ export default function SessionArchiveScreen({ navigation }: SessionsStackScreen
 
   const archived = archivedLogs(state.sessionLogs);
 
-  const groupName = (id: string) => state.groups.find(g => g.id === id)?.name || 'Unknown';
+  const groupName = (id: string) => state.groups.find(g => g.id === id)?.name || t('Unknown group');
   const planName = (id: string) => state.sessionPlans.find(p => p.id === id)?.name;
   const gameNames = (ids: string[]) => ids.map(id => state.games.find(g => g.id === id)?.shortName || id).join(' · ');
 

@@ -7,11 +7,11 @@ import {
   ScrollView,
   TextInput,
   FlatList,
+  Alert,
 } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { AssessmentMetric } from '../../types';
-import { athletesInGroup } from '../../domain';
+import { athletesInGroup, getMetricSchema, buildMetric } from '../../domain';
 import { generateId } from '../../utils/ids';
 import { useT } from '../../i18n';
 import type { AssessmentStackScreenProps } from '../../types/navigation';
@@ -38,26 +38,6 @@ const styles = StyleSheet.create({
   empty: { fontSize: 14, color: COLORS.textMuted, textAlign: 'center', marginTop: 24 },
 });
 
-/**
- * Draft shape used during metric entry — a flat optional bag covering all metric variants.
- * Cast to AssessmentMetric at save boundary (guarded by `Object.keys(metric).length === 0` check).
- */
-type MetricDraft = {
-  type?: AssessmentMetric['type'];
-  dominant?: number;
-  nonDominant?: number;
-  errorsPerTen?: number;
-  correct?: number;
-  total?: number;
-  stable?: number;
-  stumble?: number;
-  fall?: number;
-  holdSeconds?: number;
-  armErrors?: number;
-  errors?: number;
-  baseline?: number;
-};
-
 export default function AssessmentScreen(_props: AssessmentStackScreenProps<'AssessmentList'>) {
   const { state, dispatch } = useData();
   const { t } = useT();
@@ -65,21 +45,32 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedAthleteId, setSelectedAthleteId] = useState('');
   const [selectedGameId, setSelectedGameId] = useState('');
-  const [metric, setMetric] = useState<MetricDraft>({});
+  // Raw text per schema field key — parsed to numbers + validated by buildMetric on save.
+  const [values, setValues] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState('');
 
   const selectedGroup = state.groups.find(g => g.id === selectedGroupId);
   const groupAthletes = athletesInGroup(state.persons, selectedGroup);
   const selectedGame = state.games.find(g => g.id === selectedGameId);
+  const schema = getMetricSchema(state.metricSchemas, selectedGame?.logMetricType ?? '');
 
   const handleGameSelect = (gameId: string) => {
     setSelectedGameId(gameId);
-    setMetric({});
+    setValues({});
     setStep('metric');
   };
 
   const handleSaveMetric = () => {
-    if (!selectedAthleteId || !selectedGameId || Object.keys(metric).length === 0) return;
+    const numeric: Record<string, number | undefined> = {};
+    for (const f of schema?.fields ?? []) {
+      const raw = values[f.key]?.trim();
+      numeric[f.key] = raw ? parseFloat(raw.replace(',', '.')) : undefined;
+    }
+    const metric = buildMetric(schema, numeric);
+    if (!selectedAthleteId || !selectedGameId || !metric) {
+      Alert.alert(t('Required fields'), t('Fill in all fields.'));
+      return;
+    }
 
     dispatch({
       type: 'ADD_ASSESSMENT',
@@ -88,7 +79,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
         athleteId: selectedAthleteId,
         gameId: selectedGameId,
         date: new Date().toISOString(),
-        metric: metric as AssessmentMetric,
+        metric,
         notes: notes || undefined,
       },
     });
@@ -98,7 +89,7 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
     setSelectedGroupId('');
     setSelectedAthleteId('');
     setSelectedGameId('');
-    setMetric({});
+    setValues({});
     setNotes('');
   };
 
@@ -209,64 +200,20 @@ export default function AssessmentScreen(_props: AssessmentStackScreenProps<'Ass
     );
   }
 
-  // Metric form step
+  // Metric form step — generated from the metric schema (one field loop, all types).
   const renderMetricForm = () => {
-    switch (selectedGame?.logMetricType) {
-      case 'balance_hold':
-        return (
-          <>
-            <TextInput
-              style={styles.input}
-              placeholder={t('Dominant leg (seconds)')}
-              placeholderTextColor={COLORS.textMuted}
-              keyboardType="decimal-pad"
-              onChangeText={text =>
-                setMetric({ ...metric, type: 'balance_hold', dominant: parseFloat(text) || 0, nonDominant: metric.nonDominant || 0 })
-              }
-            />
-            <TextInput
-              style={styles.input}
-              placeholder={t('Non-dominant leg (seconds)')}
-              placeholderTextColor={COLORS.textMuted}
-              keyboardType="decimal-pad"
-              onChangeText={text =>
-                setMetric({ ...metric, type: 'balance_hold', nonDominant: parseFloat(text) || 0, dominant: metric.dominant || 0 })
-              }
-            />
-          </>
-        );
-      case 'reaction_errors':
-        return (
-          <TextInput
-            style={styles.input}
-            placeholder={t('Errors per 10 cues')}
-            placeholderTextColor={COLORS.textMuted}
-            keyboardType="decimal-pad"
-            onChangeText={text => setMetric({ type: 'reaction_errors', errorsPerTen: parseFloat(text) || 0 })}
-          />
-        );
-      case 'combo_accuracy':
-        return (
-          <>
-            <TextInput
-              style={styles.input}
-              placeholder={t('Correct combos')}
-              placeholderTextColor={COLORS.textMuted}
-              keyboardType="decimal-pad"
-              onChangeText={text => setMetric({ ...metric, correct: parseInt(text) || 0 })}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder={t('Total attempts')}
-              placeholderTextColor={COLORS.textMuted}
-              keyboardType="decimal-pad"
-              onChangeText={text => setMetric({ type: 'combo_accuracy', correct: metric.correct || 0, total: parseInt(text) || 0 })}
-            />
-          </>
-        );
-      default:
-        return <Text style={styles.empty}>{t('No metric form for this exercise')}</Text>;
-    }
+    if (!schema) return <Text style={styles.empty}>{t('No metric form for this exercise')}</Text>;
+    return schema.fields.map(f => (
+      <TextInput
+        key={f.key}
+        style={styles.input}
+        placeholder={f.unit ? `${f.label} (${f.unit})` : f.label}
+        placeholderTextColor={COLORS.textMuted}
+        keyboardType={f.integer ? 'number-pad' : 'decimal-pad'}
+        value={values[f.key] ?? ''}
+        onChangeText={txt => setValues(v => ({ ...v, [f.key]: txt }))}
+      />
+    ));
   };
 
   return (

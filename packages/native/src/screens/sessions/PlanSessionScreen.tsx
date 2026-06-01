@@ -106,10 +106,10 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     }
   };
 
-  const applyTemplate = (t: TemplateId, ids: readonly string[]) => {
+  const applyTemplate = (tpl: TemplateId, ids: readonly string[]) => {
     setGameIds([...ids]);
     setPhases({}); // template items use their natural (lowest) phase
-    setTemplate(t);
+    setTemplate(tpl);
   };
   const setGames = (next: string[]) => {
     setGameIds(next);

@@ -12,6 +12,14 @@ const LANG_KEY = 'tkd_coach_lang';
 // English is the key, so the 'en' dictionary is empty (t() falls back to the key).
 const DICTS: Record<Lang, Record<string, string>> = { de, en: {} };
 
+// Module-level mirror of the active language so non-React code (pure utils like
+// format.ts) can translate too. Kept in sync by the provider below.
+let currentLang: Lang = 'de';
+/** Translate outside React (utils/services). The English text IS the key. */
+export function translate(s: string): string {
+  return DICTS[currentLang][s] ?? s;
+}
+
 /** Best-effort device language (Hermes Intl). German device → 'de', otherwise 'en'. */
 function deviceLang(): Lang {
   try {
@@ -34,6 +42,7 @@ const Ctx = createContext<I18n>({ lang: 'de', setLang: () => {}, t: s => s });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(deviceLang); // default from device locale
+  currentLang = lang; // keep the module-level mirror in sync for translate()
 
   useEffect(() => {
     // A previously saved choice overrides the device default.
@@ -41,6 +50,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setLang = useCallback((l: Lang) => {
+    currentLang = l;
     setLangState(l);
     AsyncStorage.setItem(LANG_KEY, l).catch(() => {});
   }, []);
