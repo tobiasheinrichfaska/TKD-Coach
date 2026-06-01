@@ -24,6 +24,26 @@ export type AssessmentMetric =
   | { type: 'balance_poomsae'; holdSeconds: number; armErrors: number }
   | { type: 'poomsae_distraction'; errors: number; baseline: number };
 
+/** A single numeric field of an assessment metric. */
+export interface MetricFieldDef {
+  key: string;
+  label: string;
+  unit?: string;
+  /** Whole numbers only (counts). */
+  integer?: boolean;
+  /** Lower values are better (e.g. error counts) — flips the improvement direction. */
+  lowerIsBetter?: boolean;
+}
+
+/** Data-driven definition of one assessment metric (drives the form, validation, delta colour). */
+export interface MetricTypeDef {
+  type: string;
+  label: string;
+  /** Field used for the headline progress delta. */
+  primaryField: string;
+  fields: MetricFieldDef[];
+}
+
 /**
  * One human. Identity + reachability live here; roles attach on top:
  *  - `athlete` present  ⇔ this person trains (athlete role),
@@ -180,6 +200,10 @@ export interface AppData {
   assessments: Assessment[];
   sessionTemplates: SessionTemplate[];
   contactLinks: ContactLink[];
+  // Editable seed-once reference catalogs (factory-seeded when empty, then user-owned).
+  bodyParts: BodyPart[];
+  techniques: Technique[];
+  metricSchemas: MetricTypeDef[];
   exportedAt?: string;
 }
 

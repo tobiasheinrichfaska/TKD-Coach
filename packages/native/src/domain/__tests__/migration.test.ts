@@ -1,11 +1,14 @@
 import { migrate } from '../migration';
 import { BUILTIN_GAMES } from '../../constants/games';
 import { BUILTIN_TEMPLATES } from '../templates';
+import { BUILTIN_BODY_PARTS } from '../bodyparts';
+import { BUILTIN_TECHNIQUES } from '../techniques';
+import { BUILTIN_METRIC_SCHEMAS } from '../metrics';
 import { AppData, GameDefinition, SessionTemplate } from '../../types';
 
 const base = (games: GameDefinition[]): AppData => ({
   version: 1, games, persons: [], groups: [], sessionPlans: [], sessionLogs: [], assessments: [],
-  sessionTemplates: [], contactLinks: [],
+  sessionTemplates: [], contactLinks: [], bodyParts: [], techniques: [], metricSchemas: [],
 });
 
 describe('migrate', () => {
@@ -89,6 +92,15 @@ describe('migrate', () => {
     expect(out.contactLinks).toHaveLength(2);
     expect(out.contactLinks.every(l => l.contactId === 'mum' && l.guardian === true)).toBe(true);
     expect(out.contactLinks.map(l => l.athleteId)).toEqual(['a1', 'a2']);
+  });
+
+  it('seeds the editable catalogs (body parts / techniques / metric schemas) when empty, keeps existing', () => {
+    const fresh = migrate(base([]));
+    expect(fresh.bodyParts.length).toBe(BUILTIN_BODY_PARTS.length);
+    expect(fresh.techniques.length).toBe(BUILTIN_TECHNIQUES.length);
+    expect(fresh.metricSchemas.length).toBe(BUILTIN_METRIC_SCHEMAS.length);
+    const edited = migrate({ ...base([]), bodyParts: [{ id: 'x', name: 'X', region: 'core', kind: 'muscle' }] });
+    expect(edited.bodyParts).toHaveLength(1); // existing kept, not re-seeded
   });
 
   it('is idempotent on already-migrated data (persons present, belts re-normalised)', () => {

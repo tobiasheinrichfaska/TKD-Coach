@@ -132,7 +132,7 @@ This satisfies the workspace rule: <em>the logic layer must run and be fully tes
   </div>
   <div class="card"><h3 style="margin-top:0">Core principle</h3>
     <p style="margin:0">Adding a metric, technique, body part or template means <strong>adding data</strong> — not writing new control flow.
-    The assessment form, its validation, and the progress colour are all generated from <code>METRIC_SCHEMAS</code>.</p>
+    The assessment form, its validation, and the progress colour are all generated from the metric schema.</p>
   </div>
 </div>
 
@@ -168,24 +168,22 @@ factory rows.</p>
 <tbody>
 <tr><td><code>BUILTIN_GAMES</code> (29 Übungen)</td><td>The drill library — neuro games (W/M/C) + the mobility/stretch protocol (K/D).</td><td>Once, on fresh install.</td><td>Yes — edits persist. A "reset to factory" is planned (Phase 4).</td></tr>
 <tr><td><code>BUILTIN_TEMPLATES</code> (4)</td><td><span class="pill">kids-2h</span><span class="pill">youth-adult-1h30</span><span class="pill">mobility-warmup</span><span class="pill">static-block</span></td><td>Once, on fresh install.</td><td>Yes — edits persist.</td></tr>
+<tr><td><code>BUILTIN_BODY_PARTS</code> (32)</td><td>22 anatomical + 10 neuro abilities → <code>AppData.bodyParts</code>.</td><td>Once, on fresh install.</td><td>Yes. Synced (id-keyed).</td></tr>
+<tr><td><code>BUILTIN_TECHNIQUES</code> (47)</td><td>Kicks/stances/blocks/strikes/footwork + poomsae → <code>AppData.techniques</code>.</td><td>Once, on fresh install.</td><td>Yes. Synced (id-keyed).</td></tr>
+<tr><td><code>BUILTIN_METRIC_SCHEMAS</code> (6)</td><td>Assessment metric definitions → <code>AppData.metricSchemas</code>.</td><td>Once, on fresh install.</td><td>Yes, but <strong>not synced</strong> (keyed by <code>type</code>, not id). The <code>AssessmentMetric</code> union stays the compile-time known set.</td></tr>
 </tbody>
 </table>
 <div class="note warn">Consequence: re-tagging a built-in (e.g. adding neuro abilities to a game) reaches <strong>fresh installs only</strong>;
 existing devices keep their seeded copy until they edit it or use the planned factory reset.</div>
 
 <h3>Fixed compiled-in reference catalogs</h3>
-<p>These are constants in the code — <strong>not</strong> in <code>AppData</code>, not stored or synced. They are identical for
-every install, always present, and (currently) not user-editable.</p>
+<p>Read straight from code — <strong>not</strong> in <code>AppData</code>, not stored or synced, identical for every install, not user-editable.</p>
 <table>
 <thead><tr><th>Catalog</th><th>What</th><th>Editable?</th></tr></thead>
 <tbody>
-<tr><td><code>BELT_INFOS</code> (23)</td><td>The Kup/Poom/Dan grade ladder (incl. "keine Graduierung").</td><td>No (fixed).</td></tr>
-<tr><td><code>BODY_PARTS</code> (32)</td><td>22 anatomical + 10 neuro-athletic abilities.</td><td>No today; Phase 4 may make catalogs editable.</td></tr>
-<tr><td><code>TECHNIQUES</code> (47)</td><td>Kicks/stances/blocks/strikes/footwork + Taegeuk &amp; Yudanja poomsae.</td><td>No today; Phase 4 candidate.</td></tr>
-<tr><td><code>METRIC_SCHEMAS</code> (6)</td><td>Assessment metric definitions (fields/units/primary).</td><td>No (drives the generic form).</td></tr>
+<tr><td><code>BELT_INFOS</code> (23)</td><td>The Kup/Poom/Dan grade ladder (incl. "keine Graduierung").</td><td>No (fixed). Belt normalisation on load maps legacy colour ids to it.</td></tr>
 </tbody>
 </table>
-<p class="legend">Belt normalisation on load maps legacy colour ids to the ladder; otherwise the fixed catalogs are read straight from code.</p>
 
 <!-- ============ ROOT ============ -->
 <h2 id="root">AppData — the persisted root</h2>
@@ -202,6 +200,7 @@ every install, always present, and (currently) not user-editable.</p>
 <tr><td><code>assessments</code></td><td>Assessment[]</td><td>Per-athlete metric measurements.</td></tr>
 <tr><td><code>sessionTemplates</code></td><td>SessionTemplate[]</td><td>Reusable ordered Übung sets (built-in + user).</td></tr>
 <tr><td><code>contactLinks</code></td><td>ContactLink[]</td><td>Edges linking contact-persons to athlete-persons (guardian flag per edge).</td></tr>
+<tr><td><code>bodyParts</code> / <code>techniques</code> / <code>metricSchemas</code></td><td>BodyPart[] / Technique[] / MetricTypeDef[]</td><td>Editable seed-once reference catalogs (factory-seeded when empty).</td></tr>
 <tr><td><code>exportedAt</code> <span class="opt">?</span></td><td>string</td><td>Set on a transfer export payload only.</td></tr>
 </tbody>
 </table>
@@ -297,9 +296,9 @@ list (composition). Arrows point <em>from</em> the holder of the reference <em>t
   <g class="enode cat"><rect x="895" y="64" width="150" height="52" rx="10"/><text class="t" x="970" y="86">Belt</text><text class="s" x="970" y="104">BELT_INFOS</text></g>
   <g class="enode sess"><rect x="895" y="170" width="150" height="52" rx="10"/><text class="t" x="970" y="192">ContactLink</text><text class="s" x="970" y="210">contactLinks[]</text></g>
 
-  <g class="enode cat"><rect x="40"  y="114" width="150" height="52" rx="10"/><text class="t" x="115" y="136">BodyPart</text><text class="s" x="115" y="154">BODY_PARTS</text></g>
-  <g class="enode cat"><rect x="40"  y="234" width="150" height="52" rx="10"/><text class="t" x="115" y="256">Technique</text><text class="s" x="115" y="274">TECHNIQUES</text></g>
-  <g class="enode cat"><rect x="40"  y="534" width="150" height="52" rx="10"/><text class="t" x="115" y="556">Metric schema</text><text class="s" x="115" y="574">METRIC_SCHEMAS</text></g>
+  <g class="enode cat"><rect x="40"  y="114" width="150" height="52" rx="10"/><text class="t" x="115" y="136">BodyPart</text><text class="s" x="115" y="154">bodyParts[]</text></g>
+  <g class="enode cat"><rect x="40"  y="234" width="150" height="52" rx="10"/><text class="t" x="115" y="256">Technique</text><text class="s" x="115" y="274">techniques[]</text></g>
+  <g class="enode cat"><rect x="40"  y="534" width="150" height="52" rx="10"/><text class="t" x="115" y="556">Metric schema</text><text class="s" x="115" y="574">metricSchemas[]</text></g>
 
   <g class="enode lib"><rect x="315" y="274" width="150" height="52" rx="10"/><text class="t" x="390" y="296">GameDefinition</text><text class="s" x="390" y="314">games[] · Übung</text></g>
 
@@ -498,7 +497,7 @@ person can be a guardian for one athlete and only a contact for another. Phones/
 <!-- ============ ASSESSMENT ============ -->
 <h2 id="assessment">Assessment &amp; the metric union</h2>
 <p>An <code>Assessment</code> ties an athlete + game + date to one <strong>metric</strong>. The metric is a discriminated
-union on <code>type</code> — and the form/validation/colour for each type is generated from <code>METRIC_SCHEMAS</code>, not hand-written.</p>
+union on <code>type</code> — and the form/validation/colour for each type is generated from the metric schema, not hand-written.</p>
 <table>
 <thead><tr><th>Assessment</th><th>Type</th><th>Notes</th></tr></thead>
 <tbody>
@@ -583,6 +582,8 @@ age-aware <a href="#graduation">graduation rules</a>.</p>
 <tr><td><code>ADD_ASSESSMENT</code> / <code>DELETE_ASSESSMENT</code></td><td>Assessment / {id}</td><td>Assessment add/remove.</td></tr>
 <tr><td><code>ADD_SESSION_TEMPLATE</code> / <code>UPDATE_SESSION_TEMPLATE</code> / <code>DELETE_SESSION_TEMPLATE</code></td><td>SessionTemplate / {id}</td><td>Template CRUD.</td></tr>
 <tr><td><code>ADD_CONTACT_LINK</code> / <code>UPDATE_CONTACT_LINK</code> / <code>DELETE_CONTACT_LINK</code></td><td>ContactLink / {id}</td><td>Emergency-contact/guardian edge CRUD (guardian flag per edge).</td></tr>
+<tr><td><code>ADD/UPDATE/DELETE_BODY_PART</code> · <code>…_TECHNIQUE</code></td><td>BodyPart / Technique / {id}</td><td>Catalog CRUD (by id).</td></tr>
+<tr><td><code>ADD/UPDATE/DELETE_METRIC_SCHEMA</code></td><td>MetricTypeDef / {type}</td><td>Metric-schema CRUD (keyed by <code>type</code>).</td></tr>
 </tbody>
 </table>
 <pre>const { dispatch } = useData();
@@ -593,10 +594,10 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 <table>
 <thead><tr><th>Export</th><th>Signature</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>METRIC_SCHEMAS</code></td><td>Record&lt;type, MetricTypeDef&gt;</td><td>Data-driven definition of all 6 metrics (fields, units, primary, lowerIsBetter). The form is built from this.</td></tr>
-<tr><td><code>METRIC_TYPES</code></td><td>AssessmentMetricType[]</td><td>All schema keys (for pickers).</td></tr>
-<tr><td><code>getMetricSchema(type)</code></td><td>→ MetricTypeDef</td><td>Schema for one type.</td></tr>
-<tr><td><code>buildMetric(type, values)</code></td><td>→ AssessmentMetric | null</td><td>Validate a flat <code>{field: number}</code> bag → typed metric; rounds integer fields; returns <code>null</code> if any field is missing/NaN (so the UI can block save).</td></tr>
+<tr><td><code>BUILTIN_METRIC_SCHEMAS</code></td><td>MetricTypeDef[]</td><td>Factory seed for the metric definitions (fields, units, primary, lowerIsBetter). Stored editable in <code>AppData.metricSchemas</code>.</td></tr>
+<tr><td><code>metricTypes(schemas)</code></td><td>→ string[]</td><td>All metric type ids in the store (for pickers).</td></tr>
+<tr><td><code>getMetricSchema(schemas, type)</code></td><td>→ MetricTypeDef | undefined</td><td>Schema for one type, from the store.</td></tr>
+<tr><td><code>buildMetric(schema, values)</code></td><td>→ AssessmentMetric | null</td><td>Validate a flat <code>{field: number}</code> bag → typed metric; rounds integer fields; returns <code>null</code> if any field is missing/NaN (so the UI can block save).</td></tr>
 <tr><td><code>fieldDelta(field, current, previous)</code></td><td>→ {raw, improved} | null</td><td>Signed change + whether it's an improvement (honouring <code>lowerIsBetter</code>); <code>null</code> when no previous value.</td></tr>
 </tbody>
 </table>
@@ -648,9 +649,10 @@ dispatch({ type: 'DELETE_GROUP', payload: { id: 'g1' } }); // also removes its a
 <table>
 <thead><tr><th>Export</th><th>Signature</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>BODY_PARTS</code> / <code>TECHNIQUES</code></td><td>BodyPart[] / Technique[]</td><td>The canonical catalogs (32 body-part entries = 22 anatomical + 10 neuro; 47 techniques incl. Taegeuk + Yudanja poomsae).</td></tr>
-<tr><td><code>getBodyPart(id)</code> / <code>getTechnique(id)</code></td><td>→ entry | undefined</td><td>Resolve a kebab id.</td></tr>
-<tr><td><code>bodyPartName(id)</code> / <code>techniqueName(id)</code></td><td>→ string</td><td>Human label (falls back to the id).</td></tr>
+<tr><td><code>BUILTIN_BODY_PARTS</code> / <code>BUILTIN_TECHNIQUES</code></td><td>BodyPart[] / Technique[]</td><td>Factory seeds (32 body-part entries = 22 anatomical + 10 neuro; 47 techniques incl. Taegeuk + Yudanja). Stored editable in <code>AppData</code>.</td></tr>
+<tr><td><code>getBodyPart(bodyParts, id)</code> / <code>getTechnique(techniques, id)</code></td><td>→ entry | undefined</td><td>Resolve an id against the store.</td></tr>
+<tr><td><code>bodyPartName(bodyParts, id)</code> / <code>techniqueName(techniques, id)</code></td><td>→ string</td><td>Human label (falls back to the id).</td></tr>
+<tr><td><code>neuroAbilities(bodyParts)</code></td><td>→ BodyPart[]</td><td>The <code>kind:'neuro'</code> subset.</td></tr>
 </tbody>
 </table>
 
@@ -697,7 +699,10 @@ dispatch({ type: 'LOAD_ALL', payload: migrate(data) });   // one path for both i
 <span class="pill">sessionPlans</span><span class="pill">sessionLogs</span><span class="pill">assessments</span>
 <span class="pill">sessionTemplates*</span>
 <span class="pill">contactLinks</span>
+<span class="pill">bodyParts*</span>
+<span class="pill">techniques*</span>
 </p>
+<p class="legend"><code>metricSchemas</code> is editable + persisted but <strong>not</strong> in the synced set (keyed by <code>type</code>, not id).</p>
 <p class="legend">* always shared (the library); the rest follow the coach's <code>TransferSelection</code>.
 The flat, id-referenced model is what makes change-detection and merge work: <code>detectChanges</code> diffs by id,
 <code>applyChanges</code> merges new/updated entities without touching unrelated ones.</p>

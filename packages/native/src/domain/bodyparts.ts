@@ -1,7 +1,8 @@
 import { BodyPart } from '../types';
 
-/** Canonical body-part catalog: joints + major muscle groups (~drives tags + heatmap). */
-export const BODY_PARTS: BodyPart[] = [
+/** Factory seed for the body-part catalog (joints + muscles + neuro abilities).
+ *  Stored editable in AppData.bodyParts (seed-once). */
+export const BUILTIN_BODY_PARTS: BodyPart[] = [
   { id: 'ankle', name: 'Ankle', region: 'lower-leg', kind: 'joint' },
   { id: 'calves', name: 'Calves', region: 'lower-leg', kind: 'muscle' },
   { id: 'knee', name: 'Knee', region: 'upper-leg', kind: 'joint' },
@@ -40,14 +41,13 @@ export const BODY_PARTS: BodyPart[] = [
   { id: 'recovery', name: 'Recovery (parasympathetic)', region: 'neuro', kind: 'neuro' },
 ];
 
-/** Neuro-ability entries (the 'neuro' kind) — for filtering vs anatomical parts. */
-export const NEURO_ABILITIES: BodyPart[] = BODY_PARTS.filter(b => b.kind === 'neuro');
-
-const BY_ID = new Map(BODY_PARTS.map(b => [b.id, b]));
-
-export function getBodyPart(id: string): BodyPart | undefined {
-  return BY_ID.get(id);
+export function getBodyPart(bodyParts: BodyPart[], id: string): BodyPart | undefined {
+  return bodyParts.find(b => b.id === id);
 }
-export function bodyPartName(id: string): string {
-  return BY_ID.get(id)?.name ?? id;
+export function bodyPartName(bodyParts: BodyPart[], id: string): string {
+  return getBodyPart(bodyParts, id)?.name ?? id;
+}
+/** Neuro-ability entries (the 'neuro' kind) — for filtering vs anatomical parts. */
+export function neuroAbilities(bodyParts: BodyPart[]): BodyPart[] {
+  return bodyParts.filter(b => b.kind === 'neuro');
 }

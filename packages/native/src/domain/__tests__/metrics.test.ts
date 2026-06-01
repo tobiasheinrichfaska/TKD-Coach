@@ -1,15 +1,17 @@
-import { METRIC_SCHEMAS, METRIC_TYPES, buildMetric, fieldDelta, getMetricSchema } from '../metrics';
+import { BUILTIN_METRIC_SCHEMAS, metricTypes, buildMetric, fieldDelta, getMetricSchema } from '../metrics';
 import { BUILTIN_GAMES } from '../../constants/games';
 
-describe('METRIC_SCHEMAS', () => {
+const S = BUILTIN_METRIC_SCHEMAS;
+
+describe('BUILTIN_METRIC_SCHEMAS', () => {
   it('covers the six known metric types', () => {
-    expect(new Set(METRIC_TYPES)).toEqual(
+    expect(new Set(metricTypes(S))).toEqual(
       new Set(['balance_hold', 'reaction_errors', 'combo_accuracy', 'vestibular_landing', 'balance_poomsae', 'poomsae_distraction'])
     );
   });
 
   it('every schema has fields and a primaryField that is one of them', () => {
-    for (const def of Object.values(METRIC_SCHEMAS)) {
+    for (const def of S) {
       expect(def.fields.length).toBeGreaterThan(0);
       expect(def.fields.map(f => f.key)).toContain(def.primaryField);
     }
@@ -17,25 +19,25 @@ describe('METRIC_SCHEMAS', () => {
 
   it('every Übung logMetricType has a schema (data ↔ schema integrity)', () => {
     for (const g of BUILTIN_GAMES) {
-      if (g.logMetricType) expect(getMetricSchema(g.logMetricType)).toBeDefined();
+      if (g.logMetricType) expect(getMetricSchema(S, g.logMetricType)).toBeDefined();
     }
   });
 });
 
 describe('buildMetric', () => {
   it('builds a typed metric when all fields are present', () => {
-    expect(buildMetric('balance_hold', { dominant: 12, nonDominant: 9 })).toEqual({
+    expect(buildMetric(getMetricSchema(S, 'balance_hold'), { dominant: 12, nonDominant: 9 })).toEqual({
       type: 'balance_hold', dominant: 12, nonDominant: 9,
     });
   });
 
   it('returns null when a required field is missing or NaN', () => {
-    expect(buildMetric('combo_accuracy', { correct: 5 })).toBeNull(); // total missing
-    expect(buildMetric('balance_hold', { dominant: NaN, nonDominant: 9 })).toBeNull();
+    expect(buildMetric(getMetricSchema(S, 'combo_accuracy'), { correct: 5 })).toBeNull(); // total missing
+    expect(buildMetric(getMetricSchema(S, 'balance_hold'), { dominant: NaN, nonDominant: 9 })).toBeNull();
   });
 
   it('rounds integer fields', () => {
-    expect(buildMetric('reaction_errors', { errorsPerTen: 2.7 })).toEqual({ type: 'reaction_errors', errorsPerTen: 3 });
+    expect(buildMetric(getMetricSchema(S, 'reaction_errors'), { errorsPerTen: 2.7 })).toEqual({ type: 'reaction_errors', errorsPerTen: 3 });
   });
 });
 

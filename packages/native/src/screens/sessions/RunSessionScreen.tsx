@@ -395,7 +395,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                                 <Text style={styles.swapItemText}>{g.name}</Text>
                                 <Text style={styles.swapItemMeta}>
                                   {g.defaultMinutes}min
-                                  {g.bodyParts && g.bodyParts.length ? ` · ${g.bodyParts.map(bodyPartName).join(', ')}` : ''}
+                                  {g.bodyParts && g.bodyParts.length ? ` · ${g.bodyParts.map(bp => bodyPartName(state.bodyParts, bp)).join(', ')}` : ''}
                                 </Text>
                               </TouchableOpacity>
                             ))}

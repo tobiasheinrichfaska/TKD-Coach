@@ -1,48 +1,33 @@
-import { AssessmentMetric, AssessmentMetricType } from '../types';
+import { AssessmentMetric, MetricFieldDef, MetricTypeDef } from '../types';
 
-/** A single numeric field of an assessment metric. */
-export interface MetricFieldDef {
-  key: string;
-  label: string;
-  unit?: string;
-  /** Whole numbers only (counts). */
-  integer?: boolean;
-  /** Lower values are better (e.g. error counts) — flips the improvement direction. */
-  lowerIsBetter?: boolean;
-}
-
-export interface MetricTypeDef {
-  type: AssessmentMetricType;
-  label: string;
-  /** Field used for the headline progress delta. */
-  primaryField: string;
-  fields: MetricFieldDef[];
-}
+// Re-export the schema types (their canonical home is now types/index.ts so AppData can hold them).
+export type { MetricFieldDef, MetricTypeDef } from '../types';
 
 /**
- * Data-driven definition of every assessment metric. The assessment form, validation,
- * and progress delta/colour are all generated from this — no per-type UI code.
+ * Factory seed for the assessment-metric schemas. Stored editable in AppData.metricSchemas
+ * (seed-once); the form, validation and progress delta/colour are generated from the schema —
+ * no per-type UI code. The AssessmentMetric union in types stays the compile-time "known" set.
  */
-export const METRIC_SCHEMAS: Record<AssessmentMetricType, MetricTypeDef> = {
-  balance_hold: {
+export const BUILTIN_METRIC_SCHEMAS: MetricTypeDef[] = [
+  {
     type: 'balance_hold', label: 'Balance Hold', primaryField: 'dominant',
     fields: [
       { key: 'dominant', label: 'Dominant leg', unit: 's' },
       { key: 'nonDominant', label: 'Non-dominant leg', unit: 's' },
     ],
   },
-  reaction_errors: {
+  {
     type: 'reaction_errors', label: 'Reaction Errors', primaryField: 'errorsPerTen',
     fields: [{ key: 'errorsPerTen', label: 'Errors per 10 cues', integer: true, lowerIsBetter: true }],
   },
-  combo_accuracy: {
+  {
     type: 'combo_accuracy', label: 'Combo Accuracy', primaryField: 'correct',
     fields: [
       { key: 'correct', label: 'Correct', integer: true },
       { key: 'total', label: 'Total attempts', integer: true },
     ],
   },
-  vestibular_landing: {
+  {
     type: 'vestibular_landing', label: 'Vestibular Landing', primaryField: 'stable',
     fields: [
       { key: 'stable', label: 'Stable landings', integer: true },
@@ -50,38 +35,39 @@ export const METRIC_SCHEMAS: Record<AssessmentMetricType, MetricTypeDef> = {
       { key: 'fall', label: 'Falls', integer: true, lowerIsBetter: true },
     ],
   },
-  balance_poomsae: {
+  {
     type: 'balance_poomsae', label: 'Single-leg Poomsae', primaryField: 'holdSeconds',
     fields: [
       { key: 'holdSeconds', label: 'Hold time', unit: 's' },
       { key: 'armErrors', label: 'Arm errors', integer: true, lowerIsBetter: true },
     ],
   },
-  poomsae_distraction: {
+  {
     type: 'poomsae_distraction', label: 'Poomsae under Distraction', primaryField: 'errors',
     fields: [
       { key: 'errors', label: 'Sequence errors', integer: true, lowerIsBetter: true },
       { key: 'baseline', label: 'Baseline errors', integer: true, lowerIsBetter: true },
     ],
   },
-};
+];
 
-/** All metric types that have a schema. */
-export const METRIC_TYPES = Object.keys(METRIC_SCHEMAS) as AssessmentMetricType[];
+/** All metric type ids present in a schema store. */
+export function metricTypes(schemas: MetricTypeDef[]): string[] {
+  return schemas.map(s => s.type);
+}
 
-export function getMetricSchema(type: AssessmentMetricType): MetricTypeDef {
-  return METRIC_SCHEMAS[type];
+export function getMetricSchema(schemas: MetricTypeDef[], type: string): MetricTypeDef | undefined {
+  return schemas.find(s => s.type === type);
 }
 
 /**
- * Build a typed AssessmentMetric from a flat bag of field values.
- * Returns null when any required field is missing/NaN (so callers can block save).
+ * Build an AssessmentMetric from a flat bag of field values, per the given schema.
+ * Returns null when any field is missing/NaN (so callers can block save).
  */
 export function buildMetric(
-  type: AssessmentMetricType,
+  schema: MetricTypeDef | undefined,
   values: Record<string, number | undefined>
 ): AssessmentMetric | null {
-  const schema = METRIC_SCHEMAS[type];
   if (!schema) return null;
   const out: Record<string, number> = {};
   for (const f of schema.fields) {
@@ -89,7 +75,7 @@ export function buildMetric(
     if (v === undefined || v === null || Number.isNaN(v)) return null;
     out[f.key] = f.integer ? Math.round(v) : v;
   }
-  return { type, ...out } as unknown as AssessmentMetric;
+  return { type: schema.type, ...out } as unknown as AssessmentMetric;
 }
 
 export interface FieldDelta {

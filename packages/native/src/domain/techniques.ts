@@ -1,7 +1,8 @@
 import { Technique } from '../types';
 
-/** Canonical technique catalog. `bodyPartIds` reference the BodyPart catalog. */
-export const TECHNIQUES: Technique[] = [
+/** Factory seed for the technique catalog. Stored editable in AppData.techniques (seed-once).
+ *  `bodyPartIds` reference the BodyPart catalog. */
+export const BUILTIN_TECHNIQUES: Technique[] = [
   { id: 'ap-chagi', name: 'Ap Chagi', koreanName: '앞차기', category: 'kick', bodyPartIds: ['hip', 'knee', 'ankle', 'hip-flexors'] },
   { id: 'dollyo-chagi', name: 'Dollyo Chagi', koreanName: '돌려차기', category: 'kick', bodyPartIds: ['hip', 'knee', 'ankle', 'adductors'] },
   { id: 'yop-chagi', name: 'Yop Chagi', koreanName: '옆차기', category: 'kick', bodyPartIds: ['hip', 'knee', 'ankle', 'adductors', 'core'] },
@@ -63,11 +64,9 @@ export const TECHNIQUES: Technique[] = [
   { id: 'ilyeo', name: 'Ilyeo', koreanName: '일여', category: 'poomsae', bodyPartIds: ['full-body'] },
 ];
 
-const BY_ID = new Map(TECHNIQUES.map(t => [t.id, t]));
-
-export function getTechnique(id: string): Technique | undefined {
-  return BY_ID.get(id);
+export function getTechnique(techniques: Technique[], id: string): Technique | undefined {
+  return techniques.find(t => t.id === id);
 }
-export function techniqueName(id: string): string {
-  return BY_ID.get(id)?.name ?? id;
+export function techniqueName(techniques: Technique[], id: string): string {
+  return getTechnique(techniques, id)?.name ?? id;
 }

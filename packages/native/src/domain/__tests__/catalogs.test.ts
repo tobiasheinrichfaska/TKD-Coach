@@ -1,7 +1,9 @@
-import { BODY_PARTS, getBodyPart } from '../bodyparts';
-import { TECHNIQUES, getTechnique } from '../techniques';
+import { BUILTIN_BODY_PARTS, getBodyPart } from '../bodyparts';
+import { BUILTIN_TECHNIQUES, getTechnique } from '../techniques';
 import { BUILTIN_GAMES } from '../../constants/games';
 
+const BODY_PARTS = BUILTIN_BODY_PARTS;
+const TECHNIQUES = BUILTIN_TECHNIQUES;
 const bodyPartIds = new Set(BODY_PARTS.map(b => b.id));
 const techniqueIds = new Set(TECHNIQUES.map(t => t.id));
 
@@ -39,9 +41,9 @@ describe('catalog integrity', () => {
   });
 
   it('lookups return entries or undefined', () => {
-    expect(getBodyPart('knee')?.region).toBe('upper-leg');
-    expect(getTechnique('yop-chagi')?.category).toBe('kick');
-    expect(getBodyPart('nope')).toBeUndefined();
-    expect(getTechnique('nope')).toBeUndefined();
+    expect(getBodyPart(BODY_PARTS, 'knee')?.region).toBe('upper-leg');
+    expect(getTechnique(TECHNIQUES, 'yop-chagi')?.category).toBe('kick');
+    expect(getBodyPart(BODY_PARTS, 'nope')).toBeUndefined();
+    expect(getTechnique(TECHNIQUES, 'nope')).toBeUndefined();
   });
 });

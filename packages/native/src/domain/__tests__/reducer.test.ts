@@ -76,7 +76,7 @@ describe('appReducer', () => {
   });
 
   it('LOAD_ALL replaces state and sets isLoaded', () => {
-    const data: AppData = { version: 1, games: [], persons: [], groups: [grp('g')], sessionPlans: [], sessionLogs: [], assessments: [], sessionTemplates: [], contactLinks: [] };
+    const data: AppData = { version: 1, games: [], persons: [], groups: [grp('g')], sessionPlans: [], sessionLogs: [], assessments: [], sessionTemplates: [], contactLinks: [], bodyParts: [], techniques: [], metricSchemas: [] };
     const s = appReducer(EMPTY_STATE, { type: 'LOAD_ALL', payload: data });
     expect(s.isLoaded).toBe(true);
     expect(s.groups).toHaveLength(1);
@@ -100,6 +100,19 @@ describe('appReducer', () => {
     expect(s.contactLinks[0].guardian).toBe(true);
     s = appReducer(s, { type: 'DELETE_CONTACT_LINK', payload: { id: 'l1' } });
     expect(s.contactLinks).toHaveLength(0);
+  });
+
+  it('catalog CRUD — body part (by id) + metric schema (by type)', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_BODY_PART', payload: { id: 'bp', name: 'BP', region: 'core', kind: 'muscle' } });
+    s = appReducer(s, { type: 'ADD_TECHNIQUE', payload: { id: 'tk', name: 'TK', category: 'kick', bodyPartIds: ['bp'] } });
+    s = appReducer(s, { type: 'ADD_METRIC_SCHEMA', payload: { type: 'm1', label: 'M', primaryField: 'a', fields: [{ key: 'a', label: 'A' }] } });
+    expect([s.bodyParts.length, s.techniques.length, s.metricSchemas.length]).toEqual([1, 1, 1]);
+    s = appReducer(s, { type: 'UPDATE_BODY_PART', payload: { id: 'bp', name: 'BP2', region: 'core', kind: 'muscle' } });
+    expect(s.bodyParts[0].name).toBe('BP2');
+    s = appReducer(s, { type: 'DELETE_BODY_PART', payload: { id: 'bp' } });
+    s = appReducer(s, { type: 'DELETE_TECHNIQUE', payload: { id: 'tk' } });
+    s = appReducer(s, { type: 'DELETE_METRIC_SCHEMA', payload: { type: 'm1' } });
+    expect([s.bodyParts.length, s.techniques.length, s.metricSchemas.length]).toEqual([0, 0, 0]);
   });
 
   it('is immutable — does not mutate the previous state', () => {

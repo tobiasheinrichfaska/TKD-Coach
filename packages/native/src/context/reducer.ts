@@ -8,6 +8,9 @@ import {
   Assessment,
   SessionTemplate,
   ContactLink,
+  BodyPart,
+  Technique,
+  MetricTypeDef,
   AppData,
 } from '../types';
 
@@ -37,7 +40,16 @@ export type Action =
   | { type: 'DELETE_SESSION_TEMPLATE'; payload: { id: string } }
   | { type: 'ADD_CONTACT_LINK'; payload: ContactLink }
   | { type: 'UPDATE_CONTACT_LINK'; payload: ContactLink }
-  | { type: 'DELETE_CONTACT_LINK'; payload: { id: string } };
+  | { type: 'DELETE_CONTACT_LINK'; payload: { id: string } }
+  | { type: 'ADD_BODY_PART'; payload: BodyPart }
+  | { type: 'UPDATE_BODY_PART'; payload: BodyPart }
+  | { type: 'DELETE_BODY_PART'; payload: { id: string } }
+  | { type: 'ADD_TECHNIQUE'; payload: Technique }
+  | { type: 'UPDATE_TECHNIQUE'; payload: Technique }
+  | { type: 'DELETE_TECHNIQUE'; payload: { id: string } }
+  | { type: 'ADD_METRIC_SCHEMA'; payload: MetricTypeDef }
+  | { type: 'UPDATE_METRIC_SCHEMA'; payload: MetricTypeDef }
+  | { type: 'DELETE_METRIC_SCHEMA'; payload: { type: string } };
 
 export const EMPTY_APP_DATA: AppData = {
   version: 1,
@@ -49,6 +61,9 @@ export const EMPTY_APP_DATA: AppData = {
   assessments: [],
   sessionTemplates: [],
   contactLinks: [],
+  bodyParts: [],
+  techniques: [],
+  metricSchemas: [],
 };
 
 export const EMPTY_STATE: AppState = {
@@ -205,6 +220,30 @@ export function appReducer(state: AppState, action: Action): AppState {
         ...state,
         contactLinks: state.contactLinks.filter(l => l.id !== action.payload.id),
       };
+
+    // Body-part catalog (editable seed-once store)
+    case 'ADD_BODY_PART':
+      return { ...state, bodyParts: [...state.bodyParts, action.payload] };
+    case 'UPDATE_BODY_PART':
+      return { ...state, bodyParts: state.bodyParts.map(b => (b.id === action.payload.id ? action.payload : b)) };
+    case 'DELETE_BODY_PART':
+      return { ...state, bodyParts: state.bodyParts.filter(b => b.id !== action.payload.id) };
+
+    // Technique catalog (editable seed-once store)
+    case 'ADD_TECHNIQUE':
+      return { ...state, techniques: [...state.techniques, action.payload] };
+    case 'UPDATE_TECHNIQUE':
+      return { ...state, techniques: state.techniques.map(t => (t.id === action.payload.id ? action.payload : t)) };
+    case 'DELETE_TECHNIQUE':
+      return { ...state, techniques: state.techniques.filter(t => t.id !== action.payload.id) };
+
+    // Metric-schema catalog (editable seed-once store; keyed by type)
+    case 'ADD_METRIC_SCHEMA':
+      return { ...state, metricSchemas: [...state.metricSchemas, action.payload] };
+    case 'UPDATE_METRIC_SCHEMA':
+      return { ...state, metricSchemas: state.metricSchemas.map(m => (m.type === action.payload.type ? action.payload : m)) };
+    case 'DELETE_METRIC_SCHEMA':
+      return { ...state, metricSchemas: state.metricSchemas.filter(m => m.type !== action.payload.type) };
 
     default:
       return state;

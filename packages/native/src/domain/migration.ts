@@ -2,6 +2,9 @@ import { AppData, Person, ContactLink, GameDefinition } from '../types';
 import { BUILTIN_GAMES } from '../constants/games';
 import { LEGACY_BELT_MAP } from '../constants/belts';
 import { BUILTIN_TEMPLATES } from './templates';
+import { BUILTIN_BODY_PARTS } from './bodyparts';
+import { BUILTIN_TECHNIQUES } from './techniques';
+import { BUILTIN_METRIC_SCHEMAS } from './metrics';
 
 /**
  * Bring stored data up to the current shape:
@@ -29,6 +32,12 @@ export function migrate(data: AppData): AppData {
   const sessionTemplates = Array.isArray(d.sessionTemplates) && d.sessionTemplates.length
     ? d.sessionTemplates
     : BUILTIN_TEMPLATES;
+  // Reference catalogs are now editable seed-once stores too.
+  const seedOnce = <T>(stored: unknown, seed: T[]): T[] =>
+    Array.isArray(stored) && stored.length ? (stored as T[]) : seed;
+  const bodyParts = seedOnce(d.bodyParts, BUILTIN_BODY_PARTS);
+  const techniques = seedOnce(d.techniques, BUILTIN_TECHNIQUES);
+  const metricSchemas = seedOnce(d.metricSchemas, BUILTIN_METRIC_SCHEMAS);
 
   // --- Persons ---
   let persons: Person[];
@@ -94,6 +103,9 @@ export function migrate(data: AppData): AppData {
     assessments: d.assessments || [],
     sessionTemplates,
     contactLinks,
+    bodyParts,
+    techniques,
+    metricSchemas,
     exportedAt: d.exportedAt,
   };
 }

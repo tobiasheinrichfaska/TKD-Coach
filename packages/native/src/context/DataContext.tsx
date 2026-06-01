@@ -59,6 +59,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           assessments: state.assessments,
           sessionTemplates: state.sessionTemplates,
           contactLinks: state.contactLinks,
+          bodyParts: state.bodyParts,
+          techniques: state.techniques,
+          metricSchemas: state.metricSchemas,
         };
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
       } catch (e) {
@@ -89,6 +92,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         assessments: state.assessments,
         sessionTemplates: state.sessionTemplates,
         contactLinks: state.contactLinks,
+        bodyParts: state.bodyParts,
+        techniques: state.techniques,
+        metricSchemas: state.metricSchemas,
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
     } catch (e) {
