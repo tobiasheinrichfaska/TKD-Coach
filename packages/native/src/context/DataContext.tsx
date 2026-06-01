@@ -3,6 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppData } from '../types';
 import { appReducer, EMPTY_STATE, Action, EMPTY_APP_DATA } from './reducer';
 import { migrate } from '../domain/migration';
+import { devSeed } from '../domain';
+import { toLocalDateISO } from '../utils/format';
+import { DEV_RESEED } from '../constants/config';
 
 const STORAGE_KEY = 'tkd_coach_app_data';
 const DEBOUNCE_MS = 300;
@@ -23,6 +26,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Initialize: load from storage on first render
   useEffect(() => {
     (async () => {
+      // DEV: wipe storage + reseed with factory data + demo records on every start.
+      if (DEV_RESEED) {
+        try { await AsyncStorage.removeItem(STORAGE_KEY); } catch {}
+        dispatch({ type: 'LOAD_ALL', payload: devSeed(toLocalDateISO()) });
+        return;
+      }
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         // migrate() (pure, unit-tested in domain/migration) refreshes built-in Übungen +

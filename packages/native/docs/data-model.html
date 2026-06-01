@@ -175,6 +175,12 @@ factory rows.</p>
 </table>
 <div class="note warn">Consequence: re-tagging a built-in (e.g. adding neuro abilities to a game) reaches <strong>fresh installs only</strong>;
 existing devices keep their seeded copy until they edit it or use the planned factory reset.</div>
+<div class="note">Planned — <strong>"Werkseinstellung" button</strong> (Phase 4, Other Data / Settings): re-seed the factory stores
+(games, templates, body parts, techniques, metric schemas) from the <code>BUILTIN_*</code> seeds, overwriting catalog edits while
+<strong>keeping</strong> the user's people / groups / sessions / assessments / contact links. Behind a destructive confirm.</div>
+<div class="note">Dev only — <code>DEV_RESEED</code> (<code>constants/config.ts</code>): when true the app <strong>wipes storage and
+reseeds</strong> the factory data <em>plus a demo dataset</em> (athletes, a coach, a shared guardian, groups with training times,
+a session planned today, a completed session + assessment) on <em>every</em> start, via <code>devSeed()</code>. Set false to ship.</div>
 
 <h3>Fixed compiled-in reference catalogs</h3>
 <p>Read straight from code — <strong>not</strong> in <code>AppData</code>, not stored or synced, identical for every install, not user-editable.</p>

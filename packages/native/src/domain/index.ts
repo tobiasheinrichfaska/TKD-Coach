@@ -4,6 +4,7 @@ export * from './bodyparts';
 export * from './techniques';
 export * from './people';
 export * from './phases';
+export * from './devseed';
 export * from './schedule';
 export * from './selectors';
 export * from './templates';
