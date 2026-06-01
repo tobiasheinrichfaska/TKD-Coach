@@ -44,6 +44,16 @@ export const de: Record<string, string> = {
   'Send or receive data between phones via QR codes.': 'Daten per QR-Code zwischen Geräten senden/empfangen.',
   'Choose the app language. Catalog data stays as entered.': 'App-Sprache wählen. Katalogdaten bleiben wie eingegeben.',
 
+  // Maintenance
+  'Maintenance': 'Wartung',
+  'Clear stuck sessions': 'Hängende Sessions löschen',
+  'Clear': 'Löschen',
+  'Reset in-progress sessions that did not close properly.': 'Laufende Sessions zurücksetzen, die nicht korrekt geschlossen wurden.',
+  'Clear stuck sessions?': 'Hängende Sessions löschen?',
+  'Removes every in-progress session and returns its plan to Planned. Completed sessions are not affected.': 'Entfernt jede laufende Session und setzt ihren Plan auf Geplant zurück. Abgeschlossene Sessions bleiben unberührt.',
+  'No stuck sessions': 'Keine hängenden Sessions',
+  'There are no in-progress sessions to clear.': 'Es gibt keine laufenden Sessions zum Löschen.',
+
   // ---- Humans hub ----
   'Athletes': 'Athleten',
   'Groups': 'Gruppen',

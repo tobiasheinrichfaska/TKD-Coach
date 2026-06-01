@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { COLORS } from '../../constants/colors';
+import { useData } from '../../context/DataContext';
 import { useT, LANGUAGES, Lang } from '../../i18n';
 import type { SettingsStackScreenProps } from '../../types/navigation';
 
@@ -21,6 +22,27 @@ const styles = StyleSheet.create({
 
 export default function SettingsHubScreen({ navigation }: SettingsStackScreenProps<'SettingsHub'>) {
   const { t, lang, setLang } = useT();
+  const { state, dispatch } = useData();
+
+  const stuck = state.sessionLogs.filter(l => l.status === 'running');
+  const clearStuck = () => {
+    if (stuck.length === 0) {
+      Alert.alert(t('No stuck sessions'), t('There are no in-progress sessions to clear.'));
+      return;
+    }
+    Alert.alert(
+      t('Clear stuck sessions?'),
+      t('Removes every in-progress session and returns its plan to Planned. Completed sessions are not affected.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Clear'),
+          style: 'destructive',
+          onPress: () => stuck.forEach(l => dispatch({ type: 'DELETE_SESSION_LOG', payload: { id: l.id } })),
+        },
+      ],
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -44,6 +66,15 @@ export default function SettingsHubScreen({ navigation }: SettingsStackScreenPro
           <Text style={styles.meta}>{t('Send or receive data between phones via QR codes.')}</Text>
         </View>
         <Text style={styles.chevron}>›</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.section}>{t('Maintenance')}</Text>
+      <TouchableOpacity style={styles.row} onPress={clearStuck}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>{t('Clear stuck sessions')}</Text>
+          <Text style={styles.meta}>{t('Reset in-progress sessions that did not close properly.')}</Text>
+        </View>
+        <Text style={[styles.title, { color: stuck.length > 0 ? COLORS.danger : COLORS.textMuted }]}>{stuck.length}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
