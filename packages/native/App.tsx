@@ -9,9 +9,9 @@ import { COLORS } from './src/constants/colors';
 import type { RootTabParamList } from './src/types/navigation';
 
 import DashboardScreen from './src/screens/DashboardScreen';
-import GroupsNavigator from './src/screens/groups/GroupsNavigator';
+import HumansNavigator from './src/screens/groups/GroupsNavigator';
 import SessionsNavigator from './src/screens/sessions/SessionsNavigator';
-import AssessmentNavigator from './src/screens/assessment/AssessmentNavigator';
+import OtherDataNavigator from './src/screens/otherdata/OtherDataNavigator';
 import TransferNavigator from './src/screens/transfer/TransferNavigator';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -31,9 +31,9 @@ function RootNavigator() {
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Dashboard" component={DashboardScreen} />
-        <Tab.Screen name="Groups" component={GroupsNavigator} />
         <Tab.Screen name="Sessions" component={SessionsNavigator} />
-        <Tab.Screen name="Assessment" component={AssessmentNavigator} />
+        <Tab.Screen name="Humans" component={HumansNavigator} />
+        <Tab.Screen name="OtherData" component={OtherDataNavigator} options={{ title: 'Other Data' }} />
         <Tab.Screen name="Transfer" component={TransferNavigator} />
       </Tab.Navigator>
     </NavigationContainer>

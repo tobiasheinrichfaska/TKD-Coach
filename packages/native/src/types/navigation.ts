@@ -13,7 +13,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { TransferSelection } from './index';
 
+// The "Humans" tab stack (kept named GroupsStack* for back-compat across screens).
 export type GroupsStackParamList = {
+  HumansHub: undefined;
   GroupsList: undefined;
   AllAthletes: undefined;
   GroupDetail: { groupId: string };
@@ -23,6 +25,17 @@ export type GroupsStackParamList = {
   EmergencyContacts: undefined;
   EditEmergencyContact: { contactId?: string; athleteId?: string } | undefined;
   AddContact: { athleteId: string };
+  // Assessment is nested under Humans (no longer a top-level tab).
+  Assessment: NavigatorScreenParams<AssessmentStackParamList>;
+};
+
+export type OtherDataStackParamList = {
+  OtherDataHub: undefined;
+  GamesList: undefined;
+  TechniquesList: undefined;
+  BodyPartsList: undefined;
+  TemplatesList: undefined;
+  MetricSchemasList: undefined;
 };
 
 export type SessionsStackParamList = {
@@ -47,9 +60,9 @@ export type TransferStackParamList = {
 
 export type RootTabParamList = {
   Dashboard: undefined;
-  Groups: NavigatorScreenParams<GroupsStackParamList>;
   Sessions: NavigatorScreenParams<SessionsStackParamList>;
-  Assessment: NavigatorScreenParams<AssessmentStackParamList>;
+  Humans: NavigatorScreenParams<GroupsStackParamList>;
+  OtherData: NavigatorScreenParams<OtherDataStackParamList>;
   Transfer: NavigatorScreenParams<TransferStackParamList>;
 };
 
@@ -79,6 +92,12 @@ export type AssessmentStackScreenProps<T extends keyof AssessmentStackParamList>
 export type TransferStackScreenProps<T extends keyof TransferStackParamList> =
   CompositeScreenProps<
     NativeStackScreenProps<TransferStackParamList, T>,
+    RootTabScreenProps<keyof RootTabParamList>
+  >;
+
+export type OtherDataStackScreenProps<T extends keyof OtherDataStackParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<OtherDataStackParamList, T>,
     RootTabScreenProps<keyof RootTabParamList>
   >;
 

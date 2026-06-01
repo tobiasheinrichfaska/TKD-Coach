@@ -1,7 +1,9 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HumansHubScreen from './HumansHubScreen';
 import GroupsScreen from './GroupsScreen';
 import AllAthletesScreen from './AllAthletesScreen';
+import AssessmentNavigator from '../assessment/AssessmentNavigator';
 import EmergencyContactsScreen from './EmergencyContactsScreen';
 import EditEmergencyContactScreen from './EditEmergencyContactScreen';
 import AddContactScreen from './AddContactScreen';
@@ -23,6 +25,11 @@ export default function GroupsNavigator() {
         headerTintColor: COLORS.primary,
       }}
     >
+      <Stack.Screen
+        name="HumansHub"
+        component={HumansHubScreen}
+        options={{ title: 'Humans' }}
+      />
       <Stack.Screen
         name="GroupsList"
         component={GroupsScreen}
@@ -47,6 +54,11 @@ export default function GroupsNavigator() {
         name="AddContact"
         component={AddContactScreen}
         options={{ title: 'Kontakt hinzufügen' }}
+      />
+      <Stack.Screen
+        name="Assessment"
+        component={AssessmentNavigator}
+        options={{ title: 'Assessment', headerShown: false }}
       />
       <Stack.Screen
         name="GroupDetail"

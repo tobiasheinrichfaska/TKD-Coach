@@ -6,7 +6,7 @@
 
 ### Tech Stack
 - **Expo SDK 54** with TypeScript  
-- **React Navigation v7** (5 bottom tabs + nested NativeStack)
+- **React Navigation v7** — 5 bottom tabs: **Dashboard · Sessions · Humans · Other Data · Transfer** (each a nested NativeStack). *Humans* hub → Athletes / Groups / Emergency contacts & guardians / Assessment (Assessment is nested under Humans, not a top tab). *Other Data* hub → Games / Techniques / Body parts / Session templates / Metric schemas (browse) + a **Werkseinstellung** (factory-reset) button.
 - **AsyncStorage 2.2.0** for persistence (300ms debounce)
 - **React Native** (0.81.5) — no UI library, custom StyleSheet-based components
 
@@ -150,8 +150,13 @@ src/
 │   └── MetricRow.tsx   ← Imported by ProgressScreen
 └── screens/
     ├── DashboardScreen.tsx
-    ├── groups/
-    │   ├── GroupsNavigator.tsx
+    ├── otherdata/                ← "Other Data" tab
+    │   ├── OtherDataNavigator.tsx
+    │   ├── OtherDataHubScreen.tsx ← menu + Werkseinstellung (factory reset)
+    │   └── OtherDataLists.tsx     ← browse lists: games/techniques/bodyparts/templates/metric-schemas
+    ├── groups/                    ← "Humans" tab (stack named GroupsStack* for back-compat)
+    │   ├── GroupsNavigator.tsx    ← Humans stack: HumansHub first, nests Assessment
+    │   ├── HumansHubScreen.tsx    ← Athletes / Groups / Contacts&Guardians / Assessment
     │   ├── GroupsScreen.tsx        ← groups list + "All Athletes" entry (shows ungrouped count)
     │   ├── AllAthletesScreen.tsx   ← full roster; All/Ungrouped filter; create ungrouped athlete
     │   ├── EmergencyContactsScreen.tsx  ← all contacts; tap to edit; quick "Anrufen"
