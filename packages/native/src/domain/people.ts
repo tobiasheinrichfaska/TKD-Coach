@@ -20,6 +20,18 @@ export function coaches(persons: Person[]): Person[] {
   return persons.filter(p => p.isCoach);
 }
 
+/**
+ * Roles a person holds *besides* being an athlete — used to decide whether deleting an
+ * athlete should remove only the role or the whole person. Returns labels like
+ * ['coach', 'contact'] (contact = they are an emergency contact for someone).
+ */
+export function otherRolesBesidesAthlete(person: Person, links: ContactLink[]): string[] {
+  const roles: string[] = [];
+  if (person.isCoach) roles.push('coach');
+  if (links.some(l => l.contactId === person.id)) roles.push('contact');
+  return roles;
+}
+
 // ===== Athlete role (a Person with an athlete profile) =====
 
 /** Flattened athlete read-model: person identity + athlete-profile fields in one object. */

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
-import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson } from '../../domain';
+import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson, otherRolesBesidesAthlete } from '../../domain';
 import { callNumber, sendEmail } from '../../utils/linking';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
@@ -38,9 +38,10 @@ const styles = StyleSheet.create({
 export default function AthleteDetailScreen({ route, navigation }: GroupsStackScreenProps<'AthleteDetail'>) {
   const { state, dispatch } = useData();
   const athleteId = route.params.athleteId;
-  const athlete = toAthleteView(getPerson(state.persons, athleteId));
+  const personRecord = getPerson(state.persons, athleteId);
+  const athlete = toAthleteView(personRecord);
 
-  if (!athlete) return <View style={styles.container}><Text style={styles.rowValue}>Athlete not found</Text></View>;
+  if (!athlete || !personRecord) return <View style={styles.container}><Text style={styles.rowValue}>Athlete not found</Text></View>;
 
   const memberGroups = groupsForAthlete(state.groups, athlete.id);
   const otherGroups = state.groups.filter(g => !g.athleteIds.includes(athlete.id));
@@ -62,6 +63,27 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
     dispatch({ type: 'UPDATE_GROUP', payload: { ...group, athleteIds: [...group.athleteIds, athlete.id] } });
   };
   const confirmDelete = () => {
+    const others = otherRolesBesidesAthlete(personRecord, state.contactLinks);
+    if (others.length > 0) {
+      // Person also has other roles → don't nuke the whole human; offer role-only removal.
+      Alert.alert(
+        `${athlete.name} has other roles`,
+        `${athlete.name} is also ${others.join(' & ')} for others. Remove only the athlete role (keep the person), or delete the entire person?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Remove athlete role',
+            onPress: () => { dispatch({ type: 'REMOVE_ATHLETE_ROLE', payload: { id: athlete.id } }); navigation.goBack(); },
+          },
+          {
+            text: 'Delete person',
+            style: 'destructive',
+            onPress: () => { dispatch({ type: 'DELETE_PERSON', payload: { id: athlete.id } }); navigation.goBack(); },
+          },
+        ],
+      );
+      return;
+    }
     Alert.alert(
       `Delete ${athlete.name}?`,
       `This permanently deletes ${athlete.name} and everything linked to them — group memberships, all assessments, and attendance records (Teilnahme). This cannot be undone.`,

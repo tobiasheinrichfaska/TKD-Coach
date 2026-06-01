@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
-import { groupsForAthlete, ungroupedAthletes, athleteViews } from '../../domain';
+import { groupsForAthlete, ungroupedAthletes, athleteViews, getPerson, otherRolesBesidesAthlete } from '../../domain';
 import type { GroupsStackScreenProps } from '../../types/navigation';
 
 const styles = StyleSheet.create({
@@ -28,6 +28,20 @@ export default function AllAthletesScreen({ navigation }: GroupsStackScreenProps
   const [filter, setFilter] = useState<'all' | 'ungrouped'>('all');
 
   const confirmDelete = (id: string, name: string) => {
+    const person = getPerson(state.persons, id);
+    const others = person ? otherRolesBesidesAthlete(person, state.contactLinks) : [];
+    if (others.length > 0) {
+      Alert.alert(
+        `${name} has other roles`,
+        `${name} is also ${others.join(' & ')} for others. Remove only the athlete role (keep the person), or delete the entire person?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Remove athlete role', onPress: () => dispatch({ type: 'REMOVE_ATHLETE_ROLE', payload: { id } }) },
+          { text: 'Delete person', style: 'destructive', onPress: () => dispatch({ type: 'DELETE_PERSON', payload: { id } }) },
+        ],
+      );
+      return;
+    }
     Alert.alert(
       `Delete ${name}?`,
       `This permanently deletes ${name} and everything linked to them — group memberships, all assessments, and attendance records (Teilnahme). This cannot be undone.`,

@@ -20,6 +20,7 @@ export type Action =
   | { type: 'ADD_PERSON'; payload: Person }
   | { type: 'UPDATE_PERSON'; payload: Person }
   | { type: 'DELETE_PERSON'; payload: { id: string } }
+  | { type: 'REMOVE_ATHLETE_ROLE'; payload: { id: string } }
   | { type: 'ADD_GAME'; payload: GameDefinition }
   | { type: 'UPDATE_GAME'; payload: GameDefinition }
   | { type: 'DELETE_GAME'; payload: { id: string } }
@@ -105,6 +106,24 @@ export function appReducer(state: AppState, action: Action): AppState {
         })),
         // Drop any contact edge that names this person on either side.
         contactLinks: state.contactLinks.filter(l => l.contactId !== personId && l.athleteId !== personId),
+        assessments: state.assessments.filter(a => a.athleteId !== personId),
+      };
+    }
+
+    case 'REMOVE_ATHLETE_ROLE': {
+      // Demote a person from athlete while keeping the human (they may be a coach / a
+      // contact for others). Drops the athlete profile, group memberships, their own
+      // assessments, and the contact edges where they were the *athlete* — but keeps the
+      // person and the edges where they are someone else's *contact*.
+      const personId = action.payload.id;
+      return {
+        ...state,
+        persons: state.persons.map(p => (p.id === personId ? { ...p, athlete: undefined } : p)),
+        groups: state.groups.map(g => ({
+          ...g,
+          athleteIds: g.athleteIds.filter(id => id !== personId),
+        })),
+        contactLinks: state.contactLinks.filter(l => l.athleteId !== personId),
         assessments: state.assessments.filter(a => a.athleteId !== personId),
       };
     }

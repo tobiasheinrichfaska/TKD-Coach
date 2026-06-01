@@ -50,6 +50,21 @@ describe('appReducer', () => {
     expect(s.assessments).toHaveLength(0);
   });
 
+  it('REMOVE_ATHLETE_ROLE keeps the person + their contact role, drops only athlete bits', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_PERSON', payload: athlete('a1') });
+    s = appReducer(s, { type: 'ADD_GROUP', payload: grp('g1', ['a1']) });
+    s = appReducer(s, { type: 'ADD_ASSESSMENT', payload: assess('as1', 'a1') });
+    s = appReducer(s, { type: 'ADD_CONTACT_LINK', payload: { id: 'l-own', contactId: 'c1', athleteId: 'a1', guardian: true } });   // a1's own contact
+    s = appReducer(s, { type: 'ADD_CONTACT_LINK', payload: { id: 'l-guard', contactId: 'a1', athleteId: 'a2', guardian: true } }); // a1 guards a sibling
+    s = appReducer(s, { type: 'REMOVE_ATHLETE_ROLE', payload: { id: 'a1' } });
+    const a1 = s.persons.find(p => p.id === 'a1');
+    expect(a1).toBeDefined();                       // person is kept
+    expect(a1?.athlete).toBeUndefined();            // athlete role removed
+    expect(s.groups[0].athleteIds).toEqual([]);     // removed from groups
+    expect(s.assessments).toHaveLength(0);          // own assessments deleted
+    expect(s.contactLinks.map(l => l.id)).toEqual(['l-guard']); // own-contact edge dropped, guardian edge kept
+  });
+
   it('adds, updates and deletes a session log', () => {
     const log: SessionLog = { id: 's1', planId: 'p', groupId: 'g', startedAt: '2026-06-01T10:00:00Z', status: 'running', gameLogs: [] };
     let s = appReducer(EMPTY_STATE, { type: 'ADD_SESSION_LOG', payload: log });

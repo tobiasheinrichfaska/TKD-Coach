@@ -1,5 +1,5 @@
 import {
-  toAthleteView, athleteViews, coaches, personName,
+  toAthleteView, athleteViews, coaches, personName, otherRolesBesidesAthlete,
   athletesInGroup, groupsForAthlete, ungroupedAthletes,
   contactsForAthlete, guardiansForAthlete, athletesForContact,
 } from '../people';
@@ -30,6 +30,14 @@ describe('athlete role view', () => {
     expect(coaches(persons).map(p => p.id)).toEqual(['c1']);
     expect(personName(persons, 'a1')).toBe('Mia');
     expect(personName(persons, 'zzz')).toBe('Unknown');
+  });
+
+  it('otherRolesBesidesAthlete detects coach + contact-for-others', () => {
+    const mia = athlete('a1', 'Mia');
+    const links: ContactLink[] = [{ id: 'l', contactId: 'a1', athleteId: 'sibling', guardian: true }];
+    expect(otherRolesBesidesAthlete(mia, [])).toEqual([]);                    // pure athlete
+    expect(otherRolesBesidesAthlete(mia, links)).toEqual(['contact']);        // also a sibling's guardian
+    expect(otherRolesBesidesAthlete({ ...mia, isCoach: true }, links)).toEqual(['coach', 'contact']);
   });
 });
 
