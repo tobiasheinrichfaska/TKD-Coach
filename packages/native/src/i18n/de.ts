@@ -136,6 +136,8 @@ export const de: Record<string, string> = {
   'Attendance': 'Anwesenheit',
   'present': 'anwesend',
   'absent': 'abwesend',
+  'sessions': 'Sessions',
+  'No sessions yet': 'Noch keine Sessions',
 
   // ---- Plan session ----
   'Name required': 'Name benötigt',

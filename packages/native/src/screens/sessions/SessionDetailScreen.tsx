@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatDateShort, formatTime, formatDuration } from '../../utils/format';
-import { primaryPhase, phaseBand, presentCount, absentIds } from '../../domain';
+import { primaryPhase, phaseBand, presentCount } from '../../domain';
 import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
 import { useT } from '../../i18n';
 import type { SessionsStackScreenProps } from '../../types/navigation';
@@ -26,6 +26,9 @@ const styles = StyleSheet.create({
   durSkipped: { fontSize: 12, color: COLORS.textLight, fontStyle: 'italic' },
   totals: { backgroundColor: COLORS.surface, borderRadius: 8, padding: 12, marginTop: 16 },
   totalsText: { fontSize: 14, color: COLORS.text },
+  attLine: { fontSize: 14, marginVertical: 2 },
+  attPresent: { color: COLORS.text },
+  attAbsent: { color: COLORS.textMuted, textDecorationLine: 'line-through' },
   notes: { fontSize: 14, color: COLORS.text, backgroundColor: COLORS.surface, borderRadius: 8, padding: 12, marginTop: 12 },
   sectionLabel: { fontSize: 13, fontWeight: '600', color: COLORS.textMuted, marginTop: 16, marginBottom: 4 },
   buttons: { flexDirection: 'row', gap: 8, marginTop: 20 },
@@ -77,25 +80,24 @@ export default function SessionDetailScreen({ route, navigation }: SessionsStack
           {log.archived && <Text style={[styles.badge, { backgroundColor: COLORS.textMuted }]}>{t('Archive')}</Text>}
         </View>
 
-        {/* Attendance */}
-        {log.attendance && log.attendance.length > 0 && (() => {
-          const absentNames = absentIds(log.attendance)
-            .map(id => state.persons.find(p => p.id === id)?.name)
-            .filter(Boolean);
-          return (
-            <>
-              <Text style={styles.sectionLabel}>{t('Attendance')}</Text>
-              <View style={styles.totals}>
-                <Text style={styles.totalsText}>
-                  {presentCount(log.attendance)}/{log.attendance.length} {t('present')}
-                </Text>
-                {absentNames.length > 0 && (
-                  <Text style={[styles.gameMeta, { marginTop: 4 }]}>{t('absent')}: {absentNames.join(', ')}</Text>
-                )}
-              </View>
-            </>
-          );
-        })()}
+        {/* Attendance — full roster snapshot with present/absent per athlete */}
+        {log.attendance && log.attendance.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>
+              {t('Attendance')} · {presentCount(log.attendance)}/{log.attendance.length} {t('present')}
+            </Text>
+            <View style={styles.totals}>
+              {log.attendance.map(e => {
+                const name = state.persons.find(p => p.id === e.athleteId)?.name || e.athleteId;
+                return (
+                  <Text key={e.athleteId} style={[styles.attLine, e.present ? styles.attPresent : styles.attAbsent]}>
+                    {e.present ? '✓' : '✗'} {name}{e.present ? '' : ` · ${t('absent')}`}
+                  </Text>
+                );
+              })}
+            </View>
+          </>
+        )}
 
         {/* Per-phase breakdown of what was trained */}
         {PHASES.map(phase => {

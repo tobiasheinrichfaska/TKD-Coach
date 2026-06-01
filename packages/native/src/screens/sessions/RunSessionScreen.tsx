@@ -369,7 +369,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
             {attendanceOpen && (
               <View style={styles.attChipRow}>
                 {roster.map(a => {
-                  const present = attendance.find(e => e.athleteId === a.id)?.present ?? true;
+                  const present = attendance.find(e => e.athleteId === a.id)?.present ?? false;
                   return (
                     <TouchableOpacity key={a.id} style={[styles.attChip, !present && styles.attChipAbsent]} onPress={() => togglePresent(a.id)}>
                       <Text style={[styles.attChipText, !present && styles.attChipTextAbsent]}>{present ? '✓ ' : ''}{a.name}</Text>

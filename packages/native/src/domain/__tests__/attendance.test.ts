@@ -1,24 +1,24 @@
-import { defaultAttendance, toggleAttendance, presentCount, isPresent, absentIds } from '../attendance';
+import { defaultAttendance, toggleAttendance, presentCount, isPresent, absentIds, athleteAttendanceStats } from '../attendance';
 
 describe('attendance', () => {
-  it('defaults every athlete to present', () => {
+  it('defaults every athlete to absent (coach checks them in)', () => {
     const att = defaultAttendance(['a', 'b', 'c']);
     expect(att).toEqual([
-      { athleteId: 'a', present: true },
-      { athleteId: 'b', present: true },
-      { athleteId: 'c', present: true },
+      { athleteId: 'a', present: false },
+      { athleteId: 'b', present: false },
+      { athleteId: 'c', present: false },
     ]);
   });
 
   it('preserves existing marks and drops/adds for roster changes', () => {
     const existing = [
-      { athleteId: 'a', present: false },
+      { athleteId: 'a', present: true },
       { athleteId: 'gone', present: true },
     ];
     const att = defaultAttendance(['a', 'b'], existing);
     expect(att).toEqual([
-      { athleteId: 'a', present: false }, // preserved absent
-      { athleteId: 'b', present: true }, // new, defaults present
+      { athleteId: 'a', present: true }, // preserved present
+      { athleteId: 'b', present: false }, // new, defaults absent
     ]);
     expect(att.find(e => e.athleteId === 'gone')).toBeUndefined();
   });
@@ -26,9 +26,9 @@ describe('attendance', () => {
   it('toggles one athlete without mutating the input', () => {
     const att = defaultAttendance(['a', 'b']);
     const next = toggleAttendance(att, 'a');
-    expect(isPresent(next, 'a')).toBe(false);
-    expect(isPresent(next, 'b')).toBe(true);
-    expect(att[0].present).toBe(true); // original untouched
+    expect(isPresent(next, 'a')).toBe(true);
+    expect(isPresent(next, 'b')).toBe(false);
+    expect(att[0].present).toBe(false); // original untouched
   });
 
   it('counts present and lists absentees', () => {
@@ -45,5 +45,17 @@ describe('attendance', () => {
     expect(isPresent(undefined, 'x')).toBe(true);
     expect(presentCount(undefined)).toBe(0);
     expect(absentIds(undefined)).toEqual([]);
+  });
+
+  it('aggregates an athlete attendance across logs (only counted where rostered)', () => {
+    const logs = [
+      { attendance: [{ athleteId: 'a', present: true }, { athleteId: 'b', present: false }] },
+      { attendance: [{ athleteId: 'a', present: false }] },
+      { attendance: [{ athleteId: 'b', present: true }] }, // a not rostered here
+      { /* no attendance recorded */ },
+    ];
+    expect(athleteAttendanceStats(logs, 'a')).toEqual({ present: 1, total: 2 });
+    expect(athleteAttendanceStats(logs, 'b')).toEqual({ present: 1, total: 2 });
+    expect(athleteAttendanceStats(logs, 'nobody')).toEqual({ present: 0, total: 0 });
   });
 });

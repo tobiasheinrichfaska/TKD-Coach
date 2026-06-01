@@ -486,7 +486,7 @@ person can be a guardian for one athlete and only a contact for another. Phones/
 <tr><td><code class="req">startedAt</code></td><td>string</td><td>ISO timestamp.</td></tr>
 <tr><td><code>endedAt</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
 <tr><td><code class="req">gameLogs</code></td><td>GameLog[]</td><td>Per-drill records.</td></tr>
-<tr><td><code>attendance</code> <span class="opt">?</span></td><td>AttendanceEntry[]</td><td>Roster snapshot captured at run time; <code>{athleteId, present}</code>, all present by default. Absent entries omitted from <code>attendance</code> are treated as present (legacy logs).</td></tr>
+<tr><td><code>attendance</code> <span class="opt">?</span></td><td>AttendanceEntry[]</td><td>Roster snapshot captured at run time; <code>{athleteId, present}</code>, <strong>absent by default</strong> — the coach checks each athlete in. Legacy logs without the field are treated as present.</td></tr>
 <tr><td><code class="req">status</code></td><td>'running' | 'completed' | 'cancelled'</td><td>Drives dashboards + coverage.</td></tr>
 <tr><td><code>archived</code> <span class="opt">?</span></td><td>boolean</td><td>Moves out of Recent into Archive.</td></tr>
 <tr><td><code>notes</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
@@ -701,11 +701,12 @@ when eligible); each button is enabled purely by these functions — the UI embe
 <table>
 <thead><tr><th>Function</th><th>Signature</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>defaultAttendance</code></td><td>(athleteIds, existing?) → AttendanceEntry[]</td><td>All present by default; preserves prior marks when resuming; drops left, adds joined.</td></tr>
+<tr><td><code>defaultAttendance</code></td><td>(athleteIds, existing?) → AttendanceEntry[]</td><td>All <strong>absent</strong> by default (coach checks in); preserves prior marks when resuming; drops left, adds joined.</td></tr>
 <tr><td><code>toggleAttendance</code></td><td>(att, athleteId) → AttendanceEntry[]</td><td>Flip one athlete's <code>present</code>, returning a new list (no mutation).</td></tr>
 <tr><td><code>presentCount</code></td><td>(att?) → number</td><td>Count marked present.</td></tr>
 <tr><td><code>isPresent</code></td><td>(att?, athleteId) → boolean</td><td>Present? Unknown ⇒ true (legacy logs).</td></tr>
 <tr><td><code>absentIds</code></td><td>(att?) → string[]</td><td>Athlete ids marked absent.</td></tr>
+<tr><td><code>athleteAttendanceStats</code></td><td>(logs, athleteId) → {present, total}</td><td>Aggregate one athlete across logs; counts only sessions whose roster lists them. Shown on the athlete detail screen.</td></tr>
 </tbody>
 </table>
 

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
 import { formatBelt } from '../../utils/format';
-import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson, otherRolesBesidesAthlete } from '../../domain';
+import { groupsForAthlete, contactsForAthlete, guardiansForAthlete, toAthleteView, getPerson, otherRolesBesidesAthlete, athleteAttendanceStats } from '../../domain';
 import { callNumber, sendEmail } from '../../utils/linking';
 import { useT } from '../../i18n';
 import type { GroupsStackScreenProps } from '../../types/navigation';
@@ -121,6 +121,17 @@ export default function AthleteDetailScreen({ route, navigation }: GroupsStackSc
             <Text style={[styles.rowValue, styles.link]} onPress={() => callNumber(athlete.phones[0])}>{athlete.phones[0]}</Text>
           </View>
         )}
+        {(() => {
+          const att = athleteAttendanceStats(state.sessionLogs, athlete.id);
+          return (
+            <View style={styles.row}>
+              <Text style={styles.rowLabel}>{t('Attendance')}</Text>
+              <Text style={styles.rowValue}>
+                {att.total > 0 ? `${att.present} / ${att.total} ${t('sessions')}` : t('No sessions yet')}
+              </Text>
+            </View>
+          );
+        })()}
 
         <Text style={styles.section}>{t('Emergency contacts')}</Text>
         {needsGuardian && <Text style={styles.warnHint}>⚠ {t('No guardian on file (athlete may be under 18).')}</Text>}
