@@ -7,35 +7,35 @@ import { SESSION_TEMPLATES } from '../constants/games';
 export const BUILTIN_TEMPLATES: SessionTemplate[] = [
   {
     id: 'kids-2h',
-    name: 'Kids 8-13 · 2h',
+    name: 'Kinder 8-13 · 2h',
     ageGroup: 'kids',
     itemIds: [...SESSION_TEMPLATES.KIDS_2H],
     isBuiltIn: true,
-    description: 'Full kids session: warm-up, neuro main block, cooldown.',
+    description: 'Komplette Kinder-Session: Aufwärmen, Neuro-Hauptteil, Cool-down.',
   },
   {
     id: 'youth-adult-1h30',
-    name: 'Youth & Adults · 1.5h',
+    name: 'Jugend & Erwachsene · 1,5h',
     ageGroup: 'youth-adults',
     itemIds: [...SESSION_TEMPLATES.YOUTH_ADULT_1H30],
     isBuiltIn: true,
-    description: 'Standard youth/adult session.',
+    description: 'Standard-Session für Jugend/Erwachsene.',
   },
   {
     id: 'mobility-warmup',
-    name: 'Warm-Up · Mobility',
+    name: 'Aufwärmen · Mobilität',
     ageGroup: 'all',
     itemIds: [...SESSION_TEMPLATES.MOBILITY_WARMUP],
     isBuiltIn: true,
-    description: 'Joint prep and dynamic mobility flow.',
+    description: 'Gelenkvorbereitung und dynamischer Mobilitäts-Flow.',
   },
   {
     id: 'static-block',
-    name: 'Static Stretching Block',
+    name: 'Statischer Dehn-Block',
     ageGroup: 'all',
     itemIds: [...SESSION_TEMPLATES.STATIC_BLOCK],
     isBuiltIn: true,
-    description: 'End-of-session static flexibility block.',
+    description: 'Statischer Flexibilitätsblock zum Abschluss.',
   },
 ];
 

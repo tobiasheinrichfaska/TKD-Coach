@@ -12,6 +12,17 @@ const LANG_KEY = 'tkd_coach_lang';
 // English is the key, so the 'en' dictionary is empty (t() falls back to the key).
 const DICTS: Record<Lang, Record<string, string>> = { de, en: {} };
 
+/** Best-effort device language (Hermes Intl). German device → 'de', otherwise 'en'. */
+function deviceLang(): Lang {
+  try {
+    const loc = (Intl as { DateTimeFormat?: () => { resolvedOptions: () => { locale: string } } })
+      .DateTimeFormat?.().resolvedOptions().locale ?? '';
+    return loc.toLowerCase().startsWith('de') ? 'de' : 'en';
+  } catch {
+    return 'de';
+  }
+}
+
 interface I18n {
   lang: Lang;
   setLang: (l: Lang) => void;
@@ -22,9 +33,10 @@ interface I18n {
 const Ctx = createContext<I18n>({ lang: 'de', setLang: () => {}, t: s => s });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('de'); // default German
+  const [lang, setLangState] = useState<Lang>(deviceLang); // default from device locale
 
   useEffect(() => {
+    // A previously saved choice overrides the device default.
     AsyncStorage.getItem(LANG_KEY).then(v => { if (v === 'de' || v === 'en') setLangState(v); }).catch(() => {});
   }, []);
 

@@ -10,43 +10,43 @@ export type { MetricFieldDef, MetricTypeDef } from '../types';
  */
 export const BUILTIN_METRIC_SCHEMAS: MetricTypeDef[] = [
   {
-    type: 'balance_hold', label: 'Balance Hold', primaryField: 'dominant',
+    type: 'balance_hold', label: 'Balance-Halten', primaryField: 'dominant',
     fields: [
-      { key: 'dominant', label: 'Dominant leg', unit: 's' },
-      { key: 'nonDominant', label: 'Non-dominant leg', unit: 's' },
+      { key: 'dominant', label: 'Dominantes Bein', unit: 's' },
+      { key: 'nonDominant', label: 'Nicht-dominantes Bein', unit: 's' },
     ],
   },
   {
-    type: 'reaction_errors', label: 'Reaction Errors', primaryField: 'errorsPerTen',
-    fields: [{ key: 'errorsPerTen', label: 'Errors per 10 cues', integer: true, lowerIsBetter: true }],
+    type: 'reaction_errors', label: 'Reaktionsfehler', primaryField: 'errorsPerTen',
+    fields: [{ key: 'errorsPerTen', label: 'Fehler pro 10 Reize', integer: true, lowerIsBetter: true }],
   },
   {
-    type: 'combo_accuracy', label: 'Combo Accuracy', primaryField: 'correct',
+    type: 'combo_accuracy', label: 'Kombi-Genauigkeit', primaryField: 'correct',
     fields: [
-      { key: 'correct', label: 'Correct', integer: true },
-      { key: 'total', label: 'Total attempts', integer: true },
+      { key: 'correct', label: 'Richtig', integer: true },
+      { key: 'total', label: 'Versuche gesamt', integer: true },
     ],
   },
   {
-    type: 'vestibular_landing', label: 'Vestibular Landing', primaryField: 'stable',
+    type: 'vestibular_landing', label: 'Vestibuläre Landung', primaryField: 'stable',
     fields: [
-      { key: 'stable', label: 'Stable landings', integer: true },
-      { key: 'stumble', label: 'Stumbles', integer: true, lowerIsBetter: true },
-      { key: 'fall', label: 'Falls', integer: true, lowerIsBetter: true },
+      { key: 'stable', label: 'Stabile Landungen', integer: true },
+      { key: 'stumble', label: 'Stolpern', integer: true, lowerIsBetter: true },
+      { key: 'fall', label: 'Stürze', integer: true, lowerIsBetter: true },
     ],
   },
   {
-    type: 'balance_poomsae', label: 'Single-leg Poomsae', primaryField: 'holdSeconds',
+    type: 'balance_poomsae', label: 'Einbein-Poomsae', primaryField: 'holdSeconds',
     fields: [
-      { key: 'holdSeconds', label: 'Hold time', unit: 's' },
-      { key: 'armErrors', label: 'Arm errors', integer: true, lowerIsBetter: true },
+      { key: 'holdSeconds', label: 'Haltezeit', unit: 's' },
+      { key: 'armErrors', label: 'Armfehler', integer: true, lowerIsBetter: true },
     ],
   },
   {
-    type: 'poomsae_distraction', label: 'Poomsae under Distraction', primaryField: 'errors',
+    type: 'poomsae_distraction', label: 'Poomsae unter Ablenkung', primaryField: 'errors',
     fields: [
-      { key: 'errors', label: 'Sequence errors', integer: true, lowerIsBetter: true },
-      { key: 'baseline', label: 'Baseline errors', integer: true, lowerIsBetter: true },
+      { key: 'errors', label: 'Sequenzfehler', integer: true, lowerIsBetter: true },
+      { key: 'baseline', label: 'Basisfehler', integer: true, lowerIsBetter: true },
     ],
   },
 ];

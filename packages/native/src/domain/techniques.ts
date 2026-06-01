@@ -9,14 +9,14 @@ export const BUILTIN_TECHNIQUES: Technique[] = [
   { id: 'dwit-chagi', name: 'Dwit Chagi', koreanName: '뒤차기', category: 'kick', bodyPartIds: ['hip', 'knee', 'core'] },
   { id: 'ap-seogi', name: 'Ap Seogi', category: 'stance', bodyPartIds: ['hip', 'knee', 'ankle'] },
   { id: 'juchum-seogi', name: 'Juchum Seogi', category: 'stance', bodyPartIds: ['hip', 'knee', 'adductors'] },
-  { id: 'seogi', name: 'Seogi (stances)', category: 'stance', bodyPartIds: ['hip', 'knee', 'ankle'] },
-  { id: 'makki', name: 'Makki (blocks)', category: 'block', bodyPartIds: ['shoulders', 'arms'] },
+  { id: 'seogi', name: 'Seogi (Stände)', category: 'stance', bodyPartIds: ['hip', 'knee', 'ankle'] },
+  { id: 'makki', name: 'Makki (Blöcke)', category: 'block', bodyPartIds: ['shoulders', 'arms'] },
   { id: 'arae-makki', name: 'Arae Makki', category: 'block', bodyPartIds: ['shoulders', 'arms', 'core'] },
   { id: 'momtong-makki', name: 'Momtong Makki', category: 'block', bodyPartIds: ['shoulders', 'arms'] },
   { id: 'olgul-makki', name: 'Olgul Makki', category: 'block', bodyPartIds: ['shoulders', 'arms'] },
-  { id: 'jireugi', name: 'Jireugi (punch)', category: 'strike', bodyPartIds: ['shoulders', 'arms', 'core'] },
+  { id: 'jireugi', name: 'Jireugi (Fauststoß)', category: 'strike', bodyPartIds: ['shoulders', 'arms', 'core'] },
   { id: 'poomsae', name: 'Poomsae', category: 'poomsae', bodyPartIds: ['full-body'] },
-  { id: 'footwork', name: 'Footwork', category: 'footwork', bodyPartIds: ['ankle', 'knee', 'hip'] },
+  { id: 'footwork', name: 'Beinarbeit', category: 'footwork', bodyPartIds: ['ankle', 'knee', 'hip'] },
 
   // ===== Kicks (extended) =====
   { id: 'naeryo-chagi', name: 'Naeryo Chagi', koreanName: '내려차기', category: 'kick', bodyPartIds: ['hamstrings', 'hip-flexors', 'hip', 'knee'] },
