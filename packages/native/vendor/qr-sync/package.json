@@ -1,0 +1,32 @@
+{
+  "name": "@tobiasheinrichfaska/qr-sync",
+  "version": "0.1.0",
+  "description": "QR peer-to-peer data-sync engine: chunked encode/assemble, change detection, change-applying merge.",
+  "license": "AGPL-3.0-or-later",
+  "author": "Tobias Heinrich <tobias.a.w.heinrich@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tobiasheinrichfaska/expo-shared.git",
+    "directory": "packages/qr-sync"
+  },
+  "keywords": ["qr", "sync", "p2p", "offline", "expo", "react-native"],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "pako": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/pako": "^2.0.3",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.9.2"
+  }
+}

@@ -7,11 +7,13 @@
       "**/*"
     ],
     "ios": {
+      "bundleIdentifier": "com.tobiasheinrich.tkdcoach",
       "supportsTabletMode": true,
       "supportsLandscape": true
     },
     "android": {
-      "package": "com.tobiasheinrich.tkdcoach"
+      "package": "com.tobiasheinrich.tkdcoach",
+      "versionCode": 1
     },
     "plugins": [
       [

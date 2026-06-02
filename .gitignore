@@ -4,6 +4,11 @@ node_modules/
 dist/
 build/
 
+# Exception: the vendored qr-sync engine ships its compiled dist (consumed via
+# file:./vendor/qr-sync so EAS cloud builds can resolve it). Must be committed.
+!packages/native/vendor/qr-sync/dist/
+!packages/native/vendor/qr-sync/dist/**
+
 # OS & Editor Junk
 .DS_Store
 Thumbs.db
