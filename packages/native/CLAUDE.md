@@ -131,29 +131,50 @@ State persisted to AsyncStorage; changes debounced 300ms.
 ```
 src/
 ├── types/
-│   └── index.ts         ← All interfaces
+│   ├── index.ts         ← All entity interfaces + SESSION_PHASE_LABELS
+│   ├── navigation.ts    ← React Navigation param lists / screen-prop types
+│   └── assets.d.ts      ← module decl for static assets (beep.wav etc.)
 ├── constants/
 │   ├── colors.ts
-│   ├── belts.ts
-│   └── games.ts         ← 11 built-ins + templates
+│   ├── belts.ts         ← Kup/Dan ladder + LEGACY_BELT_MAP
+│   ├── games.ts         ← 11 built-ins + templates
+│   ├── config.ts        ← DEV_RESEED + storage key
+│   └── appInfo.ts       ← app name/version metadata
 ├── context/
-│   ├── reducer.ts
-│   └── DataContext.tsx
-├── hooks/
-│   └── useLocalStorage.ts
+│   ├── reducer.ts       ← appReducer + EMPTY_APP_DATA / EMPTY_STATE
+│   └── DataContext.tsx  ← load/persist (300ms debounce); runs migrate() on load
+├── domain/             ← pure, UI-free logic layer (fully unit-tested in __tests__/)
+│   ├── index.ts         ← barrel re-export
+│   ├── migration.ts     ← migrate(): seed-once built-ins + legacy→Person conversion
+│   ├── selectors.ts     ← reconcileRunningLogs, getMetricSchema, etc.
+│   ├── people.ts        ← AthleteView helpers (athleteViews/toAthleteView/getPerson)
+│   ├── attendance.ts    ← roster snapshot helpers
+│   ├── schedule.ts      ← nextSession / trainsOn / formatSlot
+│   ├── phases.ts        ← primaryPhase / gameInPhase / phaseBand
+│   ├── graduation.ts    ← belt promote/demote
+│   ├── metrics.ts       ← BUILTIN_METRIC_SCHEMAS + fieldDelta
+│   ├── techniques.ts    ← BUILTIN_TECHNIQUES
+│   ├── bodyparts.ts     ← BUILTIN_BODY_PARTS
+│   ├── templates.ts     ← BUILTIN_TEMPLATES
+│   └── devseed.ts       ← dev-only seed data
+├── i18n/
+│   ├── index.tsx        ← LanguageProvider / useT / translate (module mirror)
+│   └── de.ts            ← German dictionary (English string = key)
 ├── utils/
 │   ├── ids.ts
-│   ├── format.ts
-│   ├── qrChunks.ts     ← Phase 4: encode/assemble/export/detectChanges
-│   └── deviceId.ts     ← Phase 4: phone-primed IDs
+│   ├── format.ts        ← date/belt formatting + share-summary text
+│   ├── linking.ts       ← tel:/mailto: helpers
+│   ├── qrChunks.ts      ← QR encode/assemble/export/detectChanges/applyChanges
+│   └── deviceId.ts      ← phone-primed IDs
 ├── components/
-│   └── MetricRow.tsx   ← Imported by ProgressScreen
+│   └── MetricRow.tsx    ← schema-driven assessment value/delta row
 └── screens/
     ├── DashboardScreen.tsx
     ├── otherdata/                ← "Other Data" tab
     │   ├── OtherDataNavigator.tsx
     │   ├── OtherDataHubScreen.tsx ← menu + Werkseinstellung (factory reset)
-    │   └── OtherDataLists.tsx     ← browse lists: games/techniques/bodyparts/templates/metric-schemas
+    │   ├── OtherDataLists.tsx     ← browse lists: games/techniques/bodyparts/templates/metric-schemas
+    │   └── OtherDataEditors.tsx   ← create/edit games/techniques/bodyparts/templates/metric-schemas
     ├── groups/                    ← "Humans" tab (stack named GroupsStack* for back-compat)
     │   ├── GroupsNavigator.tsx    ← Humans stack: HumansHub first, nests Assessment
     │   ├── HumansHubScreen.tsx    ← Athletes / Groups / Contacts&Guardians / Assessment
@@ -161,6 +182,7 @@ src/
     │   ├── AllAthletesScreen.tsx   ← full roster; All/Ungrouped filter; create ungrouped athlete
     │   ├── EmergencyContactsScreen.tsx  ← all contacts; tap to edit; quick "Anrufen"
     │   ├── EditEmergencyContactScreen.tsx ← name/email/≤5 phones/isGuardian + athlete links
+    │   ├── AddContactScreen.tsx    ← link an existing/new person as a contact/guardian
     │   ├── EditGroupScreen.tsx
     │   ├── GroupDetailScreen.tsx
     │   ├── EditAthleteScreen.tsx   ← name, birth year, graduation (promote/demote), contact
@@ -170,6 +192,7 @@ src/
     │   ├── SessionsScreen.tsx        ← Planned vs Recent (today highlighted); "Alle →" to RecentSessions
     │   ├── RecentSessionsScreen.tsx  ← full list of completed (non-archived) sessions
     │   ├── SessionArchiveScreen.tsx  ← archived sessions (unarchive)
+    │   ├── SessionDetailScreen.tsx   ← completed-session detail (per-phase game breakdown)
     │   ├── PlanSessionScreen.tsx
     │   └── RunSessionScreen.tsx
     ├── assessment/
@@ -248,4 +271,4 @@ This starts the server on **port 8082** with correct NODE_OPTIONS for TypeScript
 
 ---
 
-*Last updated: 2026-06-01 — audit fixes: Settings is now the 5th tab (Transfer nested under it); QR receiver review shows every synced collection (catalogs + contact links) and blocks Accept on an empty diff; SelectData notes always-included catalogs; complete-while-running finalizes the current drill. Earlier (2026-05-30): monorepo metro fix, orientation, type-safety pass.*
+*Last updated: 2026-06-02 — audit #4 fixes: phase headings now go through `t()` (5 German strings added); `currentLang` mirror synced in an effect not render; memoised games lookup map in Run/Plan/Progress screens; load guards against a corrupt non-object store; ProgressScreen resolves each assessment's schema from its stored `metric.type`; deleted dead `hooks/useLocalStorage.ts`; `migrate()` de-dupes persons on partial hybrid saves; added reducer tests for game/session-plan/group/assessment/technique/metric-schema actions; regenerated this File Structure. Earlier (2026-06-01): Settings 5th tab; QR receiver review + empty-diff guard; complete-while-running finalize.*

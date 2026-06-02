@@ -108,6 +108,8 @@ const styles = StyleSheet.create({
 export default function RunSessionScreen({ route, navigation }: SessionsStackScreenProps<'RunSession'>) {
   const { state, dispatch } = useData();
   const { t } = useT();
+  // Lookup map built once per games change — avoids O(n·m) state.games.find in render loops/ticks.
+  const gamesById = useMemo(() => new Map(state.games.map(g => [g.id, g])), [state.games]);
   const planId = route.params.planId;
   const plan = state.sessionPlans.find(p => p.id === planId);
   const group = plan ? state.groups.find(g => g.id === plan.groupId) : null;
@@ -145,7 +147,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const [sessionElapsedSec, setSessionElapsedSec] = useState(0);
 
   const totalPlannedMin = gameLogs.reduce(
-    (s, l) => s + (state.games.find(g => g.id === l.gameId)?.defaultMinutes || 0),
+    (s, l) => s + (gamesById.get(l.gameId)?.defaultMinutes || 0),
     0
   );
 
@@ -154,9 +156,9 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const beep = useAudioPlayer(beepAsset);
 
   const currentGameLog = gameLogs[currentGameIndex];
-  const currentGame = state.games.find(g => g.id === currentGameLog?.gameId);
+  const currentGame = gamesById.get(currentGameLog?.gameId ?? '');
   const phaseOf = (gid: string): SessionPhase =>
-    plan?.gamePhases?.[gid] ?? primaryPhase(state.games.find(g => g.id === gid));
+    plan?.gamePhases?.[gid] ?? primaryPhase(gamesById.get(gid));
 
   /**
    * Strong, repeated signal that the planned duration was reached — meant to cut
@@ -324,8 +326,8 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
       group.name,
       plan.plannedDate,
       finalizedLogs.map(gl => ({
-        name: state.games.find(g => g.id === gl.gameId)?.name || gl.gameId,
-        plannedMinutes: state.games.find(g => g.id === gl.gameId)?.defaultMinutes || 0,
+        name: gamesById.get(gl.gameId)?.name || gl.gameId,
+        plannedMinutes: gamesById.get(gl.gameId)?.defaultMinutes || 0,
         actualSeconds: gl.durationSeconds,
       }))
     );
@@ -402,7 +404,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
           const active = idx === currentGameIndex;
           const overrunHere = active && isOverrun;
           const p = phaseOf(log.gameId);
-          const heading = p !== lastPhase ? SESSION_PHASE_LABELS[p] : null;
+          const heading = p !== lastPhase ? t(SESSION_PHASE_LABELS[p]) : null;
           lastPhase = p;
           return (
             <React.Fragment key={idx}>
@@ -418,12 +420,12 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                 ]}
               >
               <Text style={styles.gameName}>
-                {active ? '▶ ' : ''}{state.games.find(g => g.id === log.gameId)?.name}
+                {active ? '▶ ' : ''}{gamesById.get(log.gameId)?.name}
               </Text>
               <Text style={styles.gameTime}>
                 {log.status === 'completed'
-                  ? `✓ ${fmt(log.durationSeconds || 0)} (${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min ${t('planned')})`
-                  : `${state.games.find(g => g.id === log.gameId)?.defaultMinutes}min (${t('planned')})`}
+                  ? `✓ ${fmt(log.durationSeconds || 0)} (${gamesById.get(log.gameId)?.defaultMinutes}min ${t('planned')})`
+                  : `${gamesById.get(log.gameId)?.defaultMinutes}min (${t('planned')})`}
               </Text>
 
               {active && (
@@ -456,7 +458,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
                         if (opts.length === 0) return null;
                         return (
                           <View key={ph}>
-                            <Text style={[styles.phaseHeading, { paddingHorizontal: 10 }]}>{SESSION_PHASE_LABELS[ph]}</Text>
+                            <Text style={[styles.phaseHeading, { paddingHorizontal: 10 }]}>{t(SESSION_PHASE_LABELS[ph])}</Text>
                             {opts.map(g => (
                               <TouchableOpacity key={g.id} style={styles.swapItem} onPress={() => swapCurrent(g.id)}>
                                 <Text style={styles.swapItemText}>{g.name}</Text>

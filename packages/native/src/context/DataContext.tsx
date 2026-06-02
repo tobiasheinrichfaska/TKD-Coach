@@ -37,7 +37,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         // migrate() (pure, unit-tested in domain/migration) refreshes built-in Übungen +
         // templates and backfills missing collections. On a fresh install it seeds them
         // from EMPTY_APP_DATA, so both branches go through the same path.
-        const data = stored ? (JSON.parse(stored) as AppData) : EMPTY_APP_DATA;
+        const parsed = stored ? JSON.parse(stored) : EMPTY_APP_DATA;
+        // Guard against a corrupt store (a primitive/array would throw in migrate's
+        // object-spread, then silently reset via catch) — seed fresh instead.
+        const data: AppData =
+          parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+            ? (parsed as AppData)
+            : EMPTY_APP_DATA;
         dispatch({ type: 'LOAD_ALL', payload: migrate(data) });
       } catch (e) {
         console.error('Error loading app data:', e);

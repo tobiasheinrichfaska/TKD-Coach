@@ -42,7 +42,10 @@ const Ctx = createContext<I18n>({ lang: 'de', setLang: () => {}, t: s => s });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(deviceLang); // default from device locale
-  currentLang = lang; // keep the module-level mirror in sync for translate()
+
+  // Keep the module-level mirror in sync for translate() — in an effect, not in
+  // render (render side-effects are forbidden; fragile under StrictMode/concurrent).
+  useEffect(() => { currentLang = lang; }, [lang]);
 
   useEffect(() => {
     // A previously saved choice overrides the device default.

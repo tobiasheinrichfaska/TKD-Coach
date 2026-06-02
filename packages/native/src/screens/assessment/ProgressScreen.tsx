@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Share, ScrollView } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { COLORS } from '../../constants/colors';
@@ -23,6 +23,8 @@ const styles = StyleSheet.create({
 export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Progress'>) {
   const { state } = useData();
   const { t } = useT();
+  // Lookup map built once per games change — avoids O(n·m) state.games.find in render loops.
+  const gamesById = useMemo(() => new Map(state.games.map(g => [g.id, g])), [state.games]);
   const athleteId = route.params?.athleteId;
   const athlete = toAthleteView(getPerson(state.persons, athleteId ?? ''));
   // .filter() returns a new array, so the subsequent .sort() is safe (does not mutate state).
@@ -41,7 +43,7 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
   // Group by game
   const gameGroups = new Map<string, typeof assessments>();
   assessments.forEach(a => {
-    const game = state.games.find(g => g.id === a.gameId);
+    const game = gamesById.get(a.gameId);
     if (game && game.logMetricType) {
       const key = a.gameId;
       if (!gameGroups.has(key)) gameGroups.set(key, []);
@@ -51,11 +53,13 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
 
   const handleShare = async () => {
     const metrics = Array.from(gameGroups.entries()).map(([gameId, gameAssessments]) => {
-      const game = state.games.find(g => g.id === gameId);
-      const schema = getMetricSchema(state.metricSchemas, game?.logMetricType ?? '');
-      const primary = schema?.fields.find(f => f.key === schema.primaryField);
+      const game = gamesById.get(gameId);
       const latest = gameAssessments[0];
       const previous = gameAssessments[1];
+      // Resolve the schema from the assessment's own stored metric type, not the game's
+      // current logMetricType (which the coach can change later) — see audit #5.
+      const schema = getMetricSchema(state.metricSchemas, latest.metric.type);
+      const primary = schema?.fields.find(f => f.key === schema.primaryField);
       const valOf = (m: typeof latest.metric, key: string) => (m as unknown as Record<string, number>)[key] ?? 0;
 
       const current = primary ? valOf(latest.metric, primary.key) : 0;
@@ -87,7 +91,7 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
           Array.from(gameGroups.entries()).map(([gameId, gameAssessments]) => (
             <View key={gameId}>
               <Text style={styles.section}>
-                {state.games.find(g => g.id === gameId)?.name || gameId}
+                {gamesById.get(gameId)?.name || gameId}
               </Text>
               <FlatList
                 scrollEnabled={false}
@@ -99,7 +103,7 @@ export default function ProgressScreen({ route }: AssessmentStackScreenProps<'Pr
                     metric={item.metric}
                     previousMetric={index < gameAssessments.length - 1 ? gameAssessments[index + 1].metric : undefined}
                     notes={item.notes}
-                    schema={getMetricSchema(state.metricSchemas, state.games.find(g => g.id === gameId)?.logMetricType ?? '')}
+                    schema={getMetricSchema(state.metricSchemas, item.metric.type)}
                   />
                 )}
               />

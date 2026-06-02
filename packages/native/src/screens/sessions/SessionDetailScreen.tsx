@@ -107,7 +107,7 @@ export default function SessionDetailScreen({ route, navigation }: SessionsStack
           const border = band === 'warmup' ? COLORS.warmup : band === 'cooldown' ? COLORS.cooldown : COLORS.main;
           return (
             <View key={phase}>
-              <Text style={styles.phaseHeading}>{SESSION_PHASE_LABELS[phase]}</Text>
+              <Text style={styles.phaseHeading}>{t(SESSION_PHASE_LABELS[phase])}</Text>
               {inPhase.map((gl, i) => {
                 const g = game(gl.gameId);
                 return (

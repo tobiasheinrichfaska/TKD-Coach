@@ -82,7 +82,10 @@ export function migrate(data: AppData): AppData {
         contactLinks.push({ id: `link-${ec.id}-${aid}`, contactId: ec.id, athleteId: aid, guardian: !!ec.isGuardian });
       }
     }
-    persons = [...persons, ...contactPersons];
+    // De-dupe by id: a partial hybrid save (already-migrated persons[] alongside legacy
+    // emergencyContacts but no contactLinks) must not re-append people already present.
+    const existingIds = new Set(persons.map(p => p.id));
+    persons = [...persons, ...contactPersons.filter(cp => !existingIds.has(cp.id))];
   }
 
   // Groups: backfill trainingTimes; drop the retired ageCategory field.

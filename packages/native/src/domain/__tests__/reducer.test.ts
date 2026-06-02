@@ -1,7 +1,9 @@
 import { appReducer, EMPTY_STATE } from '../../context/reducer';
-import { Group, Person, SessionLog, Assessment, SessionTemplate, ContactLink, AppData } from '../../types';
+import { Group, Person, SessionLog, Assessment, SessionTemplate, ContactLink, GameDefinition, SessionPlan, AppData } from '../../types';
 
 const grp = (id: string, athleteIds: string[] = []): Group => ({ id, name: id, trainingTimes: [], athleteIds });
+const game = (id: string): GameDefinition => ({ id, name: id, shortName: id, sessionPhases: [3], defaultMinutes: 5, ageGroup: 'all', isBuiltIn: false });
+const plan = (id: string): SessionPlan => ({ id, groupId: 'g1', name: id, plannedDate: '2026-06-01', template: 'custom', plannedGames: [], createdAt: '2026-06-01T10:00:00Z' });
 const athlete = (id: string): Person => ({
   id, name: id, phones: [], isCoach: false,
   athlete: { belt: 'kup-10', neuroProfile: { vestibular: 3, visual: 3, proprioceptive: 3 }, poomsae: [], techniques: [] },
@@ -113,6 +115,52 @@ describe('appReducer', () => {
     s = appReducer(s, { type: 'DELETE_TECHNIQUE', payload: { id: 'tk' } });
     s = appReducer(s, { type: 'DELETE_METRIC_SCHEMA', payload: { type: 'm1' } });
     expect([s.bodyParts.length, s.techniques.length, s.metricSchemas.length]).toEqual([0, 0, 0]);
+  });
+
+  it('UPDATE_GROUP replaces the matching group in place', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_GROUP', payload: grp('g1', ['a1']) });
+    s = appReducer(s, { type: 'UPDATE_GROUP', payload: { ...grp('g1', ['a1', 'a2']), name: 'Renamed' } });
+    expect(s.groups).toHaveLength(1);
+    expect(s.groups[0].name).toBe('Renamed');
+    expect(s.groups[0].athleteIds).toEqual(['a1', 'a2']);
+  });
+
+  it('adds, updates and deletes a game', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_GAME', payload: game('W1') });
+    expect(s.games).toHaveLength(1);
+    s = appReducer(s, { type: 'UPDATE_GAME', payload: { ...game('W1'), name: 'Renamed', defaultMinutes: 8 } });
+    expect(s.games[0].name).toBe('Renamed');
+    expect(s.games[0].defaultMinutes).toBe(8);
+    s = appReducer(s, { type: 'DELETE_GAME', payload: { id: 'W1' } });
+    expect(s.games).toHaveLength(0);
+  });
+
+  it('adds, updates and deletes a session plan', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_SESSION_PLAN', payload: plan('p1') });
+    expect(s.sessionPlans).toHaveLength(1);
+    s = appReducer(s, { type: 'UPDATE_SESSION_PLAN', payload: { ...plan('p1'), name: 'Renamed', plannedGames: ['W1'] } });
+    expect(s.sessionPlans[0].name).toBe('Renamed');
+    expect(s.sessionPlans[0].plannedGames).toEqual(['W1']);
+    s = appReducer(s, { type: 'DELETE_SESSION_PLAN', payload: { id: 'p1' } });
+    expect(s.sessionPlans).toHaveLength(0);
+  });
+
+  it('DELETE_ASSESSMENT removes only the matching assessment', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_ASSESSMENT', payload: assess('as1', 'a1') });
+    s = appReducer(s, { type: 'ADD_ASSESSMENT', payload: assess('as2', 'a1') });
+    s = appReducer(s, { type: 'DELETE_ASSESSMENT', payload: { id: 'as1' } });
+    expect(s.assessments.map(a => a.id)).toEqual(['as2']);
+  });
+
+  it('UPDATE_TECHNIQUE (by id) + UPDATE_METRIC_SCHEMA (by type) replace in place', () => {
+    let s = appReducer(EMPTY_STATE, { type: 'ADD_TECHNIQUE', payload: { id: 'tk', name: 'TK', category: 'kick', bodyPartIds: [] } });
+    s = appReducer(s, { type: 'ADD_METRIC_SCHEMA', payload: { type: 'm1', label: 'M', primaryField: 'a', fields: [{ key: 'a', label: 'A' }] } });
+    s = appReducer(s, { type: 'UPDATE_TECHNIQUE', payload: { id: 'tk', name: 'TK2', category: 'block', bodyPartIds: ['bp'] } });
+    expect(s.techniques[0].name).toBe('TK2');
+    expect(s.techniques[0].category).toBe('block');
+    s = appReducer(s, { type: 'UPDATE_METRIC_SCHEMA', payload: { type: 'm1', label: 'M2', primaryField: 'a', fields: [{ key: 'a', label: 'A2' }] } });
+    expect(s.metricSchemas[0].label).toBe('M2');
+    expect(s.metricSchemas).toHaveLength(1);
   });
 
   it('is immutable — does not mutate the previous state', () => {

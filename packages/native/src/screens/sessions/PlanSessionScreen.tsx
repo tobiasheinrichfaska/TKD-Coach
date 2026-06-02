@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -74,6 +74,8 @@ const styles = StyleSheet.create({
 export default function PlanSessionScreen({ route, navigation }: SessionsStackScreenProps<'PlanSession'>) {
   const { state, dispatch } = useData();
   const { t } = useT();
+  // Lookup map built once per games change — avoids O(n·m) state.games.find in render loops.
+  const gamesById = useMemo(() => new Map(state.games.map(g => [g.id, g])), [state.games]);
   const planId = route.params?.planId;
   const plan = planId ? state.sessionPlans.find(p => p.id === planId) : null;
   const fromGroupId = route.params?.fromGroupId;
@@ -95,7 +97,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   const [openAdd, setOpenAdd] = useState<SessionPhase | 'all' | null>(null);
   const [query, setQuery] = useState('');
 
-  const phaseOf = (gid: string): SessionPhase => phases[gid] ?? primaryPhase(state.games.find(g => g.id === gid));
+  const phaseOf = (gid: string): SessionPhase => phases[gid] ?? primaryPhase(gamesById.get(gid));
 
   // Selecting a group prefills the date from its next training slot (new plans only).
   const chooseGroup = (g: Group) => {
@@ -176,11 +178,11 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     navigation.goBack();
   };
 
-  const totalMinutes = gameIds.reduce((sum, gid) => sum + (state.games.find(g => g.id === gid)?.defaultMinutes || 0), 0);
+  const totalMinutes = gameIds.reduce((sum, gid) => sum + (gamesById.get(gid)?.defaultMinutes || 0), 0);
   const selectedGroup = state.groups.find(g => g.id === groupId);
   const targetSlot = selectedGroup ? slotsOnDay(selectedGroup, new Date(`${date}T12:00:00`))[0] : undefined;
   const tagLine = (gid: string): string => {
-    const g = state.games.find(x => x.id === gid);
+    const g = gamesById.get(gid);
     const parts: string[] = [];
     if (g?.bodyParts?.length) parts.push(`🦵 ${g.bodyParts.join(', ')}`);
     if (g?.techniques?.length) parts.push(`🥋 ${g.techniques.join(', ')}`);
@@ -190,7 +192,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   const q = query.trim().toLowerCase();
   const matches = (gid: string): boolean => {
     if (!q) return true;
-    const g = state.games.find(x => x.id === gid);
+    const g = gamesById.get(gid);
     if (!g) return false;
     return [g.name, g.shortName, ...(g.techniques || []), ...(g.bodyParts || [])]
       .join(' ')
@@ -215,7 +217,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
           if (available.length === 0) return null;
           return (
             <View key={phase}>
-              {scope === 'all' && <Text style={[styles.phaseHeading, { paddingHorizontal: 10 }]}>{SESSION_PHASE_LABELS[phase]}</Text>}
+              {scope === 'all' && <Text style={[styles.phaseHeading, { paddingHorizontal: 10 }]}>{t(SESSION_PHASE_LABELS[phase])}</Text>}
               {available.map(g => (
                 <TouchableOpacity key={g.id} style={styles.addItem} onPress={() => addToPhase(g.id, phase)}>
                   <Text style={styles.gameTitle}>{g.name} <Text style={styles.gameMeta}>· {g.defaultMinutes}min</Text></Text>
@@ -299,9 +301,9 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
           const border = band === 'warmup' ? COLORS.warmup : band === 'cooldown' ? COLORS.cooldown : COLORS.main;
           return (
             <View key={phase}>
-              <Text style={styles.phaseHeading}>{SESSION_PHASE_LABELS[phase]}</Text>
+              <Text style={styles.phaseHeading}>{t(SESSION_PHASE_LABELS[phase])}</Text>
               {inPhase.map(gid => {
-                const g = state.games.find(x => x.id === gid);
+                const g = gamesById.get(gid);
                 const pos = inPhase.indexOf(gid);
                 const last = pos === inPhase.length - 1;
                 const tags = tagLine(gid);

@@ -410,4 +410,10 @@ export const de: Record<string, string> = {
   'chunks': 'Blöcke',
   'Point camera at sender QR code': 'Kamera auf den Sender-QR-Code richten',
   'Scan chunk': 'Block scannen',
+  // ---- Session phase headings (SESSION_PHASE_LABELS in types/index.ts) ----
+  'Phase 1 · Warm-Up (Mobility)': 'Phase 1 · Aufwärmen (Mobilität)',
+  'Phase 2 · Warm-Up (Dynamic)': 'Phase 2 · Aufwärmen (Dynamik)',
+  'Phase 3 · Main': 'Phase 3 · Hauptteil',
+  'Phase 4 · Cool-Down (Static)': 'Phase 4 · Abwärmen (Statisch)',
+  'Phase 5 · Meditation': 'Phase 5 · Meditation',
 };
