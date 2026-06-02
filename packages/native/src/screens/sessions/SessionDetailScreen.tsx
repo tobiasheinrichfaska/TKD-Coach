@@ -162,6 +162,15 @@ export default function SessionDetailScreen({ route, navigation }: SessionsStack
             <Text style={styles.buttonText}>{log.archived ? t('Unarchive') : t('Archive')}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* This page is view-only — always return to the main Sessions list (where you can
+            add/see sessions), not just the previous screen which varies by entry point. */}
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: COLORS.primary, marginTop: 8 }]}
+          onPress={() => navigation.navigate('SessionsList')}
+        >
+          <Text style={styles.buttonText}>{t('Close')}</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
