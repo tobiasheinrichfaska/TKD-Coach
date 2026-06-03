@@ -21,6 +21,20 @@ describe('BUILTIN_TEMPLATES integrity', () => {
       expect(t.isBuiltIn).toBe(true);
     }
   });
+
+  it('ships the Tornadokick · Vestibulär-Fokus plan with its 6 new Phase-3 Übungen', () => {
+    const tornado = getTemplate(BUILTIN_TEMPLATES, 'tornado-vestibular');
+    expect(tornado?.ageGroup).toBe('youth-adults');
+    // The progression M7..M12 must be present, in order, inside the plan.
+    const progression = ['M7', 'M8', 'M9', 'M10', 'M11', 'M12'];
+    expect(tornado!.itemIds.filter(id => progression.includes(id))).toEqual(progression);
+    // Each new Übung exists, is Phase-3 main work, and only M12 logs a metric.
+    for (const id of progression) {
+      const g = BUILTIN_GAMES.find(x => x.id === id);
+      expect(g?.sessionPhases).toEqual([3]);
+    }
+    expect(BUILTIN_GAMES.find(x => x.id === 'M12')?.logMetricType).toBe('vestibular_landing');
+  });
 });
 
 describe('template helpers', () => {

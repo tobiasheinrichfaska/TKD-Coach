@@ -13,6 +13,8 @@
 ### Data Model
 **Visual reference:** open [`docs/data-model.html`](docs/data-model.html) in a browser — a self-contained doc of every entity, the reducer actions, and the pure domain functions (metrics/selectors/templates/catalogs/migration). Regenerate it when the model changes.
 
+**Seeding a Trainingsplan as a Werkseinstellung:** [`docs/trainingsplan-seed-prompt.md`](docs/trainingsplan-seed-prompt.md) holds a claude.ai authoring prompt — it makes the web model emit a Trainingsplan as structured JSON (intent + phase/duration/technique/body-part tags). Paste that JSON back here and Claude Code matches each exercise to an existing built-in Übung or mints a new `GameDefinition`, adds the `SessionTemplate` to `SESSION_TEMPLATES` + `BUILTIN_TEMPLATES`, keeps the catalogs referentially intact, updates the integrity tests + `data-model.html`, and runs the suite.
+
 See [`src/types/index.ts`](src/types/index.ts) for full schema. Core entities:
 - **Person:** the single human identity (name, email?, phones≤5, `isCoach`). Roles attach by **composition, not inheritance**: an embedded `athlete` profile (belt/birthYear/neuroProfile/poomsae/techniques) and `isCoach`. One person can be athlete + coach + another athlete's guardian at once. The UI keeps "athlete" via the flat `AthleteView` (`domain/people.ts`: `athleteViews`, `toAthleteView`).
 - **Group:** name, `athleteIds` → Person ids (M:N, sole membership link; 0..n groups), and `trainingTimes` (weekly `TrainingSlot{weekday 1–7, start "HH:MM", durationMin}`). Schedule logic in `domain/schedule.ts` (`nextSession`, `slotsOnDay`/`trainsOn`, `formatSlot`) drives PlanSession date prefill + Dashboard "Training heute". No `ageCategory` (retired; convey via the name).

@@ -59,6 +59,44 @@ export const BUILTIN_GAMES: GameDefinition[] = [
     techniques: ['footwork'], bodyParts: ['vestibular', 'gaze-stability', 'visual', 'balance', 'ankle', 'knee', 'hip', 'neck', 'feet'],
     isBuiltIn: true, description: 'Blickfixierter Richtungsgang — VOR + Blickstabilisierung in Bewegung.',
   },
+  // ===== Tornadokick · vestibulär geführte Drehkick-Progression (Phase 3 · Main) =====
+  {
+    id: 'M7', name: 'Spin & Spotting', shortName: 'Spin-Spot', sessionPhases: [3],
+    defaultMinutes: 7, ageGroup: 'youth-adults',
+    techniques: ['footwork'], bodyParts: ['vestibular', 'visual', 'gaze-stability', 'balance'],
+    isBuiltIn: true, description: '360°-Drehungen am Boden mit frühem Wiederfinden des fixierten Zielpunkts zur Schulung von Blickführung und Gleichgewicht.',
+  },
+  {
+    id: 'M8', name: 'Sprung-Drehung 360°', shortName: 'Sprung360', sessionPhases: [3],
+    defaultMinutes: 7, ageGroup: 'youth-adults',
+    techniques: [], bodyParts: ['vestibular', 'proprioception', 'balance', 'ankle'],
+    isBuiltIn: true, description: 'Senkrechter Sprung mit 360°-Drehung und kontrollierter beidbeiniger Landung zur Schulung der Luftorientierung.',
+  },
+  {
+    id: 'M9', name: 'Roundhouse am Boden mit Switch', shortName: 'SwitchDol', sessionPhases: [3],
+    defaultMinutes: 7, ageGroup: 'all',
+    techniques: ['dollyo-chagi'], bodyParts: ['hip', 'hip-rotators', 'knee', 'balance', 'proprioception'],
+    isBuiltIn: true, description: 'Switch-Step in den Dollyo Chagi am Boden, um Standfuß-Pivot und Hüftrotation als Grundlage des Drehkicks zu bahnen.',
+  },
+  {
+    id: 'M10', name: 'Halber Tornado ohne Sprung', shortName: 'HalbTorn', sessionPhases: [3],
+    defaultMinutes: 7, ageGroup: 'youth-adults',
+    techniques: ['momdollyo-chagi', 'dollyo-chagi'], bodyParts: ['hip', 'hip-rotators', 'vestibular', 'balance', 'coordination'],
+    isBuiltIn: true, description: 'Einstiegsschritt, Drehung und Roundhouse ohne Flugphase, um die Drehkick-Sequenz sicher zu verankern.',
+  },
+  {
+    id: 'M11', name: 'Tornado mit kleinem Hüpfer', shortName: 'TornHop', sessionPhases: [3],
+    defaultMinutes: 6, ageGroup: 'youth-adults',
+    techniques: ['momdollyo-chagi', 'twio-chagi'], bodyParts: ['hip', 'balance', 'vestibular', 'proprioception', 'coordination'],
+    isBuiltIn: true, description: 'Drehkick mit niedrigem Absprung auf Hüfthöhe bei kontrollierter Drehachse und Landung.',
+  },
+  {
+    id: 'M12', name: 'Voller Tornadokick ans Pad', shortName: 'Tornado', sessionPhases: [3],
+    defaultMinutes: 8, ageGroup: 'youth-adults', logMetricType: 'vestibular_landing',
+    techniques: ['momdollyo-chagi', 'twio-chagi'], bodyParts: ['hip', 'balance', 'vestibular', 'proprioception', 'coordination', 'full-body'],
+    isBuiltIn: true, description: 'Vollständiger Tornadokick ans Pad mit blickgeführter Drehung, hüftgetriebenem Kick und weicher Landung.',
+  },
+
   // ===== Neuro cool-down (Phase 4 · Static) =====
   {
     id: 'C1', name: 'Balance-Halten Challenge', shortName: 'Balance', sessionPhases: [4],
@@ -114,6 +152,13 @@ export const SESSION_TEMPLATES = {
   ] as const,
   STATIC_BLOCK: [
     'D-standing-forward-fold', 'D-seated-forward-fold', 'D-hip-flexor-lunge', 'D-straddle-pancake', 'D-butterfly', 'D-downward-dog', 'C3',
+  ] as const,
+  TORNADO_VESTIBULAR: [
+    'K-ankle-circles', 'K-knee-circles', 'K-hip-cars', 'K-spinal-flow', 'K-scorpion',
+    'K-leg-swings-fb', 'K-leg-swings-lat', 'K-march-knee-heel', 'K-footwork-skip', 'K-neck-refocus', 'K-single-leg-balance',
+    'M7', 'M8', 'M9', 'M10', 'M11', 'M12',
+    'D-standing-forward-fold', 'D-seated-forward-fold', 'D-hip-flexor-lunge', 'D-straddle-pancake', 'D-butterfly', 'D-downward-dog',
+    'C3',
   ] as const,
 };
 

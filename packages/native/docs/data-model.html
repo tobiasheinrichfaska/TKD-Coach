@@ -167,8 +167,8 @@ factory rows.</p>
 <table>
 <thead><tr><th>Factory data</th><th>What</th><th>Seeded</th><th>Editable?</th></tr></thead>
 <tbody>
-<tr><td><code>BUILTIN_GAMES</code> (29 Übungen)</td><td>The drill library — neuro games (W/M/C) + the mobility/stretch protocol (K/D).</td><td>Once, on fresh install.</td><td>Yes — edits persist. A "reset to factory" is planned (Phase 4).</td></tr>
-<tr><td><code>BUILTIN_TEMPLATES</code> (4)</td><td><span class="pill">kids-2h</span><span class="pill">youth-adult-1h30</span><span class="pill">mobility-warmup</span><span class="pill">static-block</span></td><td>Once, on fresh install.</td><td>Yes — edits persist.</td></tr>
+<tr><td><code>BUILTIN_GAMES</code> (35 Übungen)</td><td>The drill library — neuro games (W/M/C, incl. the M7–M12 Tornadokick progression) + the mobility/stretch protocol (K/D).</td><td>Once, on fresh install.</td><td>Yes — edits persist. A "reset to factory" is planned (Phase 4).</td></tr>
+<tr><td><code>BUILTIN_TEMPLATES</code> (5)</td><td><span class="pill">kids-2h</span><span class="pill">youth-adult-1h30</span><span class="pill">mobility-warmup</span><span class="pill">static-block</span><span class="pill">tornado-vestibular</span></td><td>Once, on fresh install.</td><td>Yes — edits persist.</td></tr>
 <tr><td><code>BUILTIN_BODY_PARTS</code> (32)</td><td>22 anatomical + 10 neuro abilities → <code>AppData.bodyParts</code>.</td><td>Once, on fresh install.</td><td>Yes. Synced (id-keyed).</td></tr>
 <tr><td><code>BUILTIN_TECHNIQUES</code> (47)</td><td>Kicks/stances/blocks/strikes/footwork + poomsae → <code>AppData.techniques</code>.</td><td>Once, on fresh install.</td><td>Yes. Synced (id-keyed).</td></tr>
 <tr><td><code>BUILTIN_METRIC_SCHEMAS</code> (6)</td><td>Assessment metric definitions → <code>AppData.metricSchemas</code>.</td><td>Once, on fresh install.</td><td>Yes, but <strong>not synced</strong> (keyed by <code>type</code>, not id). The <code>AssessmentMetric</code> union stays the compile-time known set.</td></tr>
@@ -455,7 +455,7 @@ person can be a guardian for one athlete and only a contact for another. Phones/
 <tr><td><code>description</code> <span class="opt">?</span></td><td>string</td><td></td></tr>
 </tbody>
 </table>
-<p>Built-ins: <span class="pill">kids-2h</span><span class="pill">youth-adult-1h30</span><span class="pill">mobility-warmup</span><span class="pill">static-block</span></p>
+<p>Built-ins: <span class="pill">kids-2h</span><span class="pill">youth-adult-1h30</span><span class="pill">mobility-warmup</span><span class="pill">static-block</span><span class="pill">tornado-vestibular</span></p>
 
 <!-- ============ PLAN ============ -->
 <h2 id="plan">SessionPlan</h2>

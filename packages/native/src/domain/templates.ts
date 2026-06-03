@@ -37,6 +37,14 @@ export const BUILTIN_TEMPLATES: SessionTemplate[] = [
     isBuiltIn: true,
     description: 'Statischer Flexibilitätsblock zum Abschluss.',
   },
+  {
+    id: 'tornado-vestibular',
+    name: 'Tornadokick · Vestibulär-Fokus',
+    ageGroup: 'youth-adults',
+    itemIds: [...SESSION_TEMPLATES.TORNADO_VESTIBULAR],
+    isBuiltIn: true,
+    description: 'Mobilisierung und neuro-dynamisches Aufwärmen, vestibulär-visuell geführte Tornadokick-Progression im Hauptteil, gestraffter Cool-down und Atem-Down-Regulation.',
+  },
 ];
 
 export function getTemplate(templates: SessionTemplate[], id: string): SessionTemplate | undefined {
