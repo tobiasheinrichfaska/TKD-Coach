@@ -2,7 +2,8 @@
   "expo": {
     "name": "TKD Coach",
     "slug": "tkd-coach",
-    "version": "0.1.1",
+    "version": "0.1.2",
+    "icon": "./assets/expo/icon.png",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -13,7 +14,11 @@
     },
     "android": {
       "package": "com.tobiasheinrich.tkdcoach",
-      "versionCode": 2,
+      "versionCode": 3,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/expo/adaptive-icon.png",
+        "backgroundColor": "#F0532C"
+      },
       "permissions": [
         "android.permission.CAMERA"
       ],
@@ -33,11 +38,23 @@
         }
       ],
       "expo-audio",
-      "./plugins/withTrimAudioServices"
+      "./plugins/withTrimAudioServices",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/expo/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F8F8F8"
+        }
+      ]
     ],
     "orientation": "default",
     "backgroundColor": "#F8F8F8",
     "primaryColor": "#CC0000",
+    "web": {
+      "favicon": "./assets/expo/favicon.png"
+    },
     "extra": {
       "eas": {
         "projectId": "a1e2b30b-1b5b-4b0b-ab44-1f98b7370f8c"

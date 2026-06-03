@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="tkdSqBody" x1="0.12" y1="0.04" x2="0.88" y2="0.98">
+      <stop offset="0" stop-color="#FF8B5A"></stop>
+      <stop offset="0.45" stop-color="#F0532C"></stop>
+      <stop offset="1" stop-color="#C32A18"></stop>
+    </linearGradient>
+    <radialGradient id="tkdSqSheen" cx="0.5" cy="0.12" r="0.7">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.42"></stop>
+      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.06"></stop>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="tkdSqDepth" cx="0.5" cy="0.95" r="0.85">
+      <stop offset="0" stop-color="#5E0E06" stop-opacity="0.30"></stop>
+      <stop offset="0.55" stop-color="#5E0E06" stop-opacity="0"></stop>
+    </radialGradient>
+    <filter id="tkdSqShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#4A0A04" flood-opacity="0.30"></feDropShadow>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#tkdSqBody)"></rect>
+  <rect width="1024" height="1024" fill="url(#tkdSqDepth)"></rect>
+
+  <g filter="url(#tkdSqShadow)" fill="none" stroke="#FFFFFF" stroke-width="62" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M470 600 L398 408"></path>
+    <path d="M470 600 L452 728 L498 858"></path>
+    <path d="M470 600 L612 556 L822 470"></path>
+    <path d="M404 432 L330 520"></path>
+    <path d="M404 432 L520 462 L566 410"></path>
+  </g>
+  <circle cx="386" cy="356" r="66" fill="#FFFFFF" filter="url(#tkdSqShadow)"></circle>
+  <circle cx="838" cy="464" r="20" fill="#FFFFFF"></circle>
+
+  <rect width="1024" height="1024" fill="url(#tkdSqSheen)"></rect>
+</svg>

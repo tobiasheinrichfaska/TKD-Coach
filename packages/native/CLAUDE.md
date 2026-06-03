@@ -9,6 +9,7 @@
 - **React Navigation v7** — 5 bottom tabs: **Dashboard · Sessions · Humans · Other Data · Settings** (each a nested NativeStack). *Humans* hub → Athletes / Groups / Emergency contacts & guardians / Assessment (Assessment is nested under Humans, not a top tab). *Other Data* hub → Games / Techniques / Body parts / Session templates / Metric schemas (browse) + a **Werkseinstellung** (factory-reset) button. *Settings* hub → language switch (DE/EN), **QR Transfer** (nested — no longer a top tab), and maintenance (Clear stuck sessions).
 - **AsyncStorage 2.2.0** for persistence (300ms debounce)
 - **React Native** (0.81.5) — no UI library, custom StyleSheet-based components
+- **App icon / splash** — `expo-splash-screen` plugin + `app.json` `icon`/`adaptiveIcon`/`web.favicon` point at the build set in `assets/expo/` (regenerate from `assets/tkd-icon.svg`; see root CLAUDE.md § Build).
 
 ### Data Model
 **Visual reference:** open [`docs/data-model.html`](docs/data-model.html) in a browser — a self-contained doc of every entity, the reducer actions, and the pure domain functions (metrics/selectors/templates/catalogs/migration). Regenerate it when the model changes.
