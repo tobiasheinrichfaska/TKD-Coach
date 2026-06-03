@@ -1,0 +1,29 @@
+# Normalize text to LF in the repo AND the working tree. Overrides the
+# system-wide core.autocrlf=true that Git-for-Windows sets, which otherwise
+# emits "LF will be replaced by CRLF" warnings on every edit and makes line
+# endings depend on each machine's git install instead of the repo.
+* text=auto eol=lf
+
+# Windows batch files must stay CRLF (cmd.exe can mishandle LF-only scripts)
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Binary assets — never convert
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.ico   binary
+*.gif   binary
+*.webp  binary
+*.svg   text eol=lf
+*.wav   binary
+*.mp3   binary
+*.pdf   binary
+*.zip   binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.aab   binary
+*.apk   binary
+*.keystore binary
