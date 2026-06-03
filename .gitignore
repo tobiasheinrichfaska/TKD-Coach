@@ -4,6 +4,10 @@ node_modules/
 dist/
 build/
 
+# Expo prebuild output (managed workflow — EAS regenerates these from app.json + plugins)
+packages/native/android/
+packages/native/ios/
+
 # Exception: the vendored qr-sync engine ships its compiled dist (consumed via
 # file:./vendor/qr-sync so EAS cloud builds can resolve it). Must be committed.
 !packages/native/vendor/qr-sync/dist/

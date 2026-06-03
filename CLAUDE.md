@@ -33,6 +33,8 @@ Human-tester instructions live in [`manual_tests/`](manual_tests/README.md): gro
 - App id: `com.tobiasheinrich.tkdcoach`. Bump `android.versionCode` for every Play upload.
 - Build (from `packages/native`, needs an Expo login): `eas login` → `eas init` → `eas build -p android --profile production`.
 
+**Android permissions posture (camera-only).** The app needs only `CAMERA` (QR scanning, both lenses) plus a one-shot foreground beep. `expo-audio` would otherwise inject a media-playback **and** a microphone **foreground service** + `FOREGROUND_SERVICE*` / `RECORD_AUDIO` permissions — which Google Play flags as "plays media/video in the foreground." We never start those services, so they're stripped: `app.json` declares only `CAMERA`, lists the unwanted perms under `android.blockedPermissions`, sets the expo-camera plugin `recordAudioAndroid:false` / `microphonePermission:false`, and a local config plugin [`plugins/withTrimAudioServices.js`](packages/native/plugins/withTrimAudioServices.js) adds `tools:node="remove"` overrides for the two `expo.modules.audio.service.*` services. Verify after dependency bumps with `npx expo prebuild -p android --clean` → inspect `android/app/src/main/AndroidManifest.xml` (then delete the generated `android/`).
+
 ---
 
 ## Known Limitations
