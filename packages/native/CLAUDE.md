@@ -148,6 +148,7 @@ src/
 ├── domain/             ← pure, UI-free logic layer (fully unit-tested in __tests__/)
 │   ├── index.ts         ← barrel re-export
 │   ├── migration.ts     ← migrate(): seed-once built-ins + legacy→Person conversion
+│   ├── starter.ts       ← seedStarterGroup(): fresh-install only "Beispielgruppe" + "Max Mustermann"
 │   ├── selectors.ts     ← reconcileRunningLogs, getMetricSchema, etc.
 │   ├── people.ts        ← AthleteView helpers (athleteViews/toAthleteView/getPerson)
 │   ├── attendance.ts    ← roster snapshot helpers

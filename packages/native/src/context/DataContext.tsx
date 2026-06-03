@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppData } from '../types';
 import { appReducer, EMPTY_STATE, Action, EMPTY_APP_DATA } from './reducer';
 import { migrate } from '../domain/migration';
-import { devSeed } from '../domain';
+import { devSeed, seedStarterGroup } from '../domain';
 import { toLocalDateISO } from '../utils/format';
 import { DEV_RESEED } from '../constants/config';
 
@@ -34,10 +34,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        // True fresh install (nothing stored): seed factory catalogs + a starter group/
+        // athlete so a session can be planned immediately. seedStarterGroup runs ONLY here,
+        // never in migrate's "when empty" path, so deleting the example is permanent.
+        if (stored == null) {
+          dispatch({ type: 'LOAD_ALL', payload: seedStarterGroup(migrate(EMPTY_APP_DATA)) });
+          return;
+        }
         // migrate() (pure, unit-tested in domain/migration) refreshes built-in Übungen +
-        // templates and backfills missing collections. On a fresh install it seeds them
-        // from EMPTY_APP_DATA, so both branches go through the same path.
-        const parsed = stored ? JSON.parse(stored) : EMPTY_APP_DATA;
+        // templates and backfills missing collections.
+        const parsed = JSON.parse(stored);
         // Guard against a corrupt store (a primitive/array would throw in migrate's
         // object-spread, then silently reset via catch) — seed fresh instead.
         const data: AppData =

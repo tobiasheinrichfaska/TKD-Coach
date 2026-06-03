@@ -176,6 +176,11 @@ factory rows.</p>
 </table>
 <div class="note warn">Consequence: re-tagging a built-in (e.g. adding neuro abilities to a game) reaches <strong>fresh installs only</strong>;
 existing devices keep their seeded copy until they edit it or use the planned factory reset.</div>
+<div class="note">Starter user data — on a <strong>truly fresh install only</strong> (no stored data) the app also seeds one example
+<strong>group "Beispielgruppe"</strong> with one example <strong>athlete "Max Mustermann"</strong> (<code>seedStarterGroup</code>,
+<code>domain/starter.ts</code>), so a session can be planned immediately. Unlike the catalogs this is <strong>not</strong> re-seeded by
+<code>migrate()</code>'s "when empty" rule and is fully user-owned: editing or deleting it is permanent, and the <em>Werkseinstellung</em>
+reset does not bring it back.</div>
 <div class="note">Planned — <strong>"Werkseinstellung" button</strong> (Phase 4, Other Data / Settings): re-seed the factory stores
 (games, templates, body parts, techniques, metric schemas) from the <code>BUILTIN_*</code> seeds, overwriting catalog edits while
 <strong>keeping</strong> the user's people / groups / sessions / assessments / contact links. Behind a destructive confirm.</div>
