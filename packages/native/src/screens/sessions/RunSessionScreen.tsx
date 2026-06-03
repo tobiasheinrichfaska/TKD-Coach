@@ -160,6 +160,16 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
   const phaseOf = (gid: string): SessionPhase =>
     plan?.gamePhases?.[gid] ?? primaryPhase(gamesById.get(gid));
 
+  // Planned minutes budgeted per phase — shown as a subtotal on each phase heading.
+  const phaseMinutes = useMemo(() => {
+    const m = new Map<SessionPhase, number>();
+    for (const l of gameLogs) {
+      const ph = plan?.gamePhases?.[l.gameId] ?? primaryPhase(gamesById.get(l.gameId));
+      m.set(ph, (m.get(ph) ?? 0) + (gamesById.get(l.gameId)?.defaultMinutes ?? 0));
+    }
+    return m;
+  }, [gameLogs, gamesById, plan]);
+
   /**
    * Strong, repeated signal that the planned duration was reached — meant to cut
    * through a noisy dojo. Loud 3-pulse beep + a Warning buzz + 3 heavy taps.
@@ -404,7 +414,7 @@ export default function RunSessionScreen({ route, navigation }: SessionsStackScr
           const active = idx === currentGameIndex;
           const overrunHere = active && isOverrun;
           const p = phaseOf(log.gameId);
-          const heading = p !== lastPhase ? t(SESSION_PHASE_LABELS[p]) : null;
+          const heading = p !== lastPhase ? `${t(SESSION_PHASE_LABELS[p])} · ${phaseMinutes.get(p) ?? 0} min` : null;
           lastPhase = p;
           return (
             <React.Fragment key={idx}>

@@ -17,25 +17,11 @@ import { toLocalDateISO } from '../../utils/format';
 import { nextSession, slotsOnDay, formatSlot, primaryPhase, gameInPhase, phaseBand } from '../../domain';
 import { SESSION_PHASE_LABELS, SessionPhase } from '../../types';
 import { useT } from '../../i18n';
-import type { Group } from '../../types';
+import type { Group, SessionTemplate } from '../../types';
 import type { SessionsStackScreenProps } from '../../types/navigation';
 
 type TemplateId = 'kids-2h' | 'youth-adult-1h30' | 'custom';
 const PHASES: SessionPhase[] = [1, 2, 3, 4, 5];
-
-// Chip-grouped template library (dive into a group → pick a template).
-const TEMPLATE_GROUPS: { label: string; items: { name: string; t: TemplateId; ids: readonly string[] }[] }[] = [
-  {
-    label: 'Full session',
-    items: [
-      { name: 'Kids 2h', t: 'kids-2h', ids: SESSION_TEMPLATES.KIDS_2H },
-      { name: 'Youth/Adult 1.5h', t: 'youth-adult-1h30', ids: SESSION_TEMPLATES.YOUTH_ADULT_1H30 },
-    ],
-  },
-  { label: 'Warm-up', items: [{ name: 'Mobility', t: 'custom', ids: SESSION_TEMPLATES.MOBILITY_WARMUP }] },
-  { label: 'Cool-down', items: [{ name: 'Static block', t: 'custom', ids: SESSION_TEMPLATES.STATIC_BLOCK }] },
-  { label: 'Empty', items: [{ name: 'Clear', t: 'custom', ids: [] }] },
-];
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -92,7 +78,11 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
   );
   // Per-game phase placement override (id → phase). Empty entries fall back to primaryPhase.
   const [phases, setPhases] = useState<Record<string, SessionPhase>>(plan?.gamePhases || {});
-  const [openGroup, setOpenGroup] = useState<string | null>('Full session');
+  // Which template chip is currently applied (data-driven from state.sessionTemplates).
+  // null = a custom/empty selection with no template highlighted.
+  const [templateId, setTemplateId] = useState<string | null>(
+    plan?.templateId ?? (plan || fromGameIds?.length ? null : 'kids-2h')
+  );
   // Which add-list is open: a phase number (per-phase add) or 'all' (central add).
   const [openAdd, setOpenAdd] = useState<SessionPhase | 'all' | null>(null);
   const [query, setQuery] = useState('');
@@ -108,14 +98,23 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     }
   };
 
-  const applyTemplate = (tpl: TemplateId, ids: readonly string[]) => {
-    setGameIds([...ids]);
+  const applyTemplate = (tpl: SessionTemplate) => {
+    setGameIds([...tpl.itemIds]);
     setPhases({}); // template items use their natural (lowest) phase
-    setTemplate(tpl);
+    setTemplate(tpl.id === 'kids-2h' || tpl.id === 'youth-adult-1h30' ? tpl.id : 'custom');
+    setTemplateId(tpl.id);
   };
+  const clearTemplate = () => {
+    setGameIds([]);
+    setPhases({});
+    setTemplate('custom');
+    setTemplateId(null);
+  };
+  // Any manual edit drops the template highlight — the plan no longer matches a template.
   const setGames = (next: string[]) => {
     setGameIds(next);
     setTemplate('custom');
+    setTemplateId(null);
   };
   const removeGame = (gid: string) => {
     setGames(gameIds.filter(x => x !== gid));
@@ -169,7 +168,7 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
     // Persist in phase order so the run follows the phases; record placement for all games.
     const ordered = [...gameIds].sort((a, b) => phaseOf(a) - phaseOf(b));
     const gamePhases = Object.fromEntries(gameIds.map(g => [g, phaseOf(g)])) as Record<string, SessionPhase>;
-    const payload = { name, groupId, plannedDate: date, template, plannedGames: ordered, gamePhases };
+    const payload = { name, groupId, plannedDate: date, template, templateId: templateId ?? undefined, plannedGames: ordered, gamePhases };
     if (planId && plan) {
       dispatch({ type: 'UPDATE_SESSION_PLAN', payload: { ...plan, ...payload } });
     } else {
@@ -267,41 +266,34 @@ export default function PlanSessionScreen({ route, navigation }: SessionsStackSc
 
         <Text style={styles.section}>{t('Template')}</Text>
         <View style={styles.chipRow}>
-          {TEMPLATE_GROUPS.map(grp => {
-            // Single-item groups (Empty/Warm-up/Cool-down) apply in one tap; multi-item groups open.
-            const single = grp.items.length === 1 ? grp.items[0] : null;
-            const onPress = single
-              ? () => applyTemplate(single.t, single.ids)
-              : () => setOpenGroup(g => (g === grp.label ? null : grp.label));
+          {state.sessionTemplates.map(tpl => {
+            const active = tpl.id === templateId;
             return (
-              <TouchableOpacity key={grp.label} style={[styles.chip, openGroup === grp.label && styles.chipActive]} onPress={onPress}>
-                <Text style={[styles.chipText, openGroup === grp.label && styles.chipTextActive]}>{grp.label}</Text>
+              <TouchableOpacity key={tpl.id} style={[styles.chip, active && styles.chipActive]} onPress={() => applyTemplate(tpl)}>
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{tpl.name}</Text>
               </TouchableOpacity>
             );
           })}
+          {(() => {
+            const emptyActive = templateId === null && gameIds.length === 0;
+            return (
+              <TouchableOpacity style={[styles.chip, emptyActive && styles.chipActive]} onPress={clearTemplate}>
+                <Text style={[styles.chipText, emptyActive && styles.chipTextActive]}>{t('Empty')}</Text>
+              </TouchableOpacity>
+            );
+          })()}
         </View>
-        {openGroup && (
-          <View style={styles.chipRow}>
-            {TEMPLATE_GROUPS.find(g => g.label === openGroup)!.items.map(it => {
-              const active = it.t === template && it.t !== 'custom';
-              return (
-                <TouchableOpacity key={it.name} style={[styles.chip, active && styles.chipActive]} onPress={() => applyTemplate(it.t, it.ids)}>
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{it.name}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
 
         <Text style={styles.section}>{t('Exercises')} ({gameIds.length} · {totalMinutes} min)</Text>
         {/* All phases always shown, even when empty, each with its own add button. */}
         {PHASES.map(phase => {
           const inPhase = gameIds.filter(g => phaseOf(g) === phase);
+          const phaseMin = inPhase.reduce((s, gid) => s + (gamesById.get(gid)?.defaultMinutes || 0), 0);
           const band = phaseBand(phase);
           const border = band === 'warmup' ? COLORS.warmup : band === 'cooldown' ? COLORS.cooldown : COLORS.main;
           return (
             <View key={phase}>
-              <Text style={styles.phaseHeading}>{t(SESSION_PHASE_LABELS[phase])}</Text>
+              <Text style={styles.phaseHeading}>{t(SESSION_PHASE_LABELS[phase])}{inPhase.length ? ` · ${phaseMin} min` : ''}</Text>
               {inPhase.map(gid => {
                 const g = gamesById.get(gid);
                 const pos = inPhase.indexOf(gid);

@@ -70,6 +70,7 @@ export const de: Record<string, string> = {
   'body/neuro': 'Körper/Neuro',
   'Session templates': 'Session-Vorlagen',
   'Template': 'Vorlage',
+  'Empty': 'Leer',
   'Metric schemas': 'Metrik-Schemata',
   'Metric schema': 'Metrik-Schema',
   'Game': 'Übung',
